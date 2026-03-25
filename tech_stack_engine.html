@@ -1,0 +1,4244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OLFA Financial Model — Interactive Viewer</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0e1a;
+        --surface: #111827;
+        --surface2: #1a2236;
+        --border: #1e2a45;
+        --text: #e2e8f0;
+        --text-dim: #8892a8;
+        --accent: #6366f1;
+        --accent2: #818cf8;
+        --green: #34d399;
+        --red: #f87171;
+        --yellow: #fbbf24;
+        --blue: #60a5fa;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      .header {
+        background: linear-gradient(135deg, #1a1a40 0%, #0a0e1a 50%, #1a2236 100%);
+        padding: 32px 48px;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+      }
+      .header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+      }
+      .header h1 {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #e2e8f0, #6366f1);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        position: relative;
+      }
+      .header p {
+        color: var(--text-dim);
+        font-size: 14px;
+        margin-top: 6px;
+        position: relative;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+        padding: 16px 48px 0;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+      .tab {
+        padding: 10px 20px;
+        border: none;
+        background: none;
+        color: var(--text-dim);
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+        transition: all 0.2s;
+        border-radius: 8px 8px 0 0;
+      }
+      .tab:hover {
+        color: var(--text);
+        background: var(--surface);
+      }
+      .tab.active {
+        color: var(--accent2);
+        border-bottom-color: var(--accent);
+        background: var(--surface);
+      }
+      .content {
+        padding: 32px 48px;
+      }
+      .sheet {
+        display: none;
+      }
+      .sheet.active {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      .card h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card h2 .icon {
+        font-size: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th {
+        text-align: left;
+        padding: 10px 12px;
+        background: var(--surface2);
+        color: var(--text-dim);
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+      }
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(30, 42, 69, 0.5);
+      }
+      tr:hover td {
+        background: rgba(99, 102, 241, 0.05);
+      }
+      .num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+      }
+      .total td {
+        font-weight: 700;
+        background: var(--surface2);
+        border-top: 2px solid var(--border);
+      }
+      .positive {
+        color: var(--green);
+      }
+      .negative {
+        color: var(--red);
+      }
+      .highlight {
+        color: var(--accent2);
+        font-weight: 600;
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 28px;
+      }
+      .kpi {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 22px 24px;
+        transition:
+          transform 0.2s,
+          border-color 0.2s;
+      }
+      .kpi:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+      }
+      .kpi-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-dim);
+        margin-bottom: 6px;
+      }
+      .kpi-value {
+        font-size: 24px;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+      }
+      .kpi-sub {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-top: 6px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .badge-green {
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--green);
+      }
+      .badge-red {
+        background: rgba(248, 113, 113, 0.15);
+        color: var(--red);
+      }
+      .badge-blue {
+        background: rgba(96, 165, 250, 0.15);
+        color: var(--blue);
+      }
+      .badge-yellow {
+        background: rgba(251, 191, 36, 0.15);
+        color: var(--yellow);
+      }
+
+      .phase-header {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.02));
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+      }
+      .phase-header h3 {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--accent2);
+      }
+      .phase-header p {
+        font-size: 13px;
+        color: var(--text-dim);
+        margin-top: 4px;
+      }
+      .feature-list {
+        list-style: none;
+        padding: 0;
+      }
+      .feature-list li {
+        padding: 8px 16px;
+        border-left: 2px solid var(--border);
+        margin-bottom: 4px;
+        font-size: 13px;
+        transition: border-color 0.2s;
+      }
+      .feature-list li:hover {
+        border-left-color: var(--accent);
+      }
+      .feature-category {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--accent2);
+        margin: 16px 0 8px;
+      }
+      .table-scroll {
+        overflow-x: auto;
+      }
+
+      .bar-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        height: 200px;
+        padding: 16px 0;
+      }
+      .bar-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+      }
+      .bar {
+        width: 100%;
+        max-width: 40px;
+        background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
+        border-radius: 4px 4px 0 0;
+        min-height: 4px;
+        transition: height 0.5s ease;
+      }
+      .bar-label {
+        font-size: 10px;
+        color: var(--text-dim);
+        margin-top: 6px;
+        text-align: center;
+      }
+      .bar-value {
+        font-size: 10px;
+        color: var(--text);
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+
+      .scenario-builder {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(99, 102, 241, 0.02));
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      .scenario-builder h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .scenario-builder .subtitle {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-bottom: 20px;
+      }
+      .sb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+      .sb-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .sb-field label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-dim);
+        font-weight: 600;
+      }
+      .sb-field .input-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .sb-field input[type='range'] {
+        flex: 1;
+        accent-color: var(--accent);
+        height: 6px;
+        cursor: pointer;
+      }
+      .sb-field .val {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--accent2);
+        min-width: 65px;
+        text-align: right;
+      }
+      .sb-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        align-items: center;
+      }
+      .sb-btn {
+        padding: 8px 20px;
+        border-radius: 8px;
+        border: none;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .sb-btn-reset {
+        background: var(--surface2);
+        color: var(--text-dim);
+        border: 1px solid var(--border);
+      }
+      .sb-btn-reset:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+      .delta {
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: auto;
+      }
+      .delta.up {
+        color: var(--green);
+      }
+      .delta.down {
+        color: var(--red);
+      }
+      .sb-section {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent2);
+        margin: 20px 0 8px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(99, 102, 241, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sb-section:first-of-type {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+      }
+      .sb-btn-save {
+        background: var(--accent);
+        color: #fff;
+      }
+      .sb-btn-save:hover {
+        background: var(--accent2);
+      }
+      .saved-scenarios {
+        margin-top: 16px;
+      }
+      .saved-scenarios h3 {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+      }
+      .scenario-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 8px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin: 0 6px 6px 0;
+      }
+      .scenario-chip:hover {
+        border-color: var(--accent);
+        color: var(--accent2);
+      }
+      .scenario-chip .del {
+        color: var(--text-dim);
+        font-size: 14px;
+        margin-left: 4px;
+        cursor: pointer;
+      }
+      .scenario-chip .del:hover {
+        color: var(--red);
+      }
+      .scenario-chip.active {
+        border-color: var(--accent);
+        background: rgba(99, 102, 241, 0.12);
+        color: var(--accent2);
+      }
+      .base-chip {
+        background: rgba(52, 211, 153, 0.1);
+        border-color: rgba(52, 211, 153, 0.3);
+        color: var(--green);
+        cursor: pointer;
+      }
+      .base-chip:hover {
+        border-color: var(--green);
+      }
+      /* Currency selector */
+      .currency-bar {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .currency-bar label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-dim);
+      }
+      .currency-select {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 14px;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .currency-select:hover,
+      .currency-select:focus {
+        border-color: var(--accent);
+      }
+      [data-tip] {
+        position: relative;
+        cursor: help;
+      }
+      [data-tip]::after {
+        content: attr(data-tip);
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 400;
+        white-space: normal;
+        width: max-content;
+        max-width: 260px;
+        line-height: 1.5;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--border);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 100;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+      [data-tip]:hover::after {
+        opacity: 1;
+      }
+      .tip-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: rgba(99, 102, 241, 0.15);
+        color: var(--accent2);
+        font-size: 10px;
+        font-weight: 700;
+        cursor: help;
+        flex-shrink: 0;
+      }
+      .sb-name-input {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        color: var(--text);
+        outline: none;
+        width: 180px;
+      }
+      .sb-name-input:focus {
+        border-color: var(--accent);
+      }
+      .compare-row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-top: 4px;
+      }
+      .compare-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+      .compare-badge.base {
+        background: rgba(52, 211, 153, 0.12);
+        color: var(--green);
+      }
+      .compare-badge.scenario {
+        background: rgba(99, 102, 241, 0.12);
+        color: var(--accent2);
+      }
+
+      /* Accordion sections */
+      .sb-accordion {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 8px;
+        overflow: hidden;
+      }
+      .sb-accordion-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: var(--surface2);
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+      }
+      .sb-accordion-header:hover {
+        background: rgba(99, 102, 241, 0.08);
+      }
+      .sb-accordion-header h4 {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+      }
+      .sb-accordion-header .chevron {
+        font-size: 12px;
+        color: var(--text-dim);
+        transition: transform 0.3s;
+      }
+      .sb-accordion.open .chevron {
+        transform: rotate(180deg);
+      }
+      .sb-accordion-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s ease;
+      }
+      .sb-accordion.open .sb-accordion-body {
+        max-height: 600px;
+      }
+      .sb-accordion-inner {
+        padding: 12px 16px 16px;
+      }
+      /* Number input for OPEX */
+      .sb-num-input {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent2);
+        width: 100px;
+        text-align: right;
+        outline: none;
+      }
+      .sb-num-input:focus {
+        border-color: var(--accent);
+      }
+      .sb-num-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(30, 42, 69, 0.3);
+      }
+      .sb-num-row:last-child {
+        border-bottom: none;
+      }
+      .sb-num-label {
+        font-size: 12px;
+        color: var(--text-dim);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      /* ═══════════════════════════════════════════════════════════
+     Tech Cost Builder — Elevated Production Design
+     ═══════════════════════════════════════════════════════════ */
+
+      /* Animations */
+      @keyframes tcSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes tcShimmer {
+        0% {
+          background-position: -200% 0;
+        }
+        100% {
+          background-position: 200% 0;
+        }
+      }
+
+      /* Toolbar */
+      .tc-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .tc-toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .tc-svc-count {
+        font-size: 12px;
+        color: var(--text-dim);
+        font-weight: 500;
+      }
+      .tc-svc-count strong {
+        color: var(--accent2);
+        font-weight: 700;
+      }
+      .tc-toolbar button {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-dim);
+        cursor: pointer;
+        transition: all 0.25s ease;
+        letter-spacing: 0.2px;
+        font-family: 'Inter', sans-serif;
+      }
+      .tc-toolbar button:hover {
+        border-color: var(--accent);
+        color: var(--accent2);
+        background: rgba(99, 102, 241, 0.06);
+        transform: translateY(-1px);
+      }
+      .tc-toolbar button:active {
+        transform: translateY(0);
+      }
+
+      /* Phase grid */
+      .tc-phases {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+
+      /* Phase columns — each gets a subtle tinted atmosphere */
+      .tc-phase {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative;
+      }
+      .tc-phase::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        opacity: 0.04;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .tc-phase[data-phase='p0'] {
+        background: linear-gradient(180deg, rgba(16, 185, 129, 0.06) 0%, var(--surface2) 35%);
+      }
+      .tc-phase[data-phase='p0']::before {
+        background: linear-gradient(135deg, #10b981 0%, transparent 60%);
+      }
+      .tc-phase[data-phase='p1'] {
+        background: linear-gradient(180deg, rgba(59, 130, 246, 0.06) 0%, var(--surface2) 35%);
+      }
+      .tc-phase[data-phase='p1']::before {
+        background: linear-gradient(135deg, #3b82f6 0%, transparent 60%);
+      }
+      .tc-phase[data-phase='p2'] {
+        background: linear-gradient(180deg, rgba(245, 158, 11, 0.06) 0%, var(--surface2) 35%);
+      }
+      .tc-phase[data-phase='p2']::before {
+        background: linear-gradient(135deg, #f59e0b 0%, transparent 60%);
+      }
+      .tc-phase[data-phase='p3'] {
+        background: linear-gradient(180deg, rgba(139, 92, 246, 0.06) 0%, var(--surface2) 35%);
+      }
+      .tc-phase[data-phase='p3']::before {
+        background: linear-gradient(135deg, #8b5cf6 0%, transparent 60%);
+      }
+
+      .tc-phase.drop-over {
+        border-color: var(--accent);
+        box-shadow:
+          0 0 30px rgba(99, 102, 241, 0.15),
+          inset 0 0 30px rgba(99, 102, 241, 0.03);
+        transform: scale(1.01);
+      }
+
+      /* Phase header */
+      .tc-phase-header-area {
+        padding: 20px 18px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        position: relative;
+        z-index: 1;
+      }
+      .tc-phase-header {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--text-dim);
+        margin-bottom: 2px;
+      }
+      .tc-phase-timeline {
+        font-size: 11px;
+        color: var(--text-dim);
+        opacity: 0.7;
+        margin-bottom: 14px;
+        display: inline-block;
+        padding: 2px 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 4px;
+      }
+
+      /* Phase cost — color-coded per phase */
+      .tc-phase-total {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin-bottom: 2px;
+        font-variant-numeric: tabular-nums;
+      }
+      .tc-phase[data-phase='p0'] .tc-phase-total {
+        color: #10b981;
+        text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+      }
+      .tc-phase[data-phase='p1'] .tc-phase-total {
+        color: #60a5fa;
+        text-shadow: 0 0 20px rgba(96, 165, 250, 0.2);
+      }
+      .tc-phase[data-phase='p2'] .tc-phase-total {
+        color: #fbbf24;
+        text-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+      }
+      .tc-phase[data-phase='p3'] .tc-phase-total {
+        color: #a78bfa;
+        text-shadow: 0 0 20px rgba(167, 139, 250, 0.2);
+      }
+
+      .tc-phase-cumulative {
+        font-size: 11px;
+        color: var(--text-dim);
+        font-weight: 500;
+        opacity: 0.8;
+      }
+
+      /* Categories area */
+      .tc-categories-area {
+        flex: 1;
+        padding: 12px 14px 14px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Category groups */
+      .tc-cat-group {
+        margin-bottom: 10px;
+      }
+      .tc-cat-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-dim);
+        cursor: pointer;
+        user-select: none;
+        border-radius: 6px;
+        transition: all 0.2s;
+      }
+      .tc-cat-header:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+      }
+      .tc-cat-chevron {
+        font-size: 9px;
+        color: var(--text-dim);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .tc-cat-group.collapsed .tc-cat-chevron {
+        transform: rotate(-90deg);
+      }
+      .tc-cat-group.collapsed .tc-cat-services {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        padding-top: 0;
+        margin-top: 0;
+      }
+      .tc-cat-services {
+        padding-top: 4px;
+        padding-left: 2px;
+        max-height: 800px;
+        opacity: 1;
+        transition:
+          max-height 0.35s ease,
+          opacity 0.25s ease,
+          padding 0.25s ease;
+      }
+      .tc-cat-cost-badge {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--green);
+        margin-left: auto;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+      }
+      .tc-cat-group.collapsed .tc-cat-cost-badge {
+        opacity: 1;
+      }
+
+      /* Service cards */
+      .tc-service {
+        background: rgba(17, 24, 39, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s ease;
+        user-select: none;
+        animation: tcSlideUp 0.3s ease both;
+        backdrop-filter: blur(4px);
+      }
+      .tc-service:hover {
+        border-color: rgba(99, 102, 241, 0.4);
+        background: rgba(99, 102, 241, 0.06);
+        transform: translateX(3px);
+      }
+      .tc-service:active {
+        cursor: grabbing;
+        opacity: 0.5;
+        transform: scale(0.98);
+      }
+      .tc-drag-handle {
+        color: var(--text-dim);
+        opacity: 0.15;
+        font-size: 10px;
+        cursor: grab;
+        flex-shrink: 0;
+        transition: all 0.2s;
+      }
+      .tc-service:hover .tc-drag-handle {
+        opacity: 0.5;
+        color: var(--accent2);
+      }
+      .tc-svc-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .tc-svc-cost {
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-variant-numeric: tabular-nums;
+      }
+      .tc-svc-cost.free {
+        color: var(--green);
+      }
+      .tc-svc-cost.paid {
+        color: var(--yellow);
+      }
+      .tc-svc-details-btn {
+        font-size: 10px;
+        color: var(--accent2);
+        opacity: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(99, 102, 241, 0.08);
+      }
+      .tc-service:hover .tc-svc-details-btn {
+        opacity: 0.8;
+      }
+      .tc-svc-details-btn:hover {
+        opacity: 1 !important;
+        background: rgba(99, 102, 241, 0.15);
+      }
+
+      /* Description panel — smooth reveal */
+      .tc-svc-desc {
+        max-height: 0;
+        overflow: hidden;
+        font-size: 12px;
+        line-height: 1.6;
+        color: var(--text-dim);
+        padding: 0 12px;
+        margin: 0 0 0 0;
+        background: rgba(99, 102, 241, 0.03);
+        border: 1px solid transparent;
+        border-radius: 0 0 10px 10px;
+        transition:
+          max-height 0.35s ease,
+          padding 0.25s ease,
+          border-color 0.25s ease,
+          margin 0.25s ease;
+      }
+      .tc-svc-desc.visible {
+        max-height: 120px;
+        padding: 10px 12px;
+        margin: -4px 0 6px 0;
+        border-color: rgba(99, 102, 241, 0.12);
+        border-top: none;
+      }
+
+      /* ── Summary Bar ── */
+      .tc-summary-bar {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        position: relative;
+      }
+      .tc-summary-bar::before {
+        content: '';
+        position: absolute;
+        top: -1px;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, #10b981 0%, #3b82f6 33%, #f59e0b 66%, #8b5cf6 100%);
+      }
+
+      .tc-summary-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 22px 16px 18px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.25s ease;
+      }
+      .tc-summary-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      .tc-summary-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+      }
+      .tc-summary-card.phase-0::before {
+        background: linear-gradient(90deg, #10b981, #34d399);
+      }
+      .tc-summary-card.phase-1::before {
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      }
+      .tc-summary-card.phase-2::before {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      }
+      .tc-summary-card.phase-3::before {
+        background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+      }
+
+      .tc-summary-phase {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-dim);
+        margin-bottom: 10px;
+      }
+      .tc-summary-amount {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        font-variant-numeric: tabular-nums;
+        margin-bottom: 4px;
+      }
+      .tc-summary-card.phase-0 .tc-summary-amount {
+        color: #10b981;
+      }
+      .tc-summary-card.phase-1 .tc-summary-amount {
+        color: #60a5fa;
+      }
+      .tc-summary-card.phase-2 .tc-summary-amount {
+        color: #fbbf24;
+      }
+      .tc-summary-card.phase-3 .tc-summary-amount {
+        color: #a78bfa;
+      }
+      .tc-summary-annual {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-dim);
+      }
+      .tc-summary-bar-track {
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.05);
+        margin-top: 14px;
+        overflow: hidden;
+      }
+      .tc-summary-bar-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        background-size: 200% 100%;
+      }
+      .tc-summary-card.phase-0 .tc-summary-bar-fill {
+        background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+        animation: tcShimmer 3s ease-in-out infinite;
+      }
+      .tc-summary-card.phase-1 .tc-summary-bar-fill {
+        background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+        animation: tcShimmer 3s ease-in-out infinite 0.3s;
+      }
+      .tc-summary-card.phase-2 .tc-summary-bar-fill {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+        animation: tcShimmer 3s ease-in-out infinite 0.6s;
+      }
+      .tc-summary-card.phase-3 .tc-summary-bar-fill {
+        background: linear-gradient(90deg, #8b5cf6, #a78bfa, #8b5cf6);
+        animation: tcShimmer 3s ease-in-out infinite 0.9s;
+      }
+
+      /* Currency fix for dark theme */
+      .currency-select {
+        appearance: auto;
+        -webkit-appearance: auto;
+        -moz-appearance: auto;
+        background-color: var(--surface2);
+        color: var(--text);
+      }
+      .currency-select option {
+        background: var(--surface2);
+        color: var(--text);
+      }
+
+      /* ── Provider Selector ── */
+      .tc-provider-select {
+        appearance: auto;
+        -webkit-appearance: auto;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: inherit;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        padding: 3px 8px;
+        cursor: pointer;
+        margin-left: 6px;
+        transition: all 0.2s;
+        max-width: 180px;
+      }
+      .tc-provider-select:hover {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .tc-provider-select:focus {
+        outline: none;
+        border-color: var(--accent2);
+      }
+      .tc-provider-select option {
+        background: var(--surface2);
+        color: var(--text);
+      }
+
+      /* ── Compare Button ── */
+      .tc-compare-btn {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--accent2);
+        cursor: pointer;
+        padding: 3px 10px;
+        border-radius: 6px;
+        background: rgba(99, 102, 241, 0.08);
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        transition: all 0.2s;
+        white-space: nowrap;
+        margin-left: 6px;
+        letter-spacing: 0.3px;
+        font-family: inherit;
+      }
+      .tc-compare-btn:hover {
+        background: rgba(99, 102, 241, 0.18);
+        border-color: rgba(99, 102, 241, 0.3);
+        transform: scale(1.02);
+      }
+
+      /* ── Comparison Panel ── */
+      .tc-compare-panel {
+        padding: 12px;
+        margin: 4px 0 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 10px;
+        animation: tcSlideUp 0.3s ease both;
+      }
+
+      /* ── Comparison Cards ── */
+      .tc-compare-card {
+        background: rgba(17, 24, 39, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: all 0.25s ease;
+        cursor: pointer;
+      }
+      .tc-compare-card:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: rgba(17, 24, 39, 0.9);
+        transform: translateY(-1px);
+      }
+      .tc-compare-card.selected {
+        border-color: var(--accent2);
+        box-shadow:
+          0 0 20px rgba(99, 102, 241, 0.12),
+          inset 0 0 20px rgba(99, 102, 241, 0.03);
+        cursor: default;
+      }
+      .tc-compare-card.selected:hover {
+        transform: none;
+      }
+
+      .tc-compare-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .tc-compare-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .tc-compare-tags {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .tc-compare-tag {
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .tc-compare-tag.current {
+        color: var(--accent2);
+        background: rgba(99, 102, 241, 0.12);
+      }
+      .tc-compare-tag.recommended {
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.12);
+      }
+
+      .tc-compare-best-for {
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--text-dim);
+        margin: 0;
+      }
+
+      .tc-compare-scores {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      /* Score bars */
+      .tc-score-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .tc-score-label {
+        font-size: 9px;
+        font-weight: 600;
+        color: var(--text-dim);
+        width: 48px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        flex-shrink: 0;
+      }
+      .tc-score-track {
+        flex: 1;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .tc-score-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .tc-score-fill.dim-cost {
+        background: #10b981;
+      }
+      .tc-score-fill.dim-scale {
+        background: #3b82f6;
+      }
+      .tc-score-fill.dim-ease {
+        background: #fbbf24;
+      }
+      .tc-score-fill.dim-lockin {
+        background: #f87171;
+      }
+      .tc-score-fill.dim-reach {
+        background: #a78bfa;
+      }
+      .tc-score-val {
+        font-size: 9px;
+        font-weight: 600;
+        color: var(--text-dim);
+        width: 24px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Phase cost chips */
+      .tc-compare-phases {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .tc-phase-chip {
+        font-size: 9px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-dim);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Compare footer */
+      .tc-compare-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .tc-compare-total {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-dim);
+      }
+      .tc-compare-select-btn {
+        padding: 5px 14px;
+        border-radius: 6px;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        background: rgba(99, 102, 241, 0.08);
+        color: var(--accent2);
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+        white-space: nowrap;
+      }
+      .tc-compare-select-btn:hover {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: var(--accent2);
+      }
+      .tc-compare-selected-badge {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent2);
+        letter-spacing: 0.3px;
+      }
+
+      @media (max-width: 768px) {
+        .header,
+        .content,
+        .tabs {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+        .kpi-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .sb-grid {
+          grid-template-columns: 1fr;
+        }
+        .tc-phases {
+          grid-template-columns: 1fr 1fr;
+        }
+        .tc-provider-select {
+          max-width: 140px;
+          font-size: 10px;
+        }
+        .tc-compare-btn {
+          font-size: 9px;
+          padding: 2px 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="header"
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      "
+    >
+      <div>
+        <h1>📊 OLFA Financial Model</h1>
+        <p>Sharia-Compliant Debt Refinancing Platform — UAE Market · Year 1 Projections (2026)</p>
+      </div>
+      <div class="currency-bar" style="margin-bottom: 0">
+        <label>Currency</label>
+        <select class="currency-select" id="currencySelect">
+          <option value="USD" selected>🇺🇸 USD ($)</option>
+          <option value="AED">🇦🇪 AED (د.إ)</option>
+          <option value="SAR">🇸🇦 SAR (﷼)</option>
+          <option value="EUR">🇪🇺 EUR (€)</option>
+          <option value="GBP">🇬🇧 GBP (£)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-sheet="overview">Overview</button>
+      <button class="tab" data-sheet="revenue">Revenue</button>
+      <button class="tab" data-sheet="team">Team & Equity</button>
+      <button class="tab" data-sheet="techcosts">Tech Costs</button>
+    </div>
+
+    <div class="content">
+      <!-- OVERVIEW -->
+      <div class="sheet active" id="overview">
+        <div class="kpi-grid" id="kpiGrid">
+          <div
+            class="kpi"
+            data-tip="Total annual revenue from markup fees on all refinanced debt products. Calculated as sum of (Deals × Avg Debt × Markup Rate) for each product."
+          >
+            <div class="kpi-label">Year 1 Revenue <span class="tip-icon">?</span></div>
+            <div class="kpi-value positive" id="kpiRevenue">$1.12M</div>
+            <div class="kpi-sub" id="kpiRevSub">AED 4.11M · Medium markup</div>
+          </div>
+          <div
+            class="kpi"
+            data-tip="Total operating expenses: salaries, tech infrastructure, marketing, APIs, compliance, office, and customer service. Monthly × 12."
+          >
+            <div class="kpi-label">Annual OPEX <span class="tip-icon">?</span></div>
+            <div class="kpi-value negative" id="kpiOpex">$5.89M</div>
+            <div class="kpi-sub" id="kpiOpexSub">$490.8K/month</div>
+          </div>
+          <div
+            class="kpi"
+            data-tip="Pre-money valuation based on comparable fintech multiples. Price per share = Valuation ÷ Authorized Shares."
+          >
+            <div class="kpi-label">Pre-Seed Valuation <span class="tip-icon">?</span></div>
+            <div class="kpi-value highlight" id="kpiValuation">$11.17M</div>
+            <div class="kpi-sub" id="kpiValuationSub">$11.17 per share</div>
+          </div>
+          <div
+            class="kpi"
+            data-tip="Total headcount across C-suite, engineering, design, marketing, compliance, and support roles."
+          >
+            <div class="kpi-label">Team Size <span class="tip-icon">?</span></div>
+            <div class="kpi-value" style="color: var(--blue)" id="kpiTeam">16</div>
+            <div class="kpi-sub" id="kpiTeamSub">$1.88M annual payroll</div>
+          </div>
+          <div
+            class="kpi"
+            data-tip="Number of leads that convert into paying customers. Calculated as Annual Traffic × Conversion Rate."
+          >
+            <div class="kpi-label">Year 1 Customers <span class="tip-icon">?</span></div>
+            <div class="kpi-value" style="color: var(--yellow)" id="kpiCustomers">2,500</div>
+            <div class="kpi-sub" id="kpiCustSub">5% conversion · 50K leads</div>
+          </div>
+          <div
+            class="kpi"
+            data-tip="Customer Acquisition Cost — average spend per lead to acquire a customer. Total CAC = Traffic × CAC per Lead."
+          >
+            <div class="kpi-label">CAC per Lead <span class="tip-icon">?</span></div>
+            <div class="kpi-value" style="color: var(--yellow)" id="kpiCAC">$65</div>
+            <div class="kpi-sub" id="kpiCACSub">Total: $162.5K</div>
+          </div>
+          <div
+            class="kpi"
+            data-tip="Revenue minus Cost of Goods Sold. 100% because OLFA is a pure software platform with zero marginal cost per transaction."
+          >
+            <div class="kpi-label">Gross Margin <span class="tip-icon">?</span></div>
+            <div class="kpi-value positive">100%</div>
+            <div class="kpi-sub">Zero COGS (software model)</div>
+          </div>
+          <div
+            class="kpi"
+            data-tip="Revenue minus total OPEX. A negative number means you need external funding to cover operations. This is the amount you need to raise."
+          >
+            <div class="kpi-label">Funding Gap (Y1) <span class="tip-icon">?</span></div>
+            <div class="kpi-value negative" id="kpiGap">~$4.77M</div>
+            <div class="kpi-sub">Revenue − OPEX</div>
+          </div>
+        </div>
+
+        <!-- SCENARIO BUILDER -->
+        <div class="scenario-builder">
+          <h2>🎛️ Scenario Builder</h2>
+          <p class="subtitle">
+            Adjust key inputs below. Revenue, OPEX, and charts update instantly. Save scenarios to
+            compare.
+          </p>
+
+          <!-- KEY DRIVERS — always visible sliders -->
+          <div class="sb-section" style="margin-top: 0; padding-top: 0; border-top: none">
+            🎯 Key Revenue Drivers
+          </div>
+          <div class="sb-grid">
+            <div
+              class="sb-field"
+              data-tip="Total website/app visitors per year before conversion. More traffic = more potential customers."
+            >
+              <label>Annual Traffic (leads) <span class="tip-icon">?</span></label>
+              <div class="input-row">
+                <input
+                  type="range"
+                  id="sbTraffic"
+                  min="10000"
+                  max="200000"
+                  step="5000"
+                  value="50000"
+                /><span class="val" id="sbTrafficVal">50,000</span>
+              </div>
+            </div>
+            <div
+              class="sb-field"
+              data-tip="Percentage of leads that become paying customers. Industry average for fintech is 2-8%."
+            >
+              <label>Conversion Rate <span class="tip-icon">?</span></label>
+              <div class="input-row">
+                <input type="range" id="sbConv" min="1" max="15" step="0.5" value="5" /><span
+                  class="val"
+                  id="sbConvVal"
+                  >5%</span
+                >
+              </div>
+            </div>
+            <div
+              class="sb-field"
+              data-tip="Cost to acquire each lead via marketing channels (ads, SEO, referrals). Total spend = Traffic × CAC."
+            >
+              <label
+                >CAC per Lead (<span class="cur-label">$</span>)
+                <span class="tip-icon">?</span></label
+              >
+              <div class="input-row">
+                <input type="range" id="sbCAC" min="20" max="200" step="5" value="65" /><span
+                  class="val"
+                  id="sbCACVal"
+                  >$65</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- MARKUP RATES — collapsible -->
+          <div class="sb-accordion open">
+            <div class="sb-accordion-header" onclick="this.parentElement.classList.toggle('open')">
+              <h4>💰 Markup Rates & Debt Amounts</h4>
+              <span class="chevron">▼</span>
+            </div>
+            <div class="sb-accordion-body">
+              <div class="sb-accordion-inner">
+                <div class="sb-grid">
+                  <div
+                    class="sb-field"
+                    data-tip="Murabaha markup % on personal loan refinancing. Revenue per deal = Avg Debt × Markup Rate."
+                  >
+                    <label>PL Markup Rate <span class="tip-icon">?</span></label>
+                    <div class="input-row">
+                      <input
+                        type="range"
+                        id="sbMrkPL"
+                        min="0.5"
+                        max="4"
+                        step="0.1"
+                        value="1.5"
+                      /><span class="val" id="sbMrkPLVal">1.5%</span>
+                    </div>
+                  </div>
+                  <div
+                    class="sb-field"
+                    data-tip="Murabaha markup % on credit card balance refinancing."
+                  >
+                    <label>CC Markup Rate <span class="tip-icon">?</span></label>
+                    <div class="input-row">
+                      <input
+                        type="range"
+                        id="sbMrkCC"
+                        min="0.5"
+                        max="4"
+                        step="0.1"
+                        value="2"
+                      /><span class="val" id="sbMrkCCVal">2.0%</span>
+                    </div>
+                  </div>
+                  <div
+                    class="sb-field"
+                    data-tip="Murabaha markup % on car loan refinancing. Lower markup due to asset-backed nature."
+                  >
+                    <label>CL Markup Rate <span class="tip-icon">?</span></label>
+                    <div class="input-row">
+                      <input
+                        type="range"
+                        id="sbMrkCL"
+                        min="0.3"
+                        max="3"
+                        step="0.1"
+                        value="0.9"
+                      /><span class="val" id="sbMrkCLVal">0.9%</span>
+                    </div>
+                  </div>
+                  <div
+                    class="sb-field"
+                    data-tip="Average outstanding personal loan balance per customer in the UAE market."
+                  >
+                    <label
+                      >Avg Debt — Personal (<span class="cur-label">$</span>)
+                      <span class="tip-icon">?</span></label
+                    >
+                    <div class="input-row">
+                      <input
+                        type="range"
+                        id="sbDebtPL"
+                        min="10000"
+                        max="80000"
+                        step="5000"
+                        value="30000"
+                      /><span class="val" id="sbDebtPLVal">$30K</span>
+                    </div>
+                  </div>
+                  <div
+                    class="sb-field"
+                    data-tip="Average outstanding credit card balance per customer."
+                  >
+                    <label
+                      >Avg Debt — Credit Card (<span class="cur-label">$</span>)
+                      <span class="tip-icon">?</span></label
+                    >
+                    <div class="input-row">
+                      <input
+                        type="range"
+                        id="sbDebtCC"
+                        min="5000"
+                        max="60000"
+                        step="5000"
+                        value="25000"
+                      /><span class="val" id="sbDebtCCVal">$25K</span>
+                    </div>
+                  </div>
+                  <div
+                    class="sb-field"
+                    data-tip="Average outstanding car loan balance per customer."
+                  >
+                    <label
+                      >Avg Debt — Car (<span class="cur-label">$</span>)
+                      <span class="tip-icon">?</span></label
+                    >
+                    <div class="input-row">
+                      <input
+                        type="range"
+                        id="sbDebtCL"
+                        min="10000"
+                        max="100000"
+                        step="5000"
+                        value="35000"
+                      /><span class="val" id="sbDebtCLVal">$35K</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRODUCT MIX — collapsible -->
+          <div class="sb-accordion">
+            <div class="sb-accordion-header" onclick="this.parentElement.classList.toggle('open')">
+              <h4>📋 Product Mix</h4>
+              <span class="chevron">▼</span>
+            </div>
+            <div class="sb-accordion-body">
+              <div class="sb-accordion-inner">
+                <div class="sb-grid">
+                  <div
+                    class="sb-field"
+                    data-tip="% of customers choosing personal loan refinancing. All three product mix values should ideally sum to 100%."
+                  >
+                    <label>Personal Loans Mix (%) <span class="tip-icon">?</span></label>
+                    <div class="input-row">
+                      <input type="range" id="sbMixPL" min="5" max="60" step="5" value="30" /><span
+                        class="val"
+                        id="sbMixPLVal"
+                        >30%</span
+                      >
+                    </div>
+                  </div>
+                  <div
+                    class="sb-field"
+                    data-tip="% of customers choosing credit card balance refinancing."
+                  >
+                    <label>Credit Cards Mix (%) <span class="tip-icon">?</span></label>
+                    <div class="input-row">
+                      <input type="range" id="sbMixCC" min="10" max="70" step="5" value="50" /><span
+                        class="val"
+                        id="sbMixCCVal"
+                        >50%</span
+                      >
+                    </div>
+                  </div>
+                  <div class="sb-field" data-tip="% of customers choosing car loan refinancing.">
+                    <label>Car Loans Mix (%) <span class="tip-icon">?</span></label>
+                    <div class="input-row">
+                      <input type="range" id="sbMixCL" min="5" max="50" step="5" value="20" /><span
+                        class="val"
+                        id="sbMixCLVal"
+                        >20%</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OPEX — compact number inputs -->
+          <div class="sb-accordion">
+            <div class="sb-accordion-header" onclick="this.parentElement.classList.toggle('open')">
+              <h4>💸 Operating Expenses (Monthly)</h4>
+              <span class="chevron">▼</span>
+            </div>
+            <div class="sb-accordion-body">
+              <div class="sb-accordion-inner">
+                <div class="sb-num-row">
+                  <span
+                    class="sb-num-label"
+                    data-tip="Monthly payroll for all 16 employees including C-suite, engineers, designers, and support staff."
+                    >Salaries & Retainers <span class="tip-icon">?</span></span
+                  ><span class="val" id="sbSalariesVal">$150K</span
+                  ><input
+                    type="number"
+                    class="sb-num-input"
+                    id="sbSalaries"
+                    value="150000"
+                    step="5000"
+                    min="50000"
+                    max="300000"
+                  />
+                </div>
+                <div class="sb-num-row">
+                  <span
+                    class="sb-num-label"
+                    data-tip="Auto-calculated from the Tech Costs builder. Reflects cumulative monthly burn for the current phase."
+                    >Technology Infra <span class="tip-icon">?</span>
+                    <span style="font-size: 10px; color: var(--accent2); font-weight: 400"
+                      >(auto from Tech Costs)</span
+                    ></span
+                  ><span class="val" id="sbTechVal">$100K</span
+                  ><input
+                    type="number"
+                    class="sb-num-input"
+                    id="sbTech"
+                    value="100000"
+                    step="5000"
+                    min="30000"
+                    max="250000"
+                    style="opacity: 0.5"
+                    readonly
+                  />
+                </div>
+                <div class="sb-num-row">
+                  <span
+                    class="sb-num-label"
+                    data-tip="Digital ads, content marketing, SEO, social media, PR, and user acquisition campaigns."
+                    >Marketing & UA <span class="tip-icon">?</span></span
+                  ><span class="val" id="sbMarketingVal">$50K</span
+                  ><input
+                    type="number"
+                    class="sb-num-input"
+                    id="sbMarketing"
+                    value="50000"
+                    step="5000"
+                    min="10000"
+                    max="150000"
+                  />
+                </div>
+                <div class="sb-num-row">
+                  <span
+                    class="sb-num-label"
+                    data-tip="Per-call fees for Open Banking APIs, AECB credit bureau lookups, and payment gateway transactions."
+                    >API & Integrations <span class="tip-icon">?</span></span
+                  ><span class="val" id="sbAPIVal">$42K</span
+                  ><input
+                    type="number"
+                    class="sb-num-input"
+                    id="sbAPI"
+                    value="41667"
+                    step="1000"
+                    min="10000"
+                    max="150000"
+                  />
+                </div>
+                <div class="sb-num-row">
+                  <span
+                    class="sb-num-label"
+                    data-tip="Insurance, contingency, miscellaneous operational costs not covered by other categories."
+                    >Miscellaneous <span class="tip-icon">?</span></span
+                  ><span class="val" id="sbMiscVal">$36K</span
+                  ><input
+                    type="number"
+                    class="sb-num-input"
+                    id="sbMisc"
+                    value="35833"
+                    step="1000"
+                    min="10000"
+                    max="100000"
+                  />
+                </div>
+                <div class="sb-num-row">
+                  <span
+                    class="sb-num-label"
+                    data-tip="Software licenses, SaaS subscriptions, domain renewals, and third-party tool fees."
+                    >Licensing & Renewals <span class="tip-icon">?</span></span
+                  ><span class="val" id="sbLicenseVal">$35K</span
+                  ><input
+                    type="number"
+                    class="sb-num-input"
+                    id="sbLicense"
+                    value="35000"
+                    step="1000"
+                    min="10000"
+                    max="100000"
+                  />
+                </div>
+                <div class="sb-num-row">
+                  <span
+                    class="sb-num-label"
+                    data-tip="Legal counsel, regulatory filings, Sharia compliance audits, and CBUAE licensing fees."
+                    >Compliance & Legal <span class="tip-icon">?</span></span
+                  ><span class="val" id="sbLegalVal">$33K</span
+                  ><input
+                    type="number"
+                    class="sb-num-input"
+                    id="sbLegal"
+                    value="33333"
+                    step="1000"
+                    min="10000"
+                    max="100000"
+                  />
+                </div>
+                <div class="sb-num-row">
+                  <span
+                    class="sb-num-label"
+                    data-tip="Office rent, furniture, supplies, utilities, and day-to-day operational costs."
+                    >Office & Operations <span class="tip-icon">?</span></span
+                  ><span class="val" id="sbOfficeVal">$25K</span
+                  ><input
+                    type="number"
+                    class="sb-num-input"
+                    id="sbOffice"
+                    value="25000"
+                    step="1000"
+                    min="5000"
+                    max="80000"
+                  />
+                </div>
+                <div class="sb-num-row">
+                  <span
+                    class="sb-num-label"
+                    data-tip="Customer support team, ticketing tools, CRM, chatbot services, and call center costs."
+                    >Customer Support <span class="tip-icon">?</span></span
+                  ><span class="val" id="sbSupportVal">$20K</span
+                  ><input
+                    type="number"
+                    class="sb-num-input"
+                    id="sbSupport"
+                    value="20000"
+                    step="1000"
+                    min="5000"
+                    max="60000"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sb-actions">
+            <button class="sb-btn sb-btn-reset" id="sbReset">↺ Reset to Base Case</button>
+            <input class="sb-name-input" id="sbName" placeholder="Scenario name…" value="" />
+            <button class="sb-btn sb-btn-save" id="sbSave">💾 Save Scenario</button>
+            <span class="delta" id="sbDelta"></span>
+          </div>
+          <div class="saved-scenarios" id="savedPanel">
+            <h3>📁 Saved Scenarios</h3>
+            <span class="scenario-chip base-chip" id="baseChip">📌 Base Case (Excel)</span>
+            <div id="scenarioChips"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2><span class="icon">📈</span> Monthly Revenue Growth (2026)</h2>
+          <div class="bar-chart" id="revenueChart"></div>
+        </div>
+
+        <div class="card">
+          <h2><span class="icon">🥧</span> OPEX Breakdown</h2>
+          <table>
+            <tr>
+              <th>Category</th>
+              <th class="num">Monthly</th>
+              <th class="num">Annual</th>
+              <th class="num">% of Total</th>
+            </tr>
+            <tbody id="opexTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REVENUE MODEL -->
+      <div class="sheet" id="revenue">
+        <div class="card">
+          <h2><span class="icon">🌍</span> Market Sizing</h2>
+          <div class="kpi-grid" style="margin-bottom: 0">
+            <div class="kpi">
+              <div class="kpi-label">TAM (Global)</div>
+              <div class="kpi-value" id="staticTAM">$149B</div>
+              <div class="kpi-sub">Total Addressable Market</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">SAM (21%)</div>
+              <div class="kpi-value" id="staticSAM">$31.3B</div>
+              <div class="kpi-sub">Serviceable Addressable</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">SOM (1%)</div>
+              <div class="kpi-value" id="staticSOM">$315M</div>
+              <div class="kpi-sub">Serviceable Obtainable</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2><span class="icon">💵</span> Revenue by Product (Year 1 — Medium Markup)</h2>
+          <table>
+            <tr>
+              <th>Product</th>
+              <th class="num">User %</th>
+              <th class="num">Avg Debt</th>
+              <th class="num">Deals</th>
+              <th class="num">Markup</th>
+              <th class="num">Revenue (Low)</th>
+              <th class="num">Revenue (Med)</th>
+              <th class="num">Revenue (High)</th>
+            </tr>
+            <tbody id="revProductTableBody">
+              <tr>
+                <td>Personal Loans</td>
+                <td class="num">30%</td>
+                <td class="num">$30,000</td>
+                <td class="num">750</td>
+                <td class="num">1.5%</td>
+                <td class="num">$225,000</td>
+                <td class="num highlight">$337,500</td>
+                <td class="num">$450,000</td>
+              </tr>
+              <tr>
+                <td>Credit Cards</td>
+                <td class="num">50%</td>
+                <td class="num">$25,000</td>
+                <td class="num">1,250</td>
+                <td class="num">2.0%</td>
+                <td class="num">$312,500</td>
+                <td class="num highlight">$625,000</td>
+                <td class="num">$687,500</td>
+              </tr>
+              <tr>
+                <td>Car Loans</td>
+                <td class="num">20%</td>
+                <td class="num">$35,000</td>
+                <td class="num">500</td>
+                <td class="num">0.9%</td>
+                <td class="num">$131,250</td>
+                <td class="num highlight">$157,500</td>
+                <td class="num">$175,000</td>
+              </tr>
+              <tr class="total">
+                <td>Total</td>
+                <td></td>
+                <td></td>
+                <td class="num">2,500</td>
+                <td></td>
+                <td class="num">$668,750</td>
+                <td class="num highlight">$1,120,000</td>
+                <td class="num">$1,312,500</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2><span class="icon">📅</span> Monthly Revenue Breakdown (AED, 2026)</h2>
+          <div class="table-scroll">
+            <table>
+              <tr>
+                <th>Product</th>
+                <th class="num">Jan</th>
+                <th class="num">Feb</th>
+                <th class="num">Mar</th>
+                <th class="num">Apr</th>
+                <th class="num">May</th>
+                <th class="num">Jun</th>
+                <th class="num">Jul</th>
+                <th class="num">Aug</th>
+                <th class="num">Sep</th>
+                <th class="num">Oct</th>
+                <th class="num">Nov</th>
+                <th class="num">Dec</th>
+                <th class="num">Total</th>
+              </tr>
+              <tr>
+                <td>Personal Loans</td>
+                <td class="num">9,000</td>
+                <td class="num">13,500</td>
+                <td class="num">27,000</td>
+                <td class="num">40,500</td>
+                <td class="num">58,500</td>
+                <td class="num">81,000</td>
+                <td class="num">103,500</td>
+                <td class="num">126,000</td>
+                <td class="num">157,500</td>
+                <td class="num">202,500</td>
+                <td class="num">247,500</td>
+                <td class="num">337,500</td>
+                <td class="num highlight">337,500</td>
+              </tr>
+              <tr>
+                <td>Credit Cards</td>
+                <td class="num">10,000</td>
+                <td class="num">15,000</td>
+                <td class="num">30,000</td>
+                <td class="num">45,000</td>
+                <td class="num">65,000</td>
+                <td class="num">90,000</td>
+                <td class="num">125,000</td>
+                <td class="num">175,000</td>
+                <td class="num">250,000</td>
+                <td class="num">350,000</td>
+                <td class="num">475,000</td>
+                <td class="num">625,000</td>
+                <td class="num highlight">625,000</td>
+              </tr>
+              <tr>
+                <td>Car Loans</td>
+                <td class="num">6,300</td>
+                <td class="num">9,450</td>
+                <td class="num">18,900</td>
+                <td class="num">28,350</td>
+                <td class="num">40,950</td>
+                <td class="num">56,700</td>
+                <td class="num">66,150</td>
+                <td class="num">78,750</td>
+                <td class="num">94,500</td>
+                <td class="num">110,250</td>
+                <td class="num">126,000</td>
+                <td class="num">157,500</td>
+                <td class="num highlight">157,500</td>
+              </tr>
+              <tr class="total">
+                <td>Grand Total</td>
+                <td class="num">25,300</td>
+                <td class="num">37,950</td>
+                <td class="num">75,900</td>
+                <td class="num">113,850</td>
+                <td class="num">164,450</td>
+                <td class="num">227,700</td>
+                <td class="num">294,650</td>
+                <td class="num">379,750</td>
+                <td class="num">502,000</td>
+                <td class="num">662,750</td>
+                <td class="num">848,500</td>
+                <td class="num">1,120,000</td>
+                <td class="num highlight">4,452,800</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2><span class="icon">🎯</span> Customer Acquisition</h2>
+          <table>
+            <tr>
+              <th>Metric</th>
+              <th class="num">Value</th>
+            </tr>
+            <tr>
+              <td>Total Traffic/Year</td>
+              <td class="num">50,000</td>
+            </tr>
+            <tr>
+              <td>Conversion Rate</td>
+              <td class="num">5%</td>
+            </tr>
+            <tr>
+              <td>Converted Customers</td>
+              <td class="num highlight">2,500</td>
+            </tr>
+            <tr>
+              <td>CAC per Lead</td>
+              <td class="num" id="staticCACperLead">$65</td>
+            </tr>
+            <tr>
+              <td>Total CAC Spend</td>
+              <td class="num" id="staticCACSpend">$162,500</td>
+            </tr>
+            <tr>
+              <td>CAC Multiple (Personal Loans)</td>
+              <td class="num">6.9x</td>
+            </tr>
+            <tr>
+              <td>CAC Multiple (Credit Cards)</td>
+              <td class="num">7.7x</td>
+            </tr>
+            <tr>
+              <td>CAC Multiple (Car Loans)</td>
+              <td class="num">4.8x</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- TEAM -->
+      <div class="sheet" id="team">
+        <div class="card">
+          <h2><span class="icon">👥</span> Year 1 Team (16 Employees)</h2>
+          <table>
+            <tr>
+              <th>Role</th>
+              <th class="num">Monthly Salary</th>
+              <th class="num">Headcount</th>
+              <th class="num">Monthly Total</th>
+              <th class="num">Annual Total</th>
+            </tr>
+            <tbody id="teamTableBody">
+              <tr>
+                <td>CEO</td>
+                <td class="num">$14,000</td>
+                <td class="num">1</td>
+                <td class="num">$14,000</td>
+                <td class="num">$168,000</td>
+              </tr>
+              <tr>
+                <td>CTO</td>
+                <td class="num">$13,000</td>
+                <td class="num">1</td>
+                <td class="num">$13,000</td>
+                <td class="num">$156,000</td>
+              </tr>
+              <tr>
+                <td>COO</td>
+                <td class="num">$12,000</td>
+                <td class="num">1</td>
+                <td class="num">$12,000</td>
+                <td class="num">$144,000</td>
+              </tr>
+              <tr>
+                <td>Chief Compliance & Sharia Officer</td>
+                <td class="num">$12,000</td>
+                <td class="num">1</td>
+                <td class="num">$12,000</td>
+                <td class="num">$144,000</td>
+              </tr>
+              <tr>
+                <td>Graphic Designer / Video Editor</td>
+                <td class="num">$12,000</td>
+                <td class="num">1</td>
+                <td class="num">$12,000</td>
+                <td class="num">$144,000</td>
+              </tr>
+              <tr>
+                <td>Backend Engineers</td>
+                <td class="num">$10,000</td>
+                <td class="num">2</td>
+                <td class="num">$20,000</td>
+                <td class="num">$240,000</td>
+              </tr>
+              <tr>
+                <td>Cloud Engineer</td>
+                <td class="num">$10,000</td>
+                <td class="num">1</td>
+                <td class="num">$10,000</td>
+                <td class="num">$120,000</td>
+              </tr>
+              <tr>
+                <td>Head of Marketing</td>
+                <td class="num">$10,000</td>
+                <td class="num">1</td>
+                <td class="num">$10,000</td>
+                <td class="num">$120,000</td>
+              </tr>
+              <tr>
+                <td>Product Lead</td>
+                <td class="num">$10,000</td>
+                <td class="num">1</td>
+                <td class="num">$10,000</td>
+                <td class="num">$120,000</td>
+              </tr>
+              <tr>
+                <td>QA Engineer</td>
+                <td class="num">$9,000</td>
+                <td class="num">1</td>
+                <td class="num">$9,000</td>
+                <td class="num">$108,000</td>
+              </tr>
+              <tr>
+                <td>Finance / Accounting</td>
+                <td class="num">$7,500</td>
+                <td class="num">1</td>
+                <td class="num">$7,500</td>
+                <td class="num">$90,000</td>
+              </tr>
+              <tr>
+                <td>Frontend Engineer</td>
+                <td class="num">$7,000</td>
+                <td class="num">1</td>
+                <td class="num">$7,000</td>
+                <td class="num">$84,000</td>
+              </tr>
+              <tr>
+                <td>UI/UX Designer</td>
+                <td class="num">$7,000</td>
+                <td class="num">1</td>
+                <td class="num">$7,000</td>
+                <td class="num">$84,000</td>
+              </tr>
+              <tr>
+                <td>Legal & Regulatory Advisor</td>
+                <td class="num">$7,000</td>
+                <td class="num">1</td>
+                <td class="num">$7,000</td>
+                <td class="num">$84,000</td>
+              </tr>
+              <tr>
+                <td>Customer Support</td>
+                <td class="num">$6,000</td>
+                <td class="num">1</td>
+                <td class="num">$6,000</td>
+                <td class="num">$72,000</td>
+              </tr>
+            </tbody>
+            <tr class="total">
+              <td>Total</td>
+              <td></td>
+              <td class="num">16</td>
+              <td class="num" id="teamMonthlyTotal">$156,500</td>
+              <td class="num" id="teamAnnualTotal">$1,878,000</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Equity Section (merged from Cap Table) -->
+        <div class="kpi-grid" style="margin-top: 28px">
+          <div class="kpi">
+            <div class="kpi-label">Pre-Seed Valuation</div>
+            <div class="kpi-value highlight" id="capValuation">$11.17M</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Price Per Share</div>
+            <div class="kpi-value" id="capPricePerShare">$11.17</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Authorized Shares</div>
+            <div class="kpi-value">10M</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Issued Shares</div>
+            <div class="kpi-value">1M</div>
+          </div>
+        </div>
+        <div class="card">
+          <h2><span class="icon">🏛️</span> Ownership</h2>
+          <table>
+            <tr>
+              <th>Stakeholder</th>
+              <th class="num">Shares</th>
+              <th class="num">Ownership %</th>
+              <th class="num" id="ownershipValueHeader">Value (USD)</th>
+            </tr>
+            <tr>
+              <td>Ahmed (Cofounder 1)</td>
+              <td class="num">500,000</td>
+              <td class="num highlight">50%</td>
+              <td class="num" id="ownerVal1">$5,585,831</td>
+            </tr>
+            <tr>
+              <td>Mahmoud (Cofounder 2)</td>
+              <td class="num">500,000</td>
+              <td class="num highlight">50%</td>
+              <td class="num" id="ownerVal2">$5,585,831</td>
+            </tr>
+            <tr>
+              <td>Sharia Board</td>
+              <td class="num">0</td>
+              <td class="num">0%</td>
+              <td class="num" id="ownerVal3">$0</td>
+            </tr>
+            <tr>
+              <td>ESOP</td>
+              <td class="num">0</td>
+              <td class="num">0%</td>
+              <td class="num" id="ownerVal4">$0</td>
+            </tr>
+            <tr class="total">
+              <td>Total</td>
+              <td class="num">1,000,000</td>
+              <td class="num">100%</td>
+              <td class="num" id="ownerValTotal">$11,171,662</td>
+            </tr>
+          </table>
+        </div>
+        <div class="card">
+          <h2><span class="icon">📜</span> Governance & Vesting</h2>
+          <table>
+            <tr>
+              <th>Stakeholder</th>
+              <th>Vesting Schedule</th>
+            </tr>
+            <tr>
+              <td>Founders</td>
+              <td>4-year vesting, 1-year cliff</td>
+            </tr>
+            <tr>
+              <td>ESOP Employees</td>
+              <td>4-year vesting, 1-year cliff</td>
+            </tr>
+            <tr>
+              <td>Advisors</td>
+              <td>2-year vesting, quarterly or milestone-based</td>
+            </tr>
+          </table>
+          <br />
+          <table>
+            <tr>
+              <th>Share Type</th>
+              <th>Holders</th>
+              <th>Rights</th>
+            </tr>
+            <tr>
+              <td>Ordinary Shares</td>
+              <td>Founders + ESOP</td>
+              <td>Voting rights</td>
+            </tr>
+            <tr>
+              <td>Preferred Shares</td>
+              <td>Investors</td>
+              <td>Liquidation preference, anti-dilution, info rights</td>
+            </tr>
+          </table>
+          <br />
+          <table>
+            <tr>
+              <th colspan="2">Board Composition (Post-Funding)</th>
+            </tr>
+            <tr>
+              <td>2 Founders</td>
+              <td>1 Investor Representative</td>
+            </tr>
+            <tr>
+              <td>1 Independent / Sharia Advisor</td>
+              <td></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- TECH COSTS BUILDER -->
+      <div class="sheet" id="techcosts">
+        <div class="card">
+          <h2><span class="icon">💰</span> Interactive Tech Cost Builder</h2>
+          <p class="subtitle" style="margin-bottom: 8px">
+            Drag services between phases to model your infrastructure spend. Each phase shows
+            <strong>new services</strong> introduced — the cumulative total includes all prior
+            phases.
+          </p>
+          <div class="tc-toolbar">
+            <div class="tc-toolbar-left"><span class="tc-svc-count" id="tcSvcCount"></span></div>
+            <button id="tcToggleAll">▼ Collapse All</button>
+          </div>
+          <div class="tc-phases" id="tcPhases">
+            <div class="tc-phase" data-phase="p0" id="tcP0">
+              <div class="tc-phase-header-area">
+                <div class="tc-phase-header">Phase 0 — MVP</div>
+                <div class="tc-phase-timeline">Months 0–3</div>
+                <div class="tc-phase-total" id="tcP0Total">$0/mo</div>
+                <div class="tc-phase-cumulative" id="tcP0Cum"></div>
+              </div>
+              <div class="tc-categories-area" id="tcP0Services"></div>
+            </div>
+            <div class="tc-phase" data-phase="p1" id="tcP1">
+              <div class="tc-phase-header-area">
+                <div class="tc-phase-header">Phase 1 — Pre-Seed</div>
+                <div class="tc-phase-timeline">Months 3–9</div>
+                <div class="tc-phase-total" id="tcP1Total">$0/mo</div>
+                <div class="tc-phase-cumulative" id="tcP1Cum"></div>
+              </div>
+              <div class="tc-categories-area" id="tcP1Services"></div>
+            </div>
+            <div class="tc-phase" data-phase="p2" id="tcP2">
+              <div class="tc-phase-header-area">
+                <div class="tc-phase-header">Phase 2 — Growth</div>
+                <div class="tc-phase-timeline">Months 9–18</div>
+                <div class="tc-phase-total" id="tcP2Total">$0/mo</div>
+                <div class="tc-phase-cumulative" id="tcP2Cum"></div>
+              </div>
+              <div class="tc-categories-area" id="tcP2Services"></div>
+            </div>
+            <div class="tc-phase" data-phase="p3" id="tcP3">
+              <div class="tc-phase-header-area">
+                <div class="tc-phase-header">Phase 3 — Scale</div>
+                <div class="tc-phase-timeline">Months 18–36</div>
+                <div class="tc-phase-total" id="tcP3Total">$0/mo</div>
+                <div class="tc-phase-cumulative" id="tcP3Cum"></div>
+              </div>
+              <div class="tc-categories-area" id="tcP3Services"></div>
+            </div>
+          </div>
+          <div class="tc-summary-bar" id="tcSummary"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Tab switching
+      document.querySelectorAll('.tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+          document.querySelectorAll('.sheet').forEach((s) => s.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.sheet).classList.add('active');
+        });
+      });
+
+      // === BASE CASE from Excel ===
+      const BASE = {
+        traffic: 50000,
+        conv: 5,
+        cac: 65,
+        mrkPL: 1.5,
+        mrkCC: 2.0,
+        mrkCL: 0.9,
+        debtPL: 30000,
+        debtCC: 25000,
+        debtCL: 35000,
+        mixPL: 30,
+        mixCC: 50,
+        mixCL: 20,
+        salaries: 150000,
+        tech: 100000,
+        marketing: 50000,
+        api: 41667,
+        misc: 35833,
+        license: 35000,
+        legal: 33333,
+        office: 25000,
+        support: 20000,
+      };
+      const MONTHS = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+      const BASE_MONTHLY = [
+        25300, 37950, 75900, 113850, 164450, 227700, 294650, 379750, 502000, 662750, 848500,
+        1120000,
+      ];
+      const SLIDER_IDS = [
+        'sbTraffic',
+        'sbConv',
+        'sbCAC',
+        'sbMrkPL',
+        'sbMrkCC',
+        'sbMrkCL',
+        'sbDebtPL',
+        'sbDebtCC',
+        'sbDebtCL',
+        'sbMixPL',
+        'sbMixCC',
+        'sbMixCL',
+        'sbSalaries',
+        'sbTech',
+        'sbMarketing',
+        'sbAPI',
+        'sbMisc',
+        'sbLicense',
+        'sbLegal',
+        'sbOffice',
+        'sbSupport',
+      ];
+      const SLIDER_KEYS = [
+        'traffic',
+        'conv',
+        'cac',
+        'mrkPL',
+        'mrkCC',
+        'mrkCL',
+        'debtPL',
+        'debtCC',
+        'debtCL',
+        'mixPL',
+        'mixCC',
+        'mixCL',
+        'salaries',
+        'tech',
+        'marketing',
+        'api',
+        'misc',
+        'license',
+        'legal',
+        'office',
+        'support',
+      ];
+      const STORAGE_KEY = 'olfa_scenarios';
+      const CURRENCIES = {
+        USD: { symbol: '$', rate: 1.0 },
+        AED: { symbol: 'د.إ', rate: 3.67 },
+        SAR: { symbol: '﷼', rate: 3.75 },
+        EUR: { symbol: '€', rate: 0.92 },
+        GBP: { symbol: '£', rate: 0.79 },
+      };
+
+      function getCur() {
+        return CURRENCIES[document.getElementById('currencySelect').value] || CURRENCIES.USD;
+      }
+      function fmt(n, cur) {
+        if (!cur) cur = getCur();
+        const v = n * cur.rate;
+        const s = cur.symbol;
+        if (Math.abs(v) >= 1e6) return s + (v / 1e6).toFixed(2) + 'M';
+        if (Math.abs(v) >= 1e3) return s + (v / 1000).toFixed(0) + 'K';
+        return s + v.toFixed(0);
+      }
+      function fmtShort(n, cur) {
+        if (!cur) cur = getCur();
+        const v = n * cur.rate;
+        return cur.symbol + Math.round(v / 1000) + 'K';
+      }
+      const fmtN = (n) => n.toLocaleString();
+
+      // === Static Currency Update ===
+      // Converts all hardcoded USD values in static tables to the selected currency
+      function fmtCurrency(n, cur) {
+        if (!cur) cur = getCur();
+        const v = n * cur.rate;
+        return cur.symbol + v.toLocaleString(undefined, { maximumFractionDigits: 0 });
+      }
+      function fmtCurrencyShort(n, cur) {
+        if (!cur) cur = getCur();
+        const v = n * cur.rate;
+        if (Math.abs(v) >= 1e9) return cur.symbol + (v / 1e9).toFixed(1) + 'B';
+        if (Math.abs(v) >= 1e6) return cur.symbol + (v / 1e6).toFixed(2) + 'M';
+        if (Math.abs(v) >= 1e3) return cur.symbol + Math.round(v / 1000) + 'K';
+        return cur.symbol + Math.round(v);
+      }
+
+      function updateStaticCurrency() {
+        const cur = getCur();
+        const curCode = document.getElementById('currencySelect').value;
+
+        // --- Market Sizing KPIs (base in USD) ---
+        const el_tam = document.getElementById('staticTAM');
+        const el_sam = document.getElementById('staticSAM');
+        const el_som = document.getElementById('staticSOM');
+        if (el_tam) el_tam.textContent = fmtCurrencyShort(149e9, cur);
+        if (el_sam) el_sam.textContent = fmtCurrencyShort(31.3e9, cur);
+        if (el_som) el_som.textContent = fmtCurrencyShort(315e6, cur);
+
+        // --- Revenue by Product table (base USD values) ---
+        const revBody = document.getElementById('revProductTableBody');
+        if (revBody) {
+          const revData = [
+            {
+              name: 'Personal Loans',
+              pct: '30%',
+              debt: 30000,
+              deals: 750,
+              markup: '1.5%',
+              low: 225000,
+              med: 337500,
+              high: 450000,
+            },
+            {
+              name: 'Credit Cards',
+              pct: '50%',
+              debt: 25000,
+              deals: 1250,
+              markup: '2.0%',
+              low: 312500,
+              med: 625000,
+              high: 687500,
+            },
+            {
+              name: 'Car Loans',
+              pct: '20%',
+              debt: 35000,
+              deals: 500,
+              markup: '0.9%',
+              low: 131250,
+              med: 157500,
+              high: 175000,
+            },
+          ];
+          const totalLow = 668750,
+            totalMed = 1120000,
+            totalHigh = 1312500;
+          let html = '';
+          revData.forEach((r) => {
+            html += `<tr><td>${r.name}</td><td class="num">${r.pct}</td><td class="num">${fmtCurrency(r.debt, cur)}</td><td class="num">${r.deals.toLocaleString()}</td><td class="num">${r.markup}</td><td class="num">${fmtCurrency(r.low, cur)}</td><td class="num highlight">${fmtCurrency(r.med, cur)}</td><td class="num">${fmtCurrency(r.high, cur)}</td></tr>`;
+          });
+          html += `<tr class="total"><td>Total</td><td></td><td></td><td class="num">2,500</td><td></td><td class="num">${fmtCurrency(totalLow, cur)}</td><td class="num highlight">${fmtCurrency(totalMed, cur)}</td><td class="num">${fmtCurrency(totalHigh, cur)}</td></tr>`;
+          revBody.innerHTML = html;
+        }
+
+        // --- Customer Acquisition ---
+        const cacLead = document.getElementById('staticCACperLead');
+        const cacSpend = document.getElementById('staticCACSpend');
+        if (cacLead) cacLead.textContent = fmtCurrency(65, cur);
+        if (cacSpend) cacSpend.textContent = fmtCurrency(162500, cur);
+
+        // --- Team / Salaries table ---
+        const teamBody = document.getElementById('teamTableBody');
+        if (teamBody) {
+          const teamData = [
+            { role: 'CEO', salary: 14000, count: 1 },
+            { role: 'CTO', salary: 13000, count: 1 },
+            { role: 'COO', salary: 12000, count: 1 },
+            { role: 'Chief Compliance & Sharia Officer', salary: 12000, count: 1 },
+            { role: 'Graphic Designer / Video Editor', salary: 12000, count: 1 },
+            { role: 'Backend Engineers', salary: 10000, count: 2 },
+            { role: 'Cloud Engineer', salary: 10000, count: 1 },
+            { role: 'Head of Marketing', salary: 10000, count: 1 },
+            { role: 'Product Lead', salary: 10000, count: 1 },
+            { role: 'QA Engineer', salary: 9000, count: 1 },
+            { role: 'Finance / Accounting', salary: 7500, count: 1 },
+            { role: 'Frontend Engineer', salary: 7000, count: 1 },
+            { role: 'UI/UX Designer', salary: 7000, count: 1 },
+            { role: 'Legal & Regulatory Advisor', salary: 7000, count: 1 },
+            { role: 'Customer Support', salary: 6000, count: 1 },
+          ];
+          let html = '';
+          teamData.forEach((t) => {
+            const monthly = t.salary * t.count;
+            const annual = monthly * 12;
+            html += `<tr><td>${t.role}</td><td class="num">${fmtCurrency(t.salary, cur)}</td><td class="num">${t.count}</td><td class="num">${fmtCurrency(monthly, cur)}</td><td class="num">${fmtCurrency(annual, cur)}</td></tr>`;
+          });
+          teamBody.innerHTML = html;
+        }
+        const teamMT = document.getElementById('teamMonthlyTotal');
+        const teamAT = document.getElementById('teamAnnualTotal');
+        if (teamMT) teamMT.textContent = fmtCurrency(156500, cur);
+        if (teamAT) teamAT.textContent = fmtCurrency(1878000, cur);
+
+        // --- Cap Table KPIs ---
+        const capVal = document.getElementById('capValuation');
+        const capPPS = document.getElementById('capPricePerShare');
+        if (capVal) capVal.textContent = fmtCurrencyShort(11171662, cur);
+        if (capPPS) capPPS.textContent = cur.symbol + (11.17 * cur.rate).toFixed(2);
+
+        // --- Ownership table ---
+        const ownerHeader = document.getElementById('ownershipValueHeader');
+        if (ownerHeader) ownerHeader.textContent = 'Value (' + curCode + ')';
+        const ownerVals = [
+          { id: 'ownerVal1', val: 5585831 },
+          { id: 'ownerVal2', val: 5585831 },
+          { id: 'ownerVal3', val: 0 },
+          { id: 'ownerVal4', val: 0 },
+          { id: 'ownerValTotal', val: 11171662 },
+        ];
+        ownerVals.forEach((o) => {
+          const el = document.getElementById(o.id);
+          if (el) el.textContent = fmtCurrency(o.val, cur);
+        });
+
+        // --- KPI subtitles ---
+        const kpiValSub = document.getElementById('kpiValuationSub');
+        if (kpiValSub)
+          kpiValSub.textContent = cur.symbol + (11.17 * cur.rate).toFixed(2) + ' per share';
+        const kpiTeamSub = document.getElementById('kpiTeamSub');
+        if (kpiTeamSub) kpiTeamSub.textContent = fmtCurrencyShort(1878000, cur) + ' annual payroll';
+
+        // --- Slider labels with currency ---
+        document.querySelectorAll('.cur-label').forEach((el) => {
+          el.textContent = cur.symbol;
+        });
+      }
+
+      function getOpex(s) {
+        return (
+          (s.salaries +
+            s.tech +
+            s.marketing +
+            s.api +
+            s.misc +
+            s.license +
+            s.legal +
+            s.office +
+            s.support) *
+          12
+        );
+      }
+
+      function calc(s) {
+        const customers = Math.round(s.traffic * (s.conv / 100));
+        const totalMix = s.mixPL + s.mixCC + s.mixCL;
+        const plPct = s.mixPL / totalMix,
+          ccPct = s.mixCC / totalMix,
+          clPct = s.mixCL / totalMix;
+        const plDeals = Math.round(customers * plPct);
+        const ccDeals = Math.round(customers * ccPct);
+        const clDeals = Math.round(customers * clPct);
+        const plRev = plDeals * s.debtPL * (s.mrkPL / 100);
+        const ccRev = ccDeals * s.debtCC * (s.mrkCC / 100);
+        const clRev = clDeals * s.debtCL * (s.mrkCL / 100);
+        const totalRev = plRev + ccRev + clRev;
+        const opex = getOpex(s);
+        const monthly = BASE_MONTHLY.map((v) => Math.round(v * (totalRev / 1120000)));
+        return {
+          totalRev,
+          plRev,
+          ccRev,
+          clRev,
+          customers,
+          plDeals,
+          ccDeals,
+          clDeals,
+          opex,
+          monthly,
+          cacTotal: s.traffic * s.cac,
+        };
+      }
+
+      const BASE_RESULT = calc(BASE);
+
+      function readSliders() {
+        const s = {};
+        SLIDER_IDS.forEach((id, i) => {
+          s[SLIDER_KEYS[i]] = +document.getElementById(id).value;
+        });
+        return s;
+      }
+
+      function applyToSliders(s) {
+        SLIDER_IDS.forEach((id, i) => {
+          document.getElementById(id).value = s[SLIDER_KEYS[i]];
+        });
+      }
+
+      function renderChart(data) {
+        const chart = document.getElementById('revenueChart');
+        chart.innerHTML = '';
+        const maxV = Math.max(...data.monthly);
+        data.monthly.forEach((v, i) => {
+          const item = document.createElement('div');
+          item.className = 'bar-item';
+          const pct = (v / (maxV || 1)) * 180;
+          item.innerHTML =
+            '<div class="bar-value">' +
+            fmt(v) +
+            '</div><div class="bar" style="height:' +
+            pct +
+            'px"></div><div class="bar-label">' +
+            MONTHS[i] +
+            '</div>';
+          chart.appendChild(item);
+        });
+      }
+
+      function updateAll() {
+        const s = readSliders();
+        const r = calc(s);
+        const cur = getCur();
+        // Labels — non-monetary
+        document.getElementById('sbTrafficVal').textContent = fmtN(s.traffic);
+        document.getElementById('sbConvVal').textContent = s.conv + '%';
+        document.getElementById('sbMrkPLVal').textContent = s.mrkPL.toFixed(1) + '%';
+        document.getElementById('sbMrkCCVal').textContent = s.mrkCC.toFixed(1) + '%';
+        document.getElementById('sbMrkCLVal').textContent = s.mrkCL.toFixed(1) + '%';
+        document.getElementById('sbMixPLVal').textContent = s.mixPL + '%';
+        document.getElementById('sbMixCCVal').textContent = s.mixCC + '%';
+        document.getElementById('sbMixCLVal').textContent = s.mixCL + '%';
+        // Labels — monetary (converted)
+        document.getElementById('sbCACVal').textContent = cur.symbol + Math.round(s.cac * cur.rate);
+        document.getElementById('sbDebtPLVal').textContent = fmtShort(s.debtPL, cur);
+        document.getElementById('sbDebtCCVal').textContent = fmtShort(s.debtCC, cur);
+        document.getElementById('sbDebtCLVal').textContent = fmtShort(s.debtCL, cur);
+        document.getElementById('sbSalariesVal').textContent = fmtShort(s.salaries, cur);
+        document.getElementById('sbTechVal').textContent = fmtShort(s.tech, cur);
+        document.getElementById('sbMarketingVal').textContent = fmtShort(s.marketing, cur);
+        document.getElementById('sbAPIVal').textContent = fmtShort(s.api, cur);
+        document.getElementById('sbMiscVal').textContent = fmtShort(s.misc, cur);
+        document.getElementById('sbLicenseVal').textContent = fmtShort(s.license, cur);
+        document.getElementById('sbLegalVal').textContent = fmtShort(s.legal, cur);
+        document.getElementById('sbOfficeVal').textContent = fmtShort(s.office, cur);
+        document.getElementById('sbSupportVal').textContent = fmtShort(s.support, cur);
+        // KPIs
+        document.getElementById('kpiRevenue').textContent = fmt(r.totalRev, cur);
+        const curCode = document.getElementById('currencySelect').value;
+        document.getElementById('kpiRevSub').textContent =
+          curCode !== 'AED'
+            ? 'AED ' +
+              fmt(r.totalRev, CURRENCIES.AED).replace(CURRENCIES.AED.symbol, '') +
+              ' · Scenario'
+            : 'USD ' + fmt(r.totalRev, CURRENCIES.USD).replace('$', '') + ' · Scenario';
+        document.getElementById('kpiOpex').textContent = fmt(r.opex, cur);
+        document.getElementById('kpiOpexSub').textContent = fmt(r.opex / 12, cur) + '/month';
+        document.getElementById('kpiCustomers').textContent = fmtN(r.customers);
+        document.getElementById('kpiCustSub').textContent =
+          s.conv + '% conversion · ' + fmtN(s.traffic) + ' leads';
+        document.getElementById('kpiCAC').textContent = cur.symbol + Math.round(s.cac * cur.rate);
+        document.getElementById('kpiCACSub').textContent = 'Total: ' + fmt(r.cacTotal, cur);
+        const gap = r.totalRev - r.opex;
+        document.getElementById('kpiGap').textContent =
+          (gap >= 0 ? '+' : '') + fmt(Math.abs(gap), cur);
+        document.getElementById('kpiGap').className =
+          'kpi-value ' + (gap >= 0 ? 'positive' : 'negative');
+        // Delta (always in USD for accuracy)
+        const usd = CURRENCIES.USD;
+        const dRev = r.totalRev - BASE_RESULT.totalRev;
+        const dOpex = r.opex - BASE_RESULT.opex;
+        const el = document.getElementById('sbDelta');
+        if (Math.abs(dRev) < 1 && Math.abs(dOpex) < 1) {
+          el.textContent = '';
+          el.className = 'delta';
+        } else {
+          const revPct = ((dRev / BASE_RESULT.totalRev) * 100).toFixed(1);
+          let txt = '';
+          if (Math.abs(dRev) >= 1)
+            txt +=
+              'Rev ' +
+              (dRev > 0 ? '▲' : '▼') +
+              fmt(Math.abs(dRev), cur) +
+              ' (' +
+              (dRev > 0 ? '+' : '') +
+              revPct +
+              '%)';
+          if (Math.abs(dOpex) >= 1)
+            txt +=
+              (txt ? ' · ' : '') + 'OPEX ' + (dOpex > 0 ? '▲' : '▼') + fmt(Math.abs(dOpex), cur);
+          txt += ' vs Base';
+          el.textContent = txt;
+          el.className = 'delta ' + (gap > BASE_RESULT.totalRev - BASE_RESULT.opex ? 'up' : 'down');
+        }
+        renderChart(r);
+        renderOpexTable();
+      }
+
+      // === Scenario Save/Load ===
+      function getSaved() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        } catch (e) {
+          return [];
+        }
+      }
+      function setSaved(arr) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+      }
+
+      function renderChips() {
+        const container = document.getElementById('scenarioChips');
+        container.innerHTML = '';
+        getSaved().forEach((sc, idx) => {
+          const chip = document.createElement('span');
+          chip.className = 'scenario-chip';
+          chip.innerHTML = sc.name + ' <span class="del" data-idx="' + idx + '">×</span>';
+          chip.addEventListener('click', (e) => {
+            if (e.target.classList.contains('del')) {
+              deleteScenario(idx);
+              return;
+            }
+            applyToSliders(sc.data);
+            updateAll();
+          });
+          container.appendChild(chip);
+        });
+      }
+
+      function deleteScenario(idx) {
+        const arr = getSaved();
+        arr.splice(idx, 1);
+        setSaved(arr);
+        renderChips();
+      }
+
+      document.getElementById('sbSave').addEventListener('click', () => {
+        const name =
+          document.getElementById('sbName').value.trim() || 'Scenario ' + (getSaved().length + 1);
+        const arr = getSaved();
+        arr.push({ name, data: readSliders() });
+        setSaved(arr);
+        document.getElementById('sbName').value = '';
+        renderChips();
+      });
+
+      document.getElementById('baseChip').addEventListener('click', () => {
+        applyToSliders(BASE);
+        updateAll();
+      });
+
+      // Wire up all inputs (sliders + number inputs)
+      SLIDER_IDS.forEach((id) => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', updateAll);
+        el.addEventListener('change', updateAll);
+      });
+
+      document.getElementById('sbReset').addEventListener('click', () => {
+        applyToSliders(BASE);
+        updateAll();
+      });
+
+      // Currency selector
+      document.getElementById('currencySelect').addEventListener('change', () => {
+        updateAll();
+        updateTechCosts();
+        updateStaticCurrency();
+      });
+
+      // Tooltips for all tip-icons
+      document.querySelectorAll('[data-tip]').forEach((el) => {
+        const tipIcon = el.querySelector('.tip-icon') || el;
+        tipIcon.title = el.dataset.tip;
+        tipIcon.style.cursor = 'help';
+      });
+
+      // === TECH COST BUILDER ===
+      const SCORE_DIMS = [
+        { key: 'cost', label: 'Cost', color: '#10b981' },
+        { key: 'scale', label: 'Scale', color: '#3b82f6' },
+        { key: 'ease', label: 'Ease', color: '#fbbf24' },
+        { key: 'lockin', label: 'Lock-in', color: '#f87171' },
+        { key: 'reach', label: 'Reach', color: '#a78bfa' },
+      ];
+
+      const TC_ALTERNATIVES = {
+        database: {
+          label: 'Database',
+          color: '#10b981',
+          options: [
+            {
+              id: 'supabase',
+              name: 'Supabase',
+              recommended: true,
+              bestFor:
+                'Full-stack teams wanting Postgres with auth, storage & edge functions built in. Great DX, open source.',
+              scores: { cost: 4, scale: 4, ease: 5, lockin: 2, reach: 4 },
+              services: [
+                {
+                  name: 'Supabase (Free)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: 'Free tier: 500MB DB, 1GB storage, 50K auth users. Plenty for MVP.',
+                },
+                {
+                  name: 'Supabase Pro',
+                  cost: 25,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: '8GB DB, daily backups, 500K edge function invocations.',
+                },
+                {
+                  name: 'Supabase Team',
+                  cost: 599,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: '100GB storage, SOC2 compliance, priority support.',
+                },
+                {
+                  name: 'Supabase Enterprise',
+                  cost: 2500,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Dedicated compute, SLA guarantees, custom domains.',
+                },
+              ],
+            },
+            {
+              id: 'firebase',
+              name: 'Firebase',
+              bestFor:
+                'Rapid prototyping with real-time sync. Strong if already using Google Cloud. NoSQL (Firestore).',
+              scores: { cost: 4, scale: 5, lockin: 4, ease: 4, reach: 5 },
+              services: [
+                {
+                  name: 'Firebase Spark (Free)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: 'Free tier: 1GB Firestore, 10GB bandwidth, unlimited Auth.',
+                },
+                {
+                  name: 'Firebase Blaze',
+                  cost: 25,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Pay-as-you-go. ~$25/mo at low volume. Includes all products.',
+                },
+                {
+                  name: 'Firebase Blaze (Scaled)',
+                  cost: 150,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Estimated at ~10K active users with Firestore reads + Cloud Functions.',
+                },
+                {
+                  name: 'Firebase Enterprise',
+                  cost: 500,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Estimated at scale. No fixed enterprise tier — usage-based billing.',
+                },
+              ],
+            },
+            {
+              id: 'mongodb',
+              name: 'MongoDB Atlas',
+              bestFor:
+                'Flexible document schemas — great if your data model changes often. Strong free tier.',
+              scores: { cost: 4, scale: 4, ease: 3, lockin: 2, reach: 5 },
+              services: [
+                {
+                  name: 'Atlas M0 (Free)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: '512MB storage, shared cluster. Good for prototyping.',
+                },
+                {
+                  name: 'Atlas M10',
+                  cost: 57,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Dedicated cluster, 10GB, auto-scaling, backups.',
+                },
+                {
+                  name: 'Atlas M30',
+                  cost: 225,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Dedicated, 40GB, advanced monitoring, encryption at rest.',
+                },
+                {
+                  name: 'Atlas M50',
+                  cost: 1000,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'High-performance cluster, 100GB+, multi-region.',
+                },
+              ],
+            },
+            {
+              id: 'neon',
+              name: 'Neon',
+              bestFor:
+                'Serverless Postgres with instant branching — perfect for testing. Cheapest paid tiers.',
+              scores: { cost: 5, scale: 3, ease: 4, lockin: 1, reach: 3 },
+              services: [
+                {
+                  name: 'Neon Free',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: '0.5GB storage, 1 project, 10 branches. Great free tier.',
+                },
+                {
+                  name: 'Neon Launch',
+                  cost: 19,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: '10GB storage, 100 branches, point-in-time restore.',
+                },
+                {
+                  name: 'Neon Scale',
+                  cost: 69,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: '50GB, autoscaling compute, read replicas.',
+                },
+                {
+                  name: 'Neon Business',
+                  cost: 700,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Enterprise features, 500GB, dedicated support.',
+                },
+              ],
+            },
+            {
+              id: 'planetscale',
+              name: 'PlanetScale',
+              bestFor:
+                'MySQL teams needing safe schema changes with branching. Solid for regulated industries.',
+              scores: { cost: 3, scale: 5, ease: 3, lockin: 2, reach: 3 },
+              services: [
+                {
+                  name: 'PlanetScale Hobby',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: '5GB storage, 1B row reads/mo. Note: free tier may be limited.',
+                },
+                {
+                  name: 'PlanetScale Scaler',
+                  cost: 39,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: '10GB, branching, deploy requests, read replicas.',
+                },
+                {
+                  name: 'PlanetScale Team',
+                  cost: 99,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: '25GB, SSO, audit logs, SOC2 features.',
+                },
+                {
+                  name: 'PlanetScale Enterprise',
+                  cost: 699,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Custom storage, dedicated support, SLA guarantees.',
+                },
+              ],
+            },
+          ],
+        },
+        auth_kyc: {
+          label: 'Auth & KYC',
+          color: '#3b82f6',
+          options: [
+            {
+              id: 'supabase_uqudo',
+              name: 'Supabase Auth + Uqudo',
+              recommended: true,
+              bestFor:
+                'Native integration if using Supabase DB. Uqudo specializes in UAE Emirates ID verification.',
+              scores: { cost: 3, scale: 4, ease: 4, lockin: 2, reach: 4 },
+              services: [
+                {
+                  name: 'Uqudo KYC (~100 users)',
+                  cost: 225,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Emirates ID scanning, liveness check, document validation. CBUAE compliant.',
+                },
+                {
+                  name: 'Twilio SMS (~500 OTPs)',
+                  cost: 80,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'SMS OTP for registration and transaction confirmations.',
+                },
+                {
+                  name: 'Uqudo KYC (~1K users)',
+                  cost: 1500,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Volume pricing for 1,000+ verifications/month.',
+                },
+                {
+                  name: 'Twilio (~5K OTPs)',
+                  cost: 800,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Scaled SMS: 5,000+ OTPs/month across all verification flows.',
+                },
+              ],
+            },
+            {
+              id: 'firebase_onfido',
+              name: 'Firebase Auth + Onfido',
+              bestFor:
+                'Global KYC coverage with Onfido. Firebase Auth is free and robust. Good for multi-country expansion.',
+              scores: { cost: 3, scale: 5, ease: 4, lockin: 3, reach: 5 },
+              services: [
+                {
+                  name: 'Onfido KYC (~100 users)',
+                  cost: 300,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'AI-powered identity verification. 200+ countries. Document + biometrics.',
+                },
+                {
+                  name: 'Twilio SMS (~500 OTPs)',
+                  cost: 80,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'SMS OTP verification for user onboarding.',
+                },
+                {
+                  name: 'Onfido KYC (~1K users)',
+                  cost: 2000,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Volume pricing. Includes fraud signals and watchlist checks.',
+                },
+                {
+                  name: 'Twilio (~5K OTPs)',
+                  cost: 800,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Scaled SMS for 5,000+ OTPs/month at scale.',
+                },
+              ],
+            },
+            {
+              id: 'clerk_veriff',
+              name: 'Clerk + Veriff',
+              bestFor:
+                'Beautiful pre-built auth UI components (saves dev time). Veriff strong in European/MENA markets.',
+              scores: { cost: 3, scale: 4, ease: 5, lockin: 3, reach: 4 },
+              services: [
+                {
+                  name: 'Clerk Pro + Veriff',
+                  cost: 280,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Clerk $25/mo (10K MAU) + Veriff ~$255/mo for KYC.',
+                },
+                {
+                  name: 'Clerk Pro + Veriff (Scaled)',
+                  cost: 1300,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Clerk $100/mo + Veriff volume pricing for 1K+ users.',
+                },
+                {
+                  name: 'Clerk Enterprise + Veriff',
+                  cost: 1800,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Clerk $500/mo + Veriff enterprise. SSO, SAML, custom domains.',
+                },
+              ],
+            },
+            {
+              id: 'auth0_jumio',
+              name: 'Auth0 + Jumio',
+              bestFor:
+                'Enterprise-grade auth (SSO, SAML) + Jumio for bank-level KYC. Compliance-heavy industries.',
+              scores: { cost: 2, scale: 5, ease: 3, lockin: 4, reach: 4 },
+              services: [
+                {
+                  name: 'Auth0 + Jumio (~100 users)',
+                  cost: 503,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Auth0 $23/mo + Jumio $400/mo + Twilio $80/mo.',
+                },
+                {
+                  name: 'Auth0 + Jumio (~1K users)',
+                  cost: 2740,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Auth0 $240/mo + Jumio $2,500/mo. Enterprise compliance features.',
+                },
+                {
+                  name: 'Auth0 + Jumio Enterprise',
+                  cost: 3800,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Auth0 $800/mo + Jumio $3,000/mo. Full enterprise suite.',
+                },
+              ],
+            },
+          ],
+        },
+        banking: {
+          label: 'Banking & Payments',
+          color: '#eab308',
+          options: [
+            {
+              id: 'lean',
+              name: 'Lean Tech',
+              recommended: true,
+              bestFor:
+                'Purpose-built for UAE open banking. Connects to local banks for loan data and income verification.',
+              scores: { cost: 3, scale: 4, ease: 4, lockin: 3, reach: 3 },
+              services: [
+                {
+                  name: 'Lean Open Banking',
+                  cost: 200,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Open banking API for UAE banks. Pulls loan data & transactions.',
+                },
+                {
+                  name: 'Lean (Scaled)',
+                  cost: 500,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Higher API limits, broader bank coverage across UAE.',
+                },
+                {
+                  name: 'AECB Credit Bureau',
+                  cost: 1000,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Credit score checks via Al Etihad Credit Bureau for loan approval.',
+                },
+              ],
+            },
+            {
+              id: 'tap',
+              name: 'Tap Payments',
+              bestFor:
+                'MENA-native payment gateway. Supports Apple Pay, mada, KNET. Built for GCC compliance.',
+              scores: { cost: 4, scale: 4, ease: 4, lockin: 2, reach: 4 },
+              services: [
+                {
+                  name: 'Tap Payments (Startup)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Per-transaction fees only (2.65% + ¢30). No monthly fee.',
+                },
+                {
+                  name: 'Tap Payments (Growth)',
+                  cost: 200,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Reduced transaction fees + recurring payment features.',
+                },
+                {
+                  name: 'Tap + AECB Credit Bureau',
+                  cost: 1200,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Tap $200/mo + AECB $1,000/mo for credit checks.',
+                },
+              ],
+            },
+            {
+              id: 'stripe',
+              name: 'Stripe',
+              bestFor:
+                'Global payments standard. Limited UAE support but powerful APIs and excellent developer tooling.',
+              scores: { cost: 4, scale: 5, ease: 5, lockin: 2, reach: 5 },
+              services: [
+                {
+                  name: 'Stripe (Pay-as-you-go)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: '2.9% + 30¢ per transaction. No monthly fee. Invoicing included.',
+                },
+                {
+                  name: 'Stripe (Growth)',
+                  cost: 100,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Stripe Billing + Radar (fraud). Volume discounts kick in.',
+                },
+                {
+                  name: 'Stripe + AECB',
+                  cost: 1100,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Stripe $100/mo + AECB $1,000/mo for credit bureau access.',
+                },
+              ],
+            },
+          ],
+        },
+        build: {
+          label: 'Build & Deploy',
+          color: '#8b5cf6',
+          options: [
+            {
+              id: 'expo',
+              name: 'Expo / EAS',
+              recommended: true,
+              bestFor:
+                'The standard for React Native. OTA updates push fixes without App Store review. Managed builds.',
+              scores: { cost: 4, scale: 4, ease: 5, lockin: 3, reach: 4 },
+              services: [
+                {
+                  name: 'Expo Updates (OTA)',
+                  cost: 99,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Over-the-air updates: push bug fixes without App Store review.',
+                },
+              ],
+            },
+            {
+              id: 'codepush',
+              name: 'CodePush + Fastlane',
+              bestFor: 'Open-source OTA updates + automated builds. More control, more setup time.',
+              scores: { cost: 5, scale: 3, ease: 2, lockin: 1, reach: 3 },
+              services: [
+                {
+                  name: 'CodePush + Fastlane',
+                  cost: 40,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Open-source OTA (CodePush) + CI/CD (Fastlane). GitHub Actions ~$20.',
+                },
+              ],
+            },
+            {
+              id: 'amplify',
+              name: 'AWS Amplify',
+              bestFor:
+                'Full AWS ecosystem integration. Best if already invested in AWS for backend/infra.',
+              scores: { cost: 3, scale: 5, ease: 3, lockin: 5, reach: 4 },
+              services: [
+                {
+                  name: 'AWS Amplify Hosting',
+                  cost: 50,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Managed builds, hosting, CI/CD. AWS data residency in Bahrain.',
+                },
+              ],
+            },
+          ],
+        },
+        analytics: {
+          label: 'Analytics & Monitoring',
+          color: '#ef4444',
+          options: [
+            {
+              id: 'sentry_mixpanel',
+              name: 'Sentry + Mixpanel',
+              recommended: true,
+              bestFor:
+                'Best-in-class error tracking paired with focused product analytics. Industry standard combo.',
+              scores: { cost: 4, scale: 4, ease: 5, lockin: 2, reach: 4 },
+              services: [
+                {
+                  name: 'Sentry (Free)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: 'Free error tracking: 5K events/mo. Catches crashes before users report.',
+                },
+                {
+                  name: 'Firebase Analytics (Free)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: 'Push notifications (FCM) + basic event tracking. Unlimited free.',
+                },
+                {
+                  name: 'Sentry Team',
+                  cost: 26,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: '50K events, performance monitoring, release health.',
+                },
+                {
+                  name: 'Mixpanel Analytics',
+                  cost: 28,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Funnels, retention cohorts, A/B testing. Tracks conversion rates.',
+                },
+              ],
+            },
+            {
+              id: 'posthog',
+              name: 'PostHog',
+              bestFor:
+                'All-in-one open-source analytics. Self-host for free or use cloud. Replaces 3-4 separate tools.',
+              scores: { cost: 5, scale: 3, ease: 4, lockin: 1, reach: 3 },
+              services: [
+                {
+                  name: 'PostHog (Free Cloud)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: '1M events/mo free. Analytics, session replay, feature flags in one tool.',
+                },
+                {
+                  name: 'PostHog Teams',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Still free under 1M events. Pay-as-you-go after that.',
+                },
+                {
+                  name: 'PostHog Scale',
+                  cost: 450,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'At ~5M events/mo. Includes session replay and experimentation.',
+                },
+              ],
+            },
+            {
+              id: 'datadog',
+              name: 'Datadog',
+              bestFor:
+                'Enterprise-grade full observability. Logs, metrics, APM, synthetics. Best for large engineering teams.',
+              scores: { cost: 1, scale: 5, ease: 3, lockin: 3, reach: 5 },
+              services: [
+                {
+                  name: 'Datadog Free',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: '5 hosts free, basic metrics. Limited but useful for MVP.',
+                },
+                {
+                  name: 'Datadog Pro',
+                  cost: 15,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Per host: APM, logs, infrastructure monitoring.',
+                },
+                {
+                  name: 'Datadog Enterprise',
+                  cost: 350,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'Full suite: APM, logs, synthetics, security monitoring.',
+                },
+              ],
+            },
+            {
+              id: 'logrocket_amplitude',
+              name: 'LogRocket + Amplitude',
+              bestFor:
+                'Session replay (see exactly what users do) + deep product analytics. Great for UX-focused teams.',
+              scores: { cost: 3, scale: 4, ease: 4, lockin: 2, reach: 4 },
+              services: [
+                {
+                  name: 'LogRocket (Free)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: '1K sessions/mo free. Session replay catches UX issues.',
+                },
+                {
+                  name: 'Amplitude (Free)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p0',
+                  desc: '10M events/mo free. Behavioral analytics and cohorts.',
+                },
+                {
+                  name: 'LogRocket + Amplitude Pro',
+                  cost: 148,
+                  billing: 'mo',
+                  phase: 'p2',
+                  desc: 'LogRocket $99/mo + Amplitude $49/mo. Full replay + analytics.',
+                },
+              ],
+            },
+          ],
+        },
+        monetize: {
+          label: 'Monetization',
+          color: '#f97316',
+          options: [
+            {
+              id: 'revenuecat',
+              name: 'RevenueCat',
+              recommended: true,
+              bestFor:
+                'The standard for mobile subscriptions. Handles iOS + Android IAP, entitlements, and analytics.',
+              scores: { cost: 5, scale: 5, ease: 5, lockin: 2, reach: 4 },
+              services: [
+                {
+                  name: 'RevenueCat (Free)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Free up to $2,500/mo tracked revenue. Full IAP management.',
+                },
+                {
+                  name: 'RevenueCat Growth',
+                  cost: 100,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Advanced analytics, experiments, custom dashboards. For $2,500+ revenue.',
+                },
+              ],
+            },
+            {
+              id: 'adapty',
+              name: 'Adapty',
+              bestFor:
+                'A/B test paywalls natively. Strong paywall analytics. Good RevenueCat alternative.',
+              scores: { cost: 4, scale: 4, ease: 4, lockin: 2, reach: 3 },
+              services: [
+                {
+                  name: 'Adapty Starter',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'Free up to $10K/mo MTR. Paywall builder + basic analytics.',
+                },
+                {
+                  name: 'Adapty Pro',
+                  cost: 99,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'A/B testing, advanced analytics, integrations. For scaling.',
+                },
+              ],
+            },
+            {
+              id: 'stripe_billing',
+              name: 'Stripe Billing',
+              bestFor:
+                'Direct billing control, no middleman. Best for web subscriptions or custom billing logic.',
+              scores: { cost: 4, scale: 5, ease: 3, lockin: 2, reach: 5 },
+              services: [
+                {
+                  name: 'Stripe Billing',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p1',
+                  desc: 'No monthly fee. 0.5% on recurring revenue + standard Stripe fees.',
+                },
+                {
+                  name: 'Stripe Billing (Scale)',
+                  cost: 0,
+                  billing: 'mo',
+                  phase: 'p3',
+                  desc: 'Volume discounts at scale. Revenue recognition + invoicing.',
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      // Fixed services — always included regardless of stack choices
+      const TC_FIXED_SERVICES = [
+        {
+          id: 'apple_dev',
+          name: 'Apple Developer',
+          cost: 99,
+          billing: 'yr',
+          phase: 'p0',
+          category: 'build',
+          desc: 'Required to publish on the App Store. Covers TestFlight and production listing.',
+        },
+        {
+          id: 'google_play',
+          name: 'Google Play (one-time)',
+          cost: 25,
+          billing: 'once',
+          phase: 'p0',
+          category: 'build',
+          desc: 'One-time fee to register as a Google Play developer.',
+        },
+        {
+          id: 'domain',
+          name: 'Domain & DNS',
+          cost: 50,
+          billing: 'yr',
+          phase: 'p1',
+          category: 'other',
+          desc: 'olfa.ae domain, DNS hosting, and SSL certificates.',
+        },
+      ];
+
+      // Current selections — one provider per category
+      let tcSelections = {
+        database: 'supabase',
+        auth_kyc: 'supabase_uqudo',
+        banking: 'lean',
+        build: 'expo',
+        analytics: 'sentry_mixpanel',
+        monetize: 'revenuecat',
+      };
+
+      // Build flat service list from selections
+      function buildTcState() {
+        const services = [];
+        Object.entries(TC_ALTERNATIVES).forEach(([catKey, cat]) => {
+          const selId = tcSelections[catKey];
+          const opt = cat.options.find((o) => o.id === selId);
+          if (!opt) return;
+          opt.services.forEach((svc, i) => {
+            services.push({
+              id: selId + '_' + svc.phase + '_' + i,
+              name: svc.name,
+              cost: svc.cost,
+              billing: svc.billing,
+              phase: svc.phase,
+              category: catKey,
+              desc: svc.desc,
+            });
+          });
+        });
+        TC_FIXED_SERVICES.forEach((s) => services.push({ ...s }));
+        return services;
+      }
+
+      let tcState = buildTcState();
+      let dragSvc = null;
+      let openComparePanel = null; // tracks which category's compare panel is open
+
+      function renderTechCosts() {
+        const phases = ['p0', 'p1', 'p2', 'p3'];
+        const phaseLabels = { p0: 'MVP', p1: 'Pre-Seed', p2: 'Growth', p3: 'Scale' };
+        const cur = getCur();
+        const fmtCost = (v) => v.toLocaleString('en-US');
+        const billingLabel = (b) => (b === 'yr' ? '/yr' : b === 'once' ? ' (once)' : '/mo');
+        const getMonthly = (items) =>
+          items.reduce((sum, s) => {
+            if (s.billing === 'yr') return sum + s.cost / 12;
+            if (s.billing === 'once') return sum;
+            return sum + s.cost;
+          }, 0);
+
+        let cumulativeMonthly = 0;
+        const cumulatives = {};
+
+        phases.forEach((p) => {
+          const container = document.getElementById('tc' + p.toUpperCase() + 'Services');
+          container.innerHTML = '';
+          const items = tcState.filter((s) => s.phase === p);
+
+          // Group by category
+          const groups = {};
+          items.forEach((svc) => {
+            if (!groups[svc.category]) groups[svc.category] = [];
+            groups[svc.category].push(svc);
+          });
+
+          // Build ordered category keys: TC_ALTERNATIVES categories + 'other' for fixed services
+          const allCatKeys = [...Object.keys(TC_ALTERNATIVES), 'other'];
+          allCatKeys.forEach((catKey) => {
+            const svcs = groups[catKey];
+            if (!svcs || svcs.length === 0) return;
+
+            const altCat = TC_ALTERNATIVES[catKey];
+            const catLabel = altCat ? altCat.label : 'Other';
+            const catColor = altCat ? altCat.color : '#6b7280';
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'tc-cat-group';
+            groupDiv.dataset.cat = catKey;
+
+            const catMonthly = getMonthly(svcs);
+            const catCostText =
+              catMonthly > 0
+                ? cur.symbol + fmtCost(Math.round(catMonthly * cur.rate)) + '/mo'
+                : 'Free';
+
+            // --- Category header with provider selector + compare button ---
+            const header = document.createElement('div');
+            header.className = 'tc-cat-header';
+
+            let providerHtml = '';
+            if (altCat && altCat.options.length > 1) {
+              const selOpt = altCat.options.find((o) => o.id === tcSelections[catKey]);
+              const selName = selOpt ? selOpt.name : '';
+              providerHtml =
+                '<select class="tc-provider-select" data-cat="' +
+                catKey +
+                '">' +
+                altCat.options
+                  .map(
+                    (o) =>
+                      '<option value="' +
+                      o.id +
+                      '"' +
+                      (o.id === tcSelections[catKey] ? ' selected' : '') +
+                      '>' +
+                      o.name +
+                      (o.recommended ? ' ★' : '') +
+                      '</option>',
+                  )
+                  .join('') +
+                '</select>' +
+                '<button class="tc-compare-btn" data-cat="' +
+                catKey +
+                '" title="Compare alternatives">⚡ Compare</button>';
+            }
+
+            header.innerHTML =
+              '<span class="tc-cat-chevron" style="color:' +
+              catColor +
+              '">▼</span>' +
+              '<span style="flex:1;font-weight:600;color:' +
+              catColor +
+              '">' +
+              catLabel +
+              '</span>' +
+              providerHtml +
+              '<span class="tc-cat-cost-badge">' +
+              catCostText +
+              '</span>';
+
+            // Collapse behavior — only on chevron/label click, not on selects/buttons
+            header.querySelector('.tc-cat-chevron').addEventListener('click', (e) => {
+              e.stopPropagation();
+              groupDiv.classList.toggle('collapsed');
+            });
+            header.querySelector('span[style*="flex:1"]').addEventListener('click', (e) => {
+              e.stopPropagation();
+              groupDiv.classList.toggle('collapsed');
+            });
+
+            // Provider select change handler
+            const selectEl = header.querySelector('.tc-provider-select');
+            if (selectEl) {
+              selectEl.addEventListener('click', (e) => e.stopPropagation());
+              selectEl.addEventListener('change', function (e) {
+                e.stopPropagation();
+                tcSelections[catKey] = this.value;
+                tcState = buildTcState();
+                openComparePanel = null;
+                renderTechCosts();
+                updateAll();
+              });
+            }
+
+            // Compare button handler
+            const cmpBtn = header.querySelector('.tc-compare-btn');
+            if (cmpBtn) {
+              cmpBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openComparePanel = openComparePanel === catKey ? null : catKey;
+                renderTechCosts();
+              });
+            }
+
+            groupDiv.appendChild(header);
+
+            // --- Comparison panel (expanded inline) ---
+            if (openComparePanel === catKey && altCat) {
+              const panel = document.createElement('div');
+              panel.className = 'tc-compare-panel';
+              panel.style.borderLeft = '3px solid ' + catColor;
+
+              altCat.options.forEach((opt) => {
+                const isSelected = opt.id === tcSelections[catKey];
+                const card = document.createElement('div');
+                card.className =
+                  'tc-compare-card' +
+                  (isSelected ? ' selected' : '') +
+                  (opt.recommended ? ' recommended' : '');
+
+                // Header row: name + tags
+                let tagHtml = '';
+                if (isSelected) tagHtml += '<span class="tc-compare-tag current">Current</span>';
+                if (opt.recommended)
+                  tagHtml += '<span class="tc-compare-tag recommended">★ Recommended</span>';
+
+                // Score bars
+                let scoresHtml = '<div class="tc-compare-scores">';
+                SCORE_DIMS.forEach((dim) => {
+                  const val = opt.scores[dim.key] || 0;
+                  scoresHtml +=
+                    '<div class="tc-score-row">' +
+                    '<span class="tc-score-label">' +
+                    dim.label +
+                    '</span>' +
+                    '<div class="tc-score-track"><div class="tc-score-fill dim-' +
+                    dim.key +
+                    '" style="width:' +
+                    val * 20 +
+                    '%"></div></div>' +
+                    '<span class="tc-score-val">' +
+                    val +
+                    '/5</span>' +
+                    '</div>';
+                });
+                scoresHtml += '</div>';
+
+                // Phase cost chips
+                let phaseChipsHtml = '<div class="tc-compare-phases">';
+                phases.forEach((ph) => {
+                  const phSvcs = opt.services.filter((s) => s.phase === ph);
+                  const phCost = phSvcs.reduce(
+                    (s, sv) =>
+                      s +
+                      (sv.billing === 'yr' ? sv.cost / 12 : sv.billing === 'once' ? 0 : sv.cost),
+                    0,
+                  );
+                  if (phCost > 0 || phSvcs.length > 0) {
+                    const costStr =
+                      phCost > 0 ? cur.symbol + fmtCost(Math.round(phCost * cur.rate)) : 'Free';
+                    phaseChipsHtml +=
+                      '<span class="tc-phase-chip">' + phaseLabels[ph] + ': ' + costStr + '</span>';
+                  }
+                });
+                phaseChipsHtml += '</div>';
+
+                // Total at scale
+                const totalAtScale = opt.services.reduce(
+                  (s, sv) =>
+                    s + (sv.billing === 'yr' ? sv.cost / 12 : sv.billing === 'once' ? 0 : sv.cost),
+                  0,
+                );
+
+                card.innerHTML =
+                  '<div class="tc-compare-card-header">' +
+                  '<span class="tc-compare-name">' +
+                  opt.name +
+                  '</span>' +
+                  '<span class="tc-compare-tags">' +
+                  tagHtml +
+                  '</span>' +
+                  '</div>' +
+                  '<p class="tc-compare-best-for">' +
+                  opt.bestFor +
+                  '</p>' +
+                  scoresHtml +
+                  phaseChipsHtml +
+                  '<div class="tc-compare-footer">' +
+                  '<span class="tc-compare-total">Total at scale: ' +
+                  cur.symbol +
+                  fmtCost(Math.round(totalAtScale * cur.rate)) +
+                  '/mo</span>' +
+                  (isSelected
+                    ? '<span class="tc-compare-selected-badge">✓ Selected</span>'
+                    : '<button class="tc-compare-select-btn" data-cat="' +
+                      catKey +
+                      '" data-opt="' +
+                      opt.id +
+                      '">Select this stack</button>') +
+                  '</div>';
+
+                // Select handler
+                if (!isSelected) {
+                  card.addEventListener('click', function () {
+                    const btn = this.querySelector('.tc-compare-select-btn');
+                    if (btn) {
+                      tcSelections[btn.dataset.cat] = btn.dataset.opt;
+                      tcState = buildTcState();
+                      renderTechCosts();
+                      updateAll();
+                    }
+                  });
+                }
+
+                panel.appendChild(card);
+              });
+
+              groupDiv.appendChild(panel);
+            }
+
+            // --- Service cards ---
+            const svcContainer = document.createElement('div');
+            svcContainer.className = 'tc-cat-services';
+
+            let cardIndex = 0;
+            svcs.forEach((svc) => {
+              const card = document.createElement('div');
+              card.className = 'tc-service';
+              card.style.animationDelay = cardIndex * 0.04 + 's';
+              card.draggable = true;
+              card.dataset.id = svc.id;
+              const costVal = Math.round(svc.cost * cur.rate);
+              const isFree = svc.cost === 0;
+              const costText = isFree
+                ? 'Free'
+                : cur.symbol + fmtCost(costVal) + billingLabel(svc.billing);
+              const costClass = isFree ? 'tc-svc-cost free' : 'tc-svc-cost paid';
+
+              card.innerHTML =
+                '<span class="tc-drag-handle">⠿</span>' +
+                '<span class="tc-svc-name">' +
+                svc.name +
+                '</span>' +
+                '<span class="' +
+                costClass +
+                '">' +
+                costText +
+                '</span>' +
+                (svc.desc ? '<span class="tc-svc-details-btn">details</span>' : '');
+
+              card.addEventListener('dragstart', (e) => {
+                dragSvc = svc.id;
+                e.dataTransfer.setData('text/plain', svc.id);
+              });
+              svcContainer.appendChild(card);
+              cardIndex++;
+
+              if (svc.desc) {
+                const descDiv = document.createElement('div');
+                descDiv.className = 'tc-svc-desc';
+                descDiv.textContent = svc.desc;
+                svcContainer.appendChild(descDiv);
+                card.querySelector('.tc-svc-details-btn').addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  descDiv.classList.toggle('visible');
+                });
+              }
+            });
+
+            groupDiv.appendChild(svcContainer);
+            container.appendChild(groupDiv);
+          });
+
+          const phaseMonthly = getMonthly(items);
+          cumulativeMonthly += phaseMonthly;
+          cumulatives[p] = cumulativeMonthly;
+
+          // Phase header costs
+          const cumCost = Math.round(cumulativeMonthly * cur.rate);
+          const newCost = Math.round(phaseMonthly * cur.rate);
+          document.getElementById('tc' + p.toUpperCase() + 'Total').textContent =
+            cur.symbol + fmtCost(cumCost) + '/mo';
+          const cumEl = document.getElementById('tc' + p.toUpperCase() + 'Cum');
+          if (cumEl) {
+            cumEl.textContent =
+              newCost > 0 && newCost !== cumCost
+                ? '+' + cur.symbol + fmtCost(newCost) + ' new this phase'
+                : '';
+          }
+        });
+
+        // Summary bar
+        const summary = document.getElementById('tcSummary');
+        const maxCum = cumulatives['p3'] || 1;
+        summary.innerHTML = '';
+        phases.forEach((p, i) => {
+          const cumVal = Math.round(cumulatives[p] * cur.rate);
+          const annualVal = Math.round(cumulatives[p] * 12 * cur.rate);
+          const pct = Math.round((cumulatives[p] / maxCum) * 100);
+          summary.innerHTML +=
+            '<div class="tc-summary-card phase-' +
+            i +
+            '">' +
+            '<div class="tc-summary-phase">' +
+            phaseLabels[p] +
+            ' Burn</div>' +
+            '<div class="tc-summary-amount">' +
+            cur.symbol +
+            fmtCost(cumVal) +
+            '/mo</div>' +
+            '<div class="tc-summary-annual">' +
+            cur.symbol +
+            fmtCost(annualVal) +
+            '/yr</div>' +
+            '<div class="tc-summary-bar-track"><div class="tc-summary-bar-fill" style="width:' +
+            pct +
+            '%"></div></div>' +
+            '</div>';
+        });
+
+        // Update service count badge
+        const countEl = document.getElementById('tcSvcCount');
+        if (countEl)
+          countEl.innerHTML =
+            '<strong>' + tcState.length + '</strong> services across ' + phases.length + ' phases';
+
+        // Wire tech costs into OPEX
+        const techMonthly = Math.round(cumulatives['p1'] || 0);
+        const techEl = document.getElementById('sbTech');
+        if (techEl) {
+          techEl.value = techMonthly;
+          document.getElementById('sbTechVal').textContent = fmtShort(techMonthly, cur);
+        }
+        // Cascade: update KPIs and OPEX table
+        const s = readSliders();
+        const r = calc(s);
+        document.getElementById('kpiOpex').textContent = fmt(r.opex, cur);
+        document.getElementById('kpiOpexSub').textContent = fmt(r.opex / 12, cur) + '/month';
+        const gap = r.totalRev - r.opex;
+        document.getElementById('kpiGap').textContent =
+          (gap >= 0 ? '+' : '') + fmt(Math.abs(gap), cur);
+        document.getElementById('kpiGap').className =
+          'kpi-value ' + (gap >= 0 ? 'positive' : 'negative');
+        renderOpexTable();
+      }
+
+      // === Dynamic OPEX Breakdown Table ===
+      function renderOpexTable() {
+        const s = readSliders();
+        const cur = getCur();
+        const rows = [
+          { name: 'Salaries & Retainers', val: s.salaries },
+          { name: 'Technology Infra', val: s.tech },
+          { name: 'Marketing & UA', val: s.marketing },
+          { name: 'API & Integrations', val: s.api },
+          { name: 'Miscellaneous', val: s.misc },
+          { name: 'Licensing & Renewals', val: s.license },
+          { name: 'Compliance & Legal', val: s.legal },
+          { name: 'Office & Operations', val: s.office },
+          { name: 'Customer Support', val: s.support },
+        ];
+        const totalMonthly = rows.reduce((sum, r) => sum + r.val, 0);
+        const tbody = document.getElementById('opexTableBody');
+        if (!tbody) return;
+        let html = '';
+        rows.forEach((r) => {
+          const annual = r.val * 12;
+          const pct = totalMonthly > 0 ? ((r.val / totalMonthly) * 100).toFixed(1) : '0.0';
+          const mVal = Math.round(r.val * cur.rate);
+          const aVal = Math.round(annual * cur.rate);
+          html +=
+            '<tr><td>' +
+            r.name +
+            '</td><td class="num">' +
+            cur.symbol +
+            mVal.toLocaleString() +
+            '</td><td class="num">' +
+            cur.symbol +
+            aVal.toLocaleString() +
+            '</td><td class="num">' +
+            pct +
+            '%</td></tr>';
+        });
+        const totalAnnual = totalMonthly * 12;
+        const tM = Math.round(totalMonthly * cur.rate);
+        const tA = Math.round(totalAnnual * cur.rate);
+        html +=
+          '<tr class="total"><td>Total OPEX</td><td class="num">' +
+          cur.symbol +
+          tM.toLocaleString() +
+          '</td><td class="num">' +
+          cur.symbol +
+          tA.toLocaleString() +
+          '</td><td class="num">100%</td></tr>';
+        tbody.innerHTML = html;
+      }
+
+      function updateTechCosts() {
+        renderTechCosts();
+      }
+
+      // Collapse/Expand toggle button
+      document.getElementById('tcToggleAll').addEventListener('click', function () {
+        const groups = document.querySelectorAll('.tc-cat-group');
+        if (groups.length === 0) return;
+        const allCollapsed = [...groups].every((g) => g.classList.contains('collapsed'));
+        groups.forEach((g) => {
+          if (allCollapsed) g.classList.remove('collapsed');
+          else g.classList.add('collapsed');
+        });
+        this.textContent = allCollapsed ? '▼ Collapse All' : '▶ Expand All';
+      });
+
+      // Drop handlers
+      document.querySelectorAll('.tc-phase').forEach((phase) => {
+        phase.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          phase.classList.add('drop-over');
+        });
+        phase.addEventListener('dragleave', () => {
+          phase.classList.remove('drop-over');
+        });
+        phase.addEventListener('drop', (e) => {
+          e.preventDefault();
+          phase.classList.remove('drop-over');
+          const id = e.dataTransfer.getData('text/plain');
+          const svc = tcState.find((s) => s.id === id);
+          if (svc) {
+            svc.phase = phase.dataset.phase;
+            renderTechCosts();
+            updateAll();
+          }
+        });
+      });
+
+      // Init
+      updateAll();
+      renderChips();
+      renderTechCosts();
+      renderOpexTable();
+    </script>
+  </body>
+</html>

@@ -12,131 +12,161 @@ import {
   FolderOpen,
   Sparkles,
 } from 'lucide-react';
-import { Button, Badge } from '@/components/ui';
-import { PROJECTS, getProjectTools, timeAgo } from '@/lib/mock-data';
+import { Button } from '@/components/ui';
+import { useProjects, type ProjectRow, type StackLayer } from '@/hooks/use-projects';
+import { SpotlightCard } from '@/components/ui/spotlight-card';
+import { NumberTicker } from '@/components/ui/number-ticker';
+import { BlurIn } from '@/components/ui/blur-in';
+import { motion } from 'framer-motion';
+
+// ── Helpers ─────────────────────────────────────
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 // ── Project Card ────────────────────────────────
 
-function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
-  const tools = getProjectTools(project);
+function ProjectCard({ project }: { project: ProjectRow }) {
+  const stackData = project.stackData as StackLayer[] | null;
+  const toolCount =
+    stackData?.reduce((sum: number, layer: StackLayer) => sum + (layer.tools?.length || 0), 0) || 0;
 
   return (
     <Link href={`/project/${project.id}`} className="block">
-      <div className="group relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-all duration-200 hover:border-[color:var(--ring)]/30 hover:shadow-[var(--shadow-card)]">
-        {/* Top accent line */}
+      <SpotlightCard className="h-full overflow-hidden border border-[var(--border)] bg-[var(--card)] transition-all duration-300 hover:border-[var(--color-accent-500)]/50">
+        {/* Top accent line based on status */}
         <div
-          className={`h-0.5 ${
+          className={`absolute top-0 left-0 h-1 w-full ${
             project.status === 'active'
-              ? 'bg-[var(--color-accent-500)]'
+              ? 'bg-gradient-to-r from-[var(--color-accent-500)] to-[var(--color-accent-600)]'
               : project.status === 'draft'
-                ? 'bg-[var(--color-warning)]'
-                : 'bg-[var(--muted)]'
+                ? 'bg-gradient-to-r from-orange-400 to-amber-500'
+                : 'bg-gradient-to-r from-slate-400 to-slate-500'
           }`}
         />
 
-        <div className="p-5">
+        <div className="p-6 pt-7 text-left">
           {/* Header */}
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
-                <Layers className="h-5 w-5" />
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5 text-[var(--primary)] shadow-sm">
+                <Layers className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-[var(--foreground)]">{project.name}</h3>
-                <Badge
-                  variant={project.status === 'active' ? 'default' : 'outline'}
-                  className="mt-1"
-                >
-                  {project.status === 'active'
-                    ? '● Active'
-                    : project.status === 'draft'
-                      ? '○ Draft'
-                      : 'Archived'}
-                </Badge>
+                <h3 className="text-base font-semibold tracking-tight text-[var(--foreground)]">
+                  {project.name}
+                </h3>
+                <div className="mt-1 flex items-center gap-2">
+                  <span
+                    className={`flex h-2 w-2 rounded-full ${
+                      project.status === 'active'
+                        ? 'animate-pulse bg-emerald-500'
+                        : project.status === 'draft'
+                          ? 'bg-amber-400'
+                          : 'bg-slate-400'
+                    }`}
+                  />
+                  <span className="text-[10px] font-bold tracking-wider text-[var(--muted-foreground)] uppercase">
+                    {project.status || 'Archived'}
+                  </span>
+                </div>
               </div>
             </div>
-            <button className="rounded-md p-1.5 text-[var(--muted-foreground)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--muted)] hover:text-[var(--foreground)]">
+            <button className="rounded-full p-2 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]">
               <MoreHorizontal className="h-4 w-4" />
             </button>
           </div>
 
           {/* Description */}
-          <p className="mt-3 text-xs leading-relaxed text-[var(--muted-foreground)]">
-            {project.description}
+          <p className="mt-4 line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-[var(--muted-foreground)]">
+            {project.description || 'No description provided for this project.'}
           </p>
 
-          {/* Tool Stack */}
-          <div className="mt-4">
-            <p className="mb-2 text-[10px] font-medium tracking-wider text-[var(--muted-foreground)] uppercase">
-              Stack
-            </p>
-            <div className="flex items-center gap-1">
-              <div className="flex -space-x-1.5">
-                {tools.slice(0, 6).map((tool) => (
-                  <div
-                    key={tool.id}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 p-1.5 transition-transform hover:z-10 hover:scale-110"
-                    title={tool.name}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={tool.logo}
-                      alt={tool.name}
-                      className="h-full w-full object-contain"
-                      loading="lazy"
-                      onError={(e) => {
-                        const t = e.target as HTMLImageElement;
-                        t.style.display = 'none';
-                        const p = t.parentElement;
-                        if (p) {
-                          p.textContent = tool.name.charAt(0);
-                          p.classList.add(
-                            'text-[10px]',
-                            'font-bold',
-                            'text-[var(--muted-foreground)]',
-                          );
-                        }
-                      }}
-                    />
-                  </div>
-                ))}
-                {tools.length > 6 && (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 text-[10px] font-medium text-[var(--muted-foreground)]">
-                    +{tools.length - 6}
-                  </div>
-                )}
-              </div>
+          {/* Stats Bar */}
+          <div className="mt-6 grid grid-cols-3 gap-2 border-y border-[var(--border)]/50 py-4">
+            <div className="flex flex-col items-center justify-center gap-1 border-r border-[var(--border)]/30">
+              <Package className="h-3.5 w-3.5 text-[var(--primary)]" />
+              <span className="text-xs font-medium text-[var(--foreground)]">{toolCount}</span>
+              <span className="text-[9px] tracking-tighter text-[var(--muted-foreground)] uppercase">
+                Tools
+              </span>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1 border-r border-[var(--border)]/30">
+              <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+              <span className="text-xs font-medium text-[var(--foreground)]">
+                {!project.totalMonthlyCost || project.totalMonthlyCost === '0'
+                  ? '0'
+                  : project.totalMonthlyCost}
+              </span>
+              <span className="text-[9px] tracking-tighter text-[var(--muted-foreground)] uppercase">
+                Cost/mo
+              </span>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1">
+              <Calendar className="h-3.5 w-3.5 text-blue-500" />
+              <span className="text-xs font-medium text-[var(--foreground)]">
+                {timeAgo(project.updatedAt)}
+              </span>
+              <span className="text-[9px] tracking-tighter text-[var(--muted-foreground)] uppercase">
+                Updated
+              </span>
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="my-4 border-t border-[var(--border)]/50" />
-
-          {/* Footer Stats */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
-                <Package className="h-3.5 w-3.5" />
-                {tools.length} tools
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
-                <DollarSign className="h-3.5 w-3.5" />
-                {project.monthlyCost === 0 ? (
-                  <span className="text-[var(--color-accent-500)]">Free</span>
-                ) : (
-                  <>\${project.monthlyCost}/mo</>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
-                <Calendar className="h-3.5 w-3.5" />
-                {timeAgo(project.updatedAt)}
-              </div>
+          {/* CTA Footer */}
+          <div className="group mt-4 flex items-center justify-between text-xs font-medium text-[var(--primary)]">
+            <span className="translate-x-2 opacity-0 transition-opacity duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+              View Project Details
+            </span>
+            <div className="ml-auto flex items-center gap-1">
+              <span>Go back to workspace</span>
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </div>
-            <ChevronRight className="h-4 w-4 text-[var(--muted-foreground)] opacity-0 transition-opacity group-hover:opacity-100" />
+          </div>
+        </div>
+      </SpotlightCard>
+    </Link>
+  );
+}
+
+interface SummaryStatProps {
+  label: string;
+  value: number | string;
+  icon: React.ComponentType<{ className?: string }>;
+  colorClass: string;
+  prefix?: string;
+}
+
+function SummaryStat({ label, value, icon: Icon, colorClass, prefix = '' }: SummaryStatProps) {
+  return (
+    <SpotlightCard className="min-w-[200px] flex-1 border border-[var(--border)]/50 bg-[var(--card)] p-5">
+      <div className="flex items-center gap-4">
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-lg ${colorClass} bg-opacity-10 shadow-sm`}
+        >
+          <Icon className={`h-5 w-5 ${colorClass.replace('bg-', 'text-')}`} />
+        </div>
+        <div>
+          <p className="text-xs font-medium text-[var(--muted-foreground)]">{label}</p>
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-xl font-bold tracking-tight text-[var(--foreground)]">
+              {prefix}
+            </span>
+            <NumberTicker
+              value={typeof value === 'string' ? parseFloat(value) : value}
+              className="text-xl font-bold tracking-tight text-[var(--foreground)]"
+            />
           </div>
         </div>
       </div>
-    </Link>
+    </SpotlightCard>
   );
 }
 
@@ -144,21 +174,48 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border)] bg-[var(--card)]/50 py-20">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--primary)]/10">
-        <FolderOpen className="h-7 w-7 text-[var(--primary)]" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--card)]/30 py-24 backdrop-blur-sm"
+    >
+      <div className="relative">
+        <div className="absolute -inset-4 animate-pulse rounded-full bg-[var(--primary)]/10 blur-xl" />
+        <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5">
+          <FolderOpen className="h-10 w-10 text-[var(--primary)]" />
+        </div>
       </div>
-      <h3 className="mt-4 text-sm font-medium text-[var(--foreground)]">No projects yet</h3>
-      <p className="mt-1.5 max-w-sm text-center text-xs text-[var(--muted-foreground)]">
-        Create your first project to start building your perfect tech stack with AI-powered
-        recommendations.
+      <h3 className="mt-8 text-xl font-semibold tracking-tight text-[var(--foreground)]">
+        Your workspace is empty
+      </h3>
+      <p className="mt-2 max-w-sm px-6 text-center text-sm text-[var(--muted-foreground)]">
+        Every great project starts with a single step. Use our AI wizard to generate the perfect
+        tech stack for your next big idea.
       </p>
-      <Link href="/wizard" className="mt-5">
-        <Button variant="primary" size="sm">
-          <Sparkles className="mr-1.5 h-4 w-4" />
-          Start with Wizard
+      <Link href="/create" className="mt-8">
+        <Button
+          size="lg"
+          className="rounded-full bg-[var(--primary)] px-8 text-white shadow-[var(--primary)]/20 shadow-lg transition-all hover:scale-105 hover:bg-[var(--primary-dark)] active:scale-95"
+        >
+          <Sparkles className="mr-2 h-5 w-5 fill-current" />
+          Generate New Stack
         </Button>
       </Link>
+    </motion.div>
+  );
+}
+
+// ── Loading Skeleton ────────────────────────────
+
+function LoadingSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="h-64 animate-pulse rounded-2xl border border-[var(--border)] bg-[var(--card)]/50"
+        />
+      ))}
     </div>
   );
 }
@@ -166,64 +223,113 @@ function EmptyState() {
 // ── Page: Projects ──────────────────────────────
 
 export default function ProjectsPage() {
-  const activeProjects = PROJECTS.filter((p) => p.status === 'active');
-  const draftProjects = PROJECTS.filter((p) => p.status === 'draft');
-  const totalCost = PROJECTS.reduce((sum, p) => sum + p.monthlyCost, 0);
+  const { data: projects, isLoading, error } = useProjects();
+
+  const activeProjects = projects?.filter((p) => p.status === 'active') || [];
+  const draftProjects = projects?.filter((p) => p.status === 'draft') || [];
+  const totalCost =
+    projects?.reduce((sum, p) => sum + parseFloat(p.totalMonthlyCost || '0'), 0) || 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 pb-12">
       {/* ── Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
-            My Projects
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Manage your tech stack configurations and track costs.
+          <BlurIn
+            word="My Projects"
+            className="text-left text-4xl font-bold tracking-tight text-[var(--foreground)]"
+          />
+          <p className="mt-2 max-w-md text-base text-[var(--muted-foreground)]">
+            Manage your technology ecosystem, explore different stack configurations, and monitor
+            infrastructure costs.
           </p>
         </div>
-        <Link href="/wizard">
-          <Button variant="primary" size="sm">
-            <Plus className="mr-1.5 h-4 w-4" />
-            New Project
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/create">
+            <Button
+              variant="primary"
+              size="lg"
+              className="group rounded-full px-6 shadow-[var(--primary)]/10 shadow-xl transition-all hover:-translate-y-0.5"
+            >
+              <Plus className="mr-2 h-5 w-5 transition-transform group-hover:rotate-90" />
+              New Project
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* ── Summary Bar ── */}
-      <div className="flex flex-wrap gap-6 rounded-xl border border-[var(--border)] bg-[var(--card)] px-6 py-4">
-        <div>
-          <p className="text-xs text-[var(--muted-foreground)]">Total Projects</p>
-          <p className="mt-0.5 text-lg font-semibold text-[var(--foreground)]">{PROJECTS.length}</p>
-        </div>
-        <div className="border-l border-[var(--border)] pl-6">
-          <p className="text-xs text-[var(--muted-foreground)]">Active</p>
-          <p className="mt-0.5 text-lg font-semibold text-[var(--color-accent-500)]">
-            {activeProjects.length}
-          </p>
-        </div>
-        <div className="border-l border-[var(--border)] pl-6">
-          <p className="text-xs text-[var(--muted-foreground)]">Drafts</p>
-          <p className="mt-0.5 text-lg font-semibold text-[var(--color-warning)]">
-            {draftProjects.length}
-          </p>
-        </div>
-        <div className="border-l border-[var(--border)] pl-6">
-          <p className="text-xs text-[var(--muted-foreground)]">Est. Monthly Cost</p>
-          <p className="mt-0.5 text-lg font-semibold text-[var(--foreground)]">${totalCost}</p>
-        </div>
+      {/* ── Summary Cards ── */}
+      <div className="flex flex-wrap gap-4">
+        <SummaryStat
+          label="Total Workspace"
+          value={isLoading ? 0 : projects?.length || 0}
+          icon={Layers}
+          colorClass="bg-blue-500"
+        />
+        <SummaryStat
+          label="Active Stacks"
+          value={isLoading ? 0 : activeProjects.length}
+          icon={Sparkles}
+          colorClass="bg-[var(--color-accent-500)]"
+        />
+        <SummaryStat
+          label="Development Drafts"
+          value={isLoading ? 0 : draftProjects.length}
+          icon={Plus}
+          colorClass="bg-amber-500"
+        />
+        <SummaryStat
+          label="Infrastructure Cost"
+          value={isLoading ? 0 : Math.round(totalCost)}
+          icon={DollarSign}
+          colorClass="bg-emerald-500"
+          prefix="$"
+        />
       </div>
 
       {/* ── Project Grid ── */}
-      {PROJECTS.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-          {PROJECTS.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
-      ) : (
-        <EmptyState />
-      )}
+      <div className="relative">
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--card)]/50 py-20 text-center">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+              <Plus className="h-6 w-6 rotate-45" />
+            </div>
+            <h3 className="text-lg font-semibold text-[var(--foreground)]">Connection Error</h3>
+            <p className="mx-auto mt-1 max-w-xs text-sm text-[var(--muted-foreground)]">
+              We encountered a problem while synchronizing your workspace data.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-6 rounded-full px-6"
+              onClick={() => window.location.reload()}
+            >
+              Reconnect Now
+            </Button>
+          </div>
+        ) : projects && projects.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3"
+          >
+            {projects.map((project, idx) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+              >
+                <ProjectCard project={project} />
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          <EmptyState />
+        )}
+      </div>
     </div>
   );
 }

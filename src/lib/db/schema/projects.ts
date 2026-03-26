@@ -6,6 +6,7 @@ import {
   decimal,
   boolean,
   timestamp,
+  jsonb,
   index,
 } from 'drizzle-orm/pg-core';
 
@@ -17,6 +18,8 @@ export const projects = pgTable(
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
     projectType: varchar('project_type', { length: 50 }),
+    status: varchar('status', { length: 20 }).default('draft').notNull(),
+    stackData: jsonb('stack_data').$type<Record<string, unknown>>(),
     totalMonthlyCost: decimal('total_monthly_cost', { precision: 10, scale: 2 }).default('0'),
     isPublic: boolean('is_public').default(false),
     shareSlug: varchar('share_slug', { length: 100 }).unique(),

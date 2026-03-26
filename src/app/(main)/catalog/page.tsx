@@ -3,7 +3,12 @@
 import { useState, useMemo } from 'react';
 import { Search, Star, ExternalLink, SlidersHorizontal, Grid3x3, List } from 'lucide-react';
 import { Badge } from '@/components/ui';
-import { TOOLS, CATEGORIES, formatStars, type Tool, type Category } from '@/lib/mock-data';
+import { Illustration } from '@/components/ui/Illustration';
+import { TOOLS, CATEGORIES, type Tool, type Category } from '@/data/tools-catalog';
+import { formatStars } from '@/lib/helpers';
+import { CompareCheckbox } from '@/components/catalog/CompareCheckbox';
+import { CompareFloatingButton } from '@/components/catalog/CompareFloatingButton';
+import { CompareOverlay } from '@/components/catalog/CompareOverlay';
 
 // ── Tool Card ───────────────────────────────────
 
@@ -15,6 +20,7 @@ function ToolCard({ tool }: { tool: Tool }) {
       rel="noopener noreferrer"
       className="group relative flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-all duration-200 hover:border-[color:var(--ring)]/30 hover:shadow-[var(--shadow-card)]"
     >
+      <CompareCheckbox tool={tool} />
       {/* Top: Logo + Name */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -239,8 +245,8 @@ export default function CatalogPage() {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border)] py-16">
-          <Search className="h-8 w-8 text-[var(--muted-foreground)]" />
-          <p className="mt-3 text-sm font-medium text-[var(--foreground)]">No tools found</p>
+          <Illustration name="searching-everywhere" size="sm" className="opacity-60" />
+          <p className="mt-4 text-sm font-medium text-[var(--foreground)]">No tools found</p>
           <p className="mt-1 text-xs text-[var(--muted-foreground)]">
             Try adjusting your search or filter criteria.
           </p>
@@ -255,6 +261,9 @@ export default function CatalogPage() {
           </button>
         </div>
       )}
+
+      <CompareFloatingButton />
+      <CompareOverlay />
     </div>
   );
 }
@@ -269,7 +278,10 @@ function ListToolRow({ tool }: { tool: Tool }) {
       rel="noopener noreferrer"
       className="group flex items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--card)] px-5 py-4 transition-all duration-200 hover:border-[color:var(--ring)]/30"
     >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--muted)]/50 p-2">
+      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--muted)]/50 p-2">
+        <div className="absolute -top-3 -left-3 scale-75">
+          <CompareCheckbox tool={tool} />
+        </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={tool.logo}

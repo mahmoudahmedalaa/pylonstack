@@ -10,6 +10,7 @@ import { create } from 'zustand';
  */
 
 export interface WizardAnswers {
+  description: string;
   projectType: string | null;
   teamSize: string | null;
   requirements: string[];
@@ -29,6 +30,8 @@ interface WizardStore {
   nextStep: () => void;
   prevStep: () => void;
 
+  setDescription: (desc: string) => void;
+
   setProjectType: (id: string) => void;
   setTeamSize: (id: string) => void;
   toggleRequirement: (id: string) => void;
@@ -42,6 +45,7 @@ interface WizardStore {
 }
 
 const INITIAL_ANSWERS: WizardAnswers = {
+  description: '',
   projectType: null,
   teamSize: null,
   requirements: [],
@@ -62,6 +66,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
   prevStep: () => set((s) => ({ currentStep: Math.max(s.currentStep - 1, 1) })),
 
   // ── Single-select answers ──
+  setDescription: (desc) => set((s) => ({ answers: { ...s.answers, description: desc } })),
   setProjectType: (id) => set((s) => ({ answers: { ...s.answers, projectType: id } })),
   setTeamSize: (id) => set((s) => ({ answers: { ...s.answers, teamSize: id } })),
 
@@ -106,7 +111,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
     const { currentStep, answers } = get();
     switch (currentStep) {
       case 1:
-        return !!answers.projectType;
+        return !!answers.projectType && !!answers.description?.trim();
       case 2:
         return !!answers.teamSize;
       case 3:

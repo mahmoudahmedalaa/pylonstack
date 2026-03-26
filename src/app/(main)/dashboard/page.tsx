@@ -1,25 +1,34 @@
 'use client';
 
-import Link from 'next/link';
+import { SpotlightCard } from '@/components/premium/SpotlightCard';
+import { PremiumButton } from '@/components/premium/PremiumButton';
+import { BorderBeam } from '@/components/premium/BorderBeam';
+import { NumberTicker } from '@/components/premium/NumberTicker';
+import { AnimatedGradientText } from '@/components/premium/AnimatedGradientText';
+import { Illustration } from '@/components/ui/Illustration';
 import {
-  LayoutGrid,
-  DollarSign,
-  Lightbulb,
-  Plus,
-  Search,
   ArrowUpRight,
   ArrowDownRight,
-  Layers,
-  Package,
-  Sparkles,
-  Clock,
-  ChevronRight,
   Minus,
+  Layers,
+  ChevronRight,
+  Plus,
+  Search,
+  LayoutGrid,
+  Package,
+  DollarSign,
+  Lightbulb,
+  Clock,
+  Sparkles,
   Loader2,
 } from 'lucide-react';
-import { Button, Badge } from '@/components/ui';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
 import { useProjects, type ProjectRow } from '@/hooks/use-projects';
 import { useCategories } from '@/hooks/use-categories';
+import { useSubscription } from '@/hooks/useSubscription';
+import { UpgradeModal, useUpgradeModal } from '@/components/UpgradeModal';
 
 // ── Helper: relative time ───────────────────────
 
@@ -54,51 +63,63 @@ function StatCard({
   accent,
 }: {
   label: string;
-  value: string | number;
+  value: number;
   change: string;
   trend: 'up' | 'down' | 'neutral';
   icon: React.ElementType;
   accent: string;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-all duration-200 hover:border-[color:var(--ring)]/30">
-      {/* Subtle accent glow */}
-      <div
-        className="absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-[0.07] blur-2xl transition-opacity group-hover:opacity-[0.12]"
-        style={{ background: accent }}
-      />
-
+    <SpotlightCard
+      glowColor={
+        accent.includes('var')
+          ? accent.includes('primary')
+            ? 'rgba(99, 102, 241, 0.15)'
+            : 'rgba(16, 185, 129, 0.15)'
+          : accent
+      }
+      className="flex flex-col justify-between p-5"
+    >
       <div className="flex items-start justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--muted)]/50">
-          <Icon className="h-5 w-5 text-[var(--muted-foreground)]" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 shadow-sm transition-transform duration-300 group-hover:scale-110">
+          <Icon className="h-5 w-5" style={{ color: accent }} />
         </div>
-        <div className="flex items-center gap-1 text-xs">
+        <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-bold tracking-wider uppercase backdrop-blur-md">
           {trend === 'up' && (
             <>
-              <ArrowUpRight className="h-3.5 w-3.5 text-[var(--color-accent-500)]" />
+              <ArrowUpRight className="h-3 w-3 text-[var(--color-accent-500)]" />
               <span className="text-[var(--color-accent-500)]">{change}</span>
             </>
           )}
           {trend === 'down' && (
             <>
-              <ArrowDownRight className="h-3.5 w-3.5 text-[var(--color-error)]" />
+              <ArrowDownRight className="h-3 w-3 text-[var(--color-error)]" />
               <span className="text-[var(--color-error)]">{change}</span>
             </>
           )}
           {trend === 'neutral' && (
             <>
-              <Minus className="h-3.5 w-3.5 text-[var(--muted-foreground)]" />
+              <Minus className="h-3 w-3 text-[var(--muted-foreground)]" />
               <span className="text-[var(--muted-foreground)]">{change}</span>
             </>
           )}
         </div>
       </div>
 
-      <div className="mt-4">
-        <p className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">{value}</p>
-        <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">{label}</p>
+      <div className="mt-5">
+        <div className="flex items-baseline gap-1">
+          <span className="text-3xl font-bold tracking-tight text-[var(--foreground)]">
+            <NumberTicker value={value} />
+          </span>
+          {label.toLowerCase().includes('cost') && (
+            <span className="text-sm font-medium text-[var(--muted-foreground)]">/mo</span>
+          )}
+        </div>
+        <p className="mt-1 text-[11px] font-bold tracking-[0.2em] text-[var(--muted-foreground)] uppercase">
+          {label}
+        </p>
       </div>
-    </div>
+    </SpotlightCard>
   );
 }
 
@@ -108,22 +129,27 @@ function ProjectRow({ project }: { project: ProjectRow }) {
   return (
     <Link
       href={`/project/${project.id}`}
-      className="group flex items-center gap-4 rounded-lg border border-transparent px-4 py-3.5 transition-all duration-150 hover:border-[var(--border)] hover:bg-[var(--elevated)]"
+      className="group flex items-center gap-4 rounded-xl border border-transparent px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/5 hover:shadow-md"
     >
-      {/* Project icon */}
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+      {/* Project icon with pulse on hover */}
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-[var(--primary)] transition-transform duration-300 group-hover:scale-105">
         <Layers className="h-5 w-5" />
       </div>
 
       {/* Info */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-medium text-[var(--foreground)]">{project.name}</p>
-          <Badge variant={project.status === 'active' ? 'default' : 'outline'}>
+          <p className="truncate text-base font-semibold text-[var(--foreground)] transition-colors group-hover:text-[var(--primary)]">
+            {project.name}
+          </p>
+          <Badge
+            variant={project.status === 'active' ? 'default' : 'outline'}
+            className="shadow-sm"
+          >
             {project.status ?? 'draft'}
           </Badge>
         </div>
-        <p className="mt-0.5 truncate text-xs text-[var(--muted-foreground)]">
+        <p className="mt-1 truncate text-sm text-[var(--muted-foreground)]">
           {project.description ?? 'No description'}
         </p>
       </div>
@@ -131,16 +157,20 @@ function ProjectRow({ project }: { project: ProjectRow }) {
       {/* Type */}
       {project.projectType && (
         <div className="hidden text-right sm:block">
-          <p className="text-xs text-[var(--muted-foreground)]">{project.projectType}</p>
+          <p className="rounded-md border border-white/5 bg-white/5 px-2 py-1 text-xs font-bold tracking-wider text-[var(--muted-foreground)] uppercase">
+            {project.projectType}
+          </p>
         </div>
       )}
 
       {/* Timestamp */}
-      <p className="hidden shrink-0 text-xs text-[var(--muted-foreground)] lg:block">
+      <p className="hidden shrink-0 text-sm font-medium text-[var(--muted-foreground)] lg:block">
         {timeAgo(project.createdAt)}
       </p>
 
-      <ChevronRight className="h-4 w-4 shrink-0 text-[var(--muted-foreground)] opacity-0 transition-opacity group-hover:opacity-100" />
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/0 transition-all duration-300 group-hover:bg-white/10">
+        <ChevronRight className="h-5 w-5 shrink-0 text-[var(--muted-foreground)] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" />
+      </div>
     </Link>
   );
 }
@@ -150,18 +180,17 @@ function ProjectRow({ project }: { project: ProjectRow }) {
 function EmptyProjects() {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
-        <Layers className="h-6 w-6" />
-      </div>
-      <h3 className="mt-4 text-sm font-medium text-[var(--foreground)]">No projects yet</h3>
-      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-        Create your first project using the AI wizard.
+      <Illustration name="blank-canvas" size="md" glow glowColor="var(--primary)" float />
+      <h3 className="mt-6 text-base font-semibold text-[var(--foreground)]">No projects yet</h3>
+      <p className="mt-2 max-w-sm text-sm text-[var(--muted-foreground)]">
+        Create your first project using our AI Advisor or assemble it manually from our catalog of
+        230+ tools.
       </p>
-      <Link href="/wizard" className="mt-4">
-        <Button variant="primary" size="sm">
+      <Link href="/create" className="mt-6">
+        <PremiumButton size="md">
           <Plus className="mr-1.5 h-4 w-4" />
           New Project
-        </Button>
+        </PremiumButton>
       </Link>
     </div>
   );
@@ -172,10 +201,10 @@ function EmptyProjects() {
 function SkeletonRow() {
   return (
     <div className="flex items-center gap-4 px-4 py-3.5">
-      <div className="h-10 w-10 animate-pulse rounded-lg bg-[var(--muted)]" />
+      <div className="h-10 w-10 animate-pulse rounded-lg bg-white/5" />
       <div className="flex-1 space-y-2">
-        <div className="h-4 w-40 animate-pulse rounded bg-[var(--muted)]" />
-        <div className="h-3 w-64 animate-pulse rounded bg-[var(--muted)]" />
+        <div className="h-4 w-40 animate-pulse rounded bg-white/5" />
+        <div className="h-3 w-64 animate-pulse rounded bg-white/5" />
       </div>
     </div>
   );
@@ -183,30 +212,55 @@ function SkeletonRow() {
 
 // ── AI Insight Card ─────────────────────────────
 
-function AIInsightCard() {
+function AIInsightCard({ handleNewProject }: { handleNewProject: (e: React.MouseEvent) => void }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-[var(--color-primary-500)]/20 bg-gradient-to-br from-[var(--color-primary-500)]/5 to-transparent p-5">
-      <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary-500)]/10">
-          <Sparkles className="h-5 w-5 text-[var(--color-primary-400)]" />
+    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40 p-8 shadow-2xl backdrop-blur-xl transition-all hover:border-white/20">
+      <BorderBeam
+        size={250}
+        duration={12}
+        delay={9}
+        colorFrom="var(--primary)"
+        colorTo="var(--accent)"
+      />
+
+      <div className="relative z-10 flex flex-col items-start gap-6 md:flex-row">
+        {/* Illustration instead of icon */}
+        <div className="hidden shrink-0 md:block">
+          <Illustration
+            name="artificial-intelligence"
+            size="lg"
+            glow
+            glowColor="var(--primary)"
+            float
+          />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-medium text-[var(--foreground)]">Welcome to Pylon</p>
-          <p className="mt-1 text-xs leading-relaxed text-[var(--muted-foreground)]">
-            Use the <span className="text-[var(--foreground)]">Stack Wizard</span> to generate{' '}
-            <span className="font-medium text-[var(--color-accent-500)]">AI-powered</span> tech
-            stack recommendations tailored to your project requirements.
+          <AnimatedGradientText className="mx-0 mb-4 px-3 py-1">
+            <span className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/80 uppercase">
+              ✨ AI Powered Builder
+            </span>
+          </AnimatedGradientText>
+          <h3 className="text-2xl font-bold tracking-tight text-white">
+            Ready to ship your next big idea?
+          </h3>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--muted-foreground)]">
+            Our AI Advisor can analyze your project requirements and recommend a perfectly optimized
+            tech stack in seconds. Stop guessing and start building with confidence.
           </p>
-          <div className="mt-3 flex gap-2">
-            <Link href="/wizard">
-              <Button size="sm" variant="primary">
-                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                Start Wizard
-              </Button>
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Link href="/create" onClick={handleNewProject}>
+              <PremiumButton variant="accent" size="lg">
+                <Sparkles className="mr-2 h-5 w-5" />
+                Generate Stack
+              </PremiumButton>
             </Link>
             <Link href="/catalog">
-              <Button size="sm" variant="ghost">
-                Browse Catalog
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/10 bg-white/5 px-8 backdrop-blur hover:border-white/20 hover:bg-white/10"
+              >
+                Explore Components
               </Button>
             </Link>
           </div>
@@ -224,95 +278,115 @@ export default function DashboardPage() {
 
   const { data: projects, isLoading: projectsLoading } = useProjects();
   const { data: categories } = useCategories();
+  const { canCreateProject, isPro, isFree } = useSubscription();
+  const upgradeModal = useUpgradeModal();
 
   // Compute stats from live data
   const projectCount = projects?.length ?? 0;
+  const totalCost = projects?.reduce((s, p) => s + parseFloat(p.totalMonthlyCost || '0'), 0) ?? 0;
   const totalTools = categories?.reduce((sum, c) => sum + c.toolCount, 0) ?? 0;
 
+  /** Gate-aware handler for "New Project" buttons */
+  const handleNewProject = (e: React.MouseEvent) => {
+    if (!canCreateProject(projectCount)) {
+      e.preventDefault();
+      upgradeModal.show(
+        "You've reached the free plan limit of 3 projects. Upgrade to Pro for unlimited projects.",
+      );
+    }
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 pb-12">
       {/* ── Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
-            {greeting}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Here&apos;s an overview of your tech stacks and recent activity.
-          </p>
+          <AnimatedGradientText className="mx-0 mb-2 px-3 py-1">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
+              {greeting}, Architect
+            </span>
+          </AnimatedGradientText>
+          <h1 className="text-4xl font-bold tracking-tight text-white">Command Center</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
           <Link href="/catalog">
-            <Button variant="ghost" size="sm">
-              <Search className="mr-1.5 h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="lg"
+              className="text-white/60 hover:bg-white/5 hover:text-white"
+            >
+              <Search className="mr-2 h-4 w-4" />
               Browse Catalog
             </Button>
           </Link>
-          <Link href="/wizard">
-            <Button variant="primary" size="sm">
-              <Plus className="mr-1.5 h-4 w-4" />
+          <Link href="/create" onClick={handleNewProject}>
+            <PremiumButton size="md" className="px-8">
+              <Plus className="mr-2 h-4 w-4" />
               New Project
-            </Button>
+              {isFree && <span className="ml-2 text-[10px] opacity-60">({projectCount}/3)</span>}
+            </PremiumButton>
           </Link>
         </div>
       </div>
 
-      {/* ── Stat Cards (Bento-style grid) ── */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* ── Stat Cards ── */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Active Projects"
           value={projectCount}
-          change={projectCount > 0 ? `${projectCount} total` : 'Create one'}
+          change={projectCount > 0 ? `${projectCount} deployed` : 'Launch one'}
           trend={projectCount > 0 ? 'up' : 'neutral'}
           icon={LayoutGrid}
           accent="var(--primary)"
         />
         <StatCard
-          label="Tools Catalog"
+          label="Tools in Stack"
           value={totalTools}
-          change={`${categories?.length ?? 0} categories`}
+          change={`${categories?.length ?? 0} clusters`}
           trend="up"
           icon={Package}
           accent="var(--color-accent-500)"
         />
         <StatCard
-          label="Monthly Cost"
-          value="$0"
-          change="Free tier"
+          label="Estimated Cost"
+          value={totalCost}
+          change={projects && projects.length > 0 ? 'Optimized' : 'Start free'}
           trend="neutral"
           icon={DollarSign}
           accent="var(--color-warning)"
         />
         <StatCard
-          label="AI Suggestions"
+          label="AI Insights"
           value={projectCount}
-          change={projectCount > 0 ? 'Available' : 'Run wizard'}
-          trend="neutral"
+          change={isPro ? 'Pro Active' : 'Upgrade'}
+          trend={isPro ? 'up' : 'neutral'}
           icon={Lightbulb}
           accent="var(--color-info)"
         />
       </div>
 
       {/* ── Main Content Grid ── */}
-      <div className="grid gap-6 lg:grid-cols-5">
+      <div className="grid gap-8 lg:grid-cols-5">
         {/* ── Projects (3/5) ── */}
-        <div className="lg:col-span-3">
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]">
-            <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-medium text-[var(--foreground)]">Your Projects</h2>
-                <span className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-xs text-[var(--muted-foreground)]">
+        <div className="space-y-6 lg:col-span-3">
+          <div className="rounded-2xl border border-white/5 bg-neutral-900/20 backdrop-blur-sm">
+            <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+              <div className="flex items-center gap-3">
+                <h2 className="text-sm font-bold tracking-widest text-white/80 uppercase">
+                  Your Workspaces
+                </h2>
+                <Badge variant="secondary" className="bg-white/5 text-[10px]">
                   {projectCount}
-                </span>
+                </Badge>
               </div>
               <Link
                 href="/project"
-                className="text-xs text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+                className="text-xs font-bold tracking-wider text-white/40 uppercase transition-colors hover:text-white"
               >
-                View all
+                Full Archive
               </Link>
             </div>
-            <div className="divide-y divide-[var(--border)]/50 p-1">
+            <div className="divide-y divide-white/5 p-2">
               {projectsLoading ? (
                 <>
                   <SkeletonRow />
@@ -328,74 +402,75 @@ export default function DashboardPage() {
           </div>
 
           {/* ── AI Insight ── */}
-          <div className="mt-4">
-            <AIInsightCard />
-          </div>
+          <AIInsightCard handleNewProject={handleNewProject} />
         </div>
 
-        {/* ── Categories / Stack Overview (2/5) ── */}
-        <div className="lg:col-span-2">
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]">
-            <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[var(--muted-foreground)]" />
-                <h2 className="text-sm font-medium text-[var(--foreground)]">Quick Actions</h2>
+        {/* ── Sidebar (2/5) ── */}
+        <div className="space-y-6 lg:col-span-2">
+          <div className="rounded-2xl border border-white/5 bg-neutral-900/20 backdrop-blur-sm">
+            <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+              <div className="flex items-center gap-3">
+                <Clock className="h-4 w-4 text-white/40" />
+                <h2 className="text-sm font-bold tracking-widest text-white/80 uppercase">
+                  Quick Nav
+                </h2>
               </div>
             </div>
             <div className="space-y-1 p-3">
               <Link
-                href="/wizard"
-                className="flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-[var(--elevated)]"
+                href="/create"
+                onClick={handleNewProject}
+                className="group flex items-center gap-4 rounded-xl px-4 py-4 transition-all hover:bg-white/5"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary)]/10">
-                  <Sparkles className="h-4 w-4 text-[var(--primary)]" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] transition-transform group-hover:scale-110">
+                  <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[var(--foreground)]">AI Stack Wizard</p>
+                  <p className="text-sm font-bold text-white">Stack Wizard</p>
                   <p className="text-xs text-[var(--muted-foreground)]">
-                    Get personalized recommendations
+                    Generate production-ready stacks
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+                <ChevronRight className="h-4 w-4 text-white/20 transition-all group-hover:translate-x-1 group-hover:text-white" />
               </Link>
               <Link
                 href="/catalog"
-                className="flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-[var(--elevated)]"
+                className="group flex items-center gap-4 rounded-xl px-4 py-4 transition-all hover:bg-white/5"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-accent-500)]/10">
-                  <Search className="h-4 w-4 text-[var(--color-accent-500)]" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-accent-500)]/10 text-[var(--color-accent-500)] transition-transform group-hover:scale-110">
+                  <Search className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[var(--foreground)]">Browse Catalog</p>
+                  <p className="text-sm font-bold text-white">Cloud Catalog</p>
                   <p className="text-xs text-[var(--muted-foreground)]">
-                    {totalTools} tools across {categories?.length ?? 0} categories
+                    {totalTools} professional tools
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+                <ChevronRight className="h-4 w-4 text-white/20 transition-all group-hover:translate-x-1 group-hover:text-white" />
               </Link>
             </div>
           </div>
 
-          {/* ── Stack Overview ── */}
-          <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-            <h3 className="text-xs font-medium tracking-wider text-[var(--muted-foreground)] uppercase">
-              Catalog Overview
+          {/* ── Catalog Progress ── */}
+          <div className="rounded-2xl border border-white/5 bg-neutral-900/20 p-6 backdrop-blur-sm">
+            <h3 className="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase">
+              Growth Velocity
             </h3>
-            <div className="mt-4 space-y-3">
+            <div className="mt-6 space-y-5">
               {categories && categories.length > 0 ? (
-                categories.slice(0, 6).map((cat) => {
+                categories.slice(0, 5).map((cat) => {
                   const maxCount = Math.max(...categories.map((c) => c.toolCount), 1);
                   return (
                     <div key={cat.id}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-[var(--foreground)]">{cat.name}</span>
-                        <span className="text-xs text-[var(--muted-foreground)]">
-                          {cat.toolCount} tools
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-white/70">{cat.name}</span>
+                        <span className="text-[10px] font-bold text-white/30">
+                          {cat.toolCount} UNITS
                         </span>
                       </div>
-                      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--muted)]">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
                         <div
-                          className="h-full rounded-full bg-[var(--primary)] transition-all duration-500"
+                          className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--color-accent-500)] transition-all duration-1000 ease-out"
                           style={{ width: `${(cat.toolCount / maxCount) * 100}%` }}
                         />
                       </div>
@@ -403,14 +478,21 @@ export default function DashboardPage() {
                   );
                 })
               ) : (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-4 w-4 animate-spin text-[var(--muted-foreground)]" />
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-5 w-5 animate-spin text-white/20" />
                 </div>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeModal.open}
+        onClose={upgradeModal.hide}
+        reason={upgradeModal.reason}
+      />
     </div>
   );
 }

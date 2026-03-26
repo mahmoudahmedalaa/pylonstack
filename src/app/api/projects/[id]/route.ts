@@ -1,7 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { projects, projectTools, tools, categories, aiRecommendations } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+
+/**
+ * Helper: authenticate and verify project ownership
+ */
+async function authenticateAndGetProject(projectId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+  }
+
+  const [project] = await db
+    .select()
+    .from(projects)
+    .where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
+    .limit(1);
+
+  if (!project) {
+    return { error: NextResponse.json({ error: 'Project not found' }, { status: 404 }) };
+  }
+
+  return { user, project };
+}
 
 /**
  * GET /api/projects/:id
@@ -10,12 +38,11 @@ import { eq } from 'drizzle-orm';
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const auth = await authenticateAndGetProject(id);
 
-    const [project] = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+    if ('error' in auth) return auth.error;
 
-    if (!project) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-    }
+    const { project } = auth;
 
     // Fetch project tools + AI recommendation in parallel
     const [toolRows, recommendationRows] = await Promise.all([
@@ -50,11 +77,15 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 /**
  * PATCH /api/projects/:id
- * Update project name/description
+ * Update project name/description (ownership verified)
  */
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const auth = await authenticateAndGetProject(id);
+
+    if ('error' in auth) return auth.error;
+
     const body = await request.json();
 
     const [updated] = await db
@@ -62,6 +93,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .set({
         ...(body.name !== undefined && { name: body.name.trim() }),
         ...(body.description !== undefined && { description: body.description?.trim() || null }),
+        ...(body.status !== undefined && { status: body.status }),
+        ...(body.stackData !== undefined && { stackData: body.stackData }),
+        ...(body.totalMonthlyCost !== undefined && { totalMonthlyCost: body.totalMonthlyCost }),
         updatedAt: new Date(),
       })
       .where(eq(projects.id, id))
@@ -88,6 +122,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const auth = await authenticateAndGetProject(id);
+
+    if ('error' in auth) return auth.error;
 
     const [deleted] = await db
       .delete(projects)

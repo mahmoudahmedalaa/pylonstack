@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import React, { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
@@ -36,6 +36,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
+  asChild?: boolean;
 }
 
 /* ─── Component ─── */
@@ -50,6 +51,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       leftIcon,
       rightIcon,
+      asChild = false,
       children,
       ...props
     },
@@ -57,24 +59,33 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const isDisabled = disabled || loading;
 
+    const combinedClassName = cn(
+      // Base
+      'inline-flex cursor-pointer items-center justify-center font-medium',
+      'transition-all duration-200 ease-out',
+      'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]',
+      'active:scale-[0.97]',
+      'disabled:pointer-events-none disabled:opacity-50',
+      // Variant + Size
+      variantStyles[variant],
+      sizeStyles[size],
+      className,
+    );
+
+    if (asChild && React.isValidElement(children)) {
+      return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
+        ...props,
+        ref,
+        disabled: isDisabled,
+        className: cn(
+          combinedClassName,
+          (children.props as Record<string, unknown>).className as string,
+        ),
+      });
+    }
+
     return (
-      <button
-        ref={ref}
-        disabled={isDisabled}
-        className={cn(
-          // Base
-          'inline-flex cursor-pointer items-center justify-center font-medium',
-          'transition-all duration-200 ease-out',
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]',
-          'active:scale-[0.97]',
-          'disabled:pointer-events-none disabled:opacity-50',
-          // Variant + Size
-          variantStyles[variant],
-          sizeStyles[size],
-          className,
-        )}
-        {...props}
-      >
+      <button ref={ref} disabled={isDisabled} className={combinedClassName} {...props}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : leftIcon}
         {children}
         {!loading && rightIcon}

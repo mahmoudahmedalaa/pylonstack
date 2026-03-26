@@ -4,13 +4,13 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Search, FolderKanban, Wand2, Settings, X, Zap } from 'lucide-react';
+import { LayoutDashboard, Search, FolderKanban, PlusCircle, Settings, X, Zap } from 'lucide-react';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Catalog', href: '/catalog', icon: Search },
   { label: 'My Projects', href: '/project', icon: FolderKanban },
-  { label: 'Wizard', href: '/wizard', icon: Wand2 },
+  { label: 'Create', href: '/create', icon: PlusCircle },
   { label: 'Settings', href: '/settings', icon: Settings },
 ];
 

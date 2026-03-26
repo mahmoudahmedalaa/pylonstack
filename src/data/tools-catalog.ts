@@ -29,6 +29,21 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
+// ── Tool Pricing Structures ─────────────────────
+
+export interface ToolPricingTier {
+  name: string; // "Free", "Hobby", "Pro", "Team", "Enterprise"
+  price: number | null; // null = "Contact Sales" / custom pricing
+  period: 'month' | 'year' | 'once' | null;
+  limits?: string; // "500 MB DB, 1 GB storage"
+}
+
+export interface ToolPricing {
+  model: 'free' | 'freemium' | 'paid' | 'open_source' | 'self_hosted';
+  hasFreeTier: boolean;
+  tiers: ToolPricingTier[];
+}
+
 // ── Tool Interface ──────────────────────────────
 
 export interface Tool {
@@ -38,10 +53,36 @@ export interface Tool {
   logo: string;
   category: Category;
   description: string;
+  /** Legacy flat pricing label — kept for backward compat */
   pricing: string;
+  /** Rich structured pricing — used by phase planner & compare */
+  pricingDetails?: ToolPricing;
   stars?: number;
   website: string;
   tags: string[];
+}
+
+// ── Pricing Helpers ─────────────────────────────
+
+/** Returns a human-readable pricing label from structured data or legacy string */
+export function getPricingLabel(tool: Tool): string {
+  if (!tool.pricingDetails) return tool.pricing;
+  const { model, tiers } = tool.pricingDetails;
+  if (model === 'free' || model === 'open_source') return 'Free';
+  if (model === 'self_hosted') return 'Self-Hosted';
+  const freeTier = tiers.find((t) => t.price === 0);
+  const firstPaid = tiers.find((t) => t.price !== null && t.price > 0);
+  if (freeTier && firstPaid) return `Freemium (from $${firstPaid.price}/mo)`;
+  if (firstPaid) return `From $${firstPaid.price}/mo`;
+  return 'Contact Sales';
+}
+
+/** Get all available tiers for a tool (for phase planner dropdowns) */
+export function getToolTiers(tool: Tool): ToolPricingTier[] {
+  if (!tool.pricingDetails) {
+    return [{ name: tool.pricing === 'Free' ? 'Free' : tool.pricing, price: 0, period: null }];
+  }
+  return tool.pricingDetails.tiers;
 }
 
 // ── Logo Helpers ────────────────────────────────
@@ -1016,7 +1057,7 @@ const DATABASE_TOOLS: Tool[] = [
     id: 'pinecone',
     name: 'Pinecone',
     slug: 'pinecone',
-    logo: simpleicons('pinecone'),
+    logo: 'https://cdn.iconscout.com/icon/free/png-256/free-pinecone-logo-icon-download-in-svg-png-gif-file-formats--technology-social-media-company-brand-vol-5-pack-logos-icons-2945062.png',
     category: 'Database',
     description: 'Managed vector database purpose-built for AI — similarity search and embeddings.',
     pricing: 'Free tier',
@@ -1027,7 +1068,7 @@ const DATABASE_TOOLS: Tool[] = [
     id: 'weaviate',
     name: 'Weaviate',
     slug: 'weaviate',
-    logo: simpleicons('weaviate'),
+    logo: 'https://weaviate.io/img/site/weaviate-logo-light.svg',
     category: 'Database',
     description: 'Open-source vector database with built-in ML modules for semantic search.',
     pricing: 'Free tier',
@@ -2935,6 +2976,9 @@ const DEVTOOLS_TOOLS: Tool[] = [
 
 // ── FINAL EXPORT ─────────────────────────────────
 
+import { TOOL_PRICING_MAP } from './tool-pricing-data';
+
+/** All tools, enriched with structured pricing data where available */
 export const TOOLS: Tool[] = [
   ...FRONTEND_TOOLS,
   ...BACKEND_TOOLS,
@@ -2953,4 +2997,10 @@ export const TOOLS: Tool[] = [
   ...ORM_TOOLS,
   ...AIML_TOOLS,
   ...DEVTOOLS_TOOLS,
-];
+].map((tool) => {
+  const pricing = TOOL_PRICING_MAP[tool.id];
+  if (pricing) {
+    return { ...tool, pricingDetails: pricing };
+  }
+  return tool;
+});

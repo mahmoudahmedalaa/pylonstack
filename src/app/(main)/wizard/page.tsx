@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import {
   Globe,
   Smartphone,
@@ -37,10 +37,27 @@ import {
   Rocket,
   Loader2,
 } from 'lucide-react';
-import { Button, ProgressBar } from '@/components/ui';
+import { Button, ProgressBar, Textarea } from '@/components/ui';
 import { StackBuilder, wizardAnswersToLayers } from '@/components/stack-builder';
-import { PROJECT_TYPES, TEAM_SIZES, PRIORITIES, REQUIREMENTS, PREFERENCES } from '@/lib/mock-data';
+import {
+  PROJECT_TYPES,
+  TEAM_SIZES,
+  PRIORITIES,
+  REQUIREMENTS,
+  PREFERENCES,
+} from '@/data/wizard-constants';
 import { useWizardStore } from '@/stores/wizard-store';
+import Image from 'next/image';
+
+// ── Step illustrations ────────────────────────────
+const STEP_ILLUSTRATIONS: Record<number, string> = {
+  1: '/illustrations/undraw/building-a-website.svg',
+  2: '/illustrations/undraw/good-team.svg',
+  3: '/illustrations/undraw/control-panel.svg',
+  4: '/illustrations/undraw/goals.svg',
+  5: '/illustrations/undraw/programming.svg',
+  6: '/illustrations/undraw/completed-tasks.svg',
+};
 
 // ── Icon map ────────────────────────────────────
 
@@ -236,14 +253,21 @@ export default function WizardPage() {
     setStep,
     nextStep,
     prevStep,
+    setDescription,
     setProjectType,
     setTeamSize,
     toggleRequirement,
     togglePriority,
     togglePreference,
     canAdvance,
+    reset,
     submitWizard,
   } = useWizardStore();
+
+  // Reset store on mount so if users go to /wizard they start fresh
+  useEffect(() => {
+    reset();
+  }, [reset]);
 
   // Derive stack layers from current answers
   const stackLayers = useMemo(() => wizardAnswersToLayers(answers), [answers]);
@@ -340,18 +364,56 @@ export default function WizardPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 sm:p-8">
           {currentStep <= 5 && config && stepData ? (
             <>
-              <div className="mb-6">
-                <span className="text-xs font-medium text-[var(--primary)]">
-                  Step {currentStep} of {STEPS.length}
-                </span>
-                <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-                  {config.title}
-                </h2>
-                <p className="mt-1 text-sm text-[var(--muted-foreground)]">{config.subtitle}</p>
-                {config.multiSelect && currentStep === 4 && (
-                  <p className="mt-1 text-xs text-[var(--primary)]">Select up to 2</p>
-                )}
+              <div className="mb-6 flex items-start justify-between gap-6">
+                <div>
+                  <span className="text-xs font-medium text-[var(--primary)]">
+                    Step {currentStep} of {STEPS.length}
+                  </span>
+                  <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
+                    {config.title}
+                  </h2>
+                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">{config.subtitle}</p>
+                  {config.multiSelect && currentStep === 4 && (
+                    <p className="mt-1 text-xs text-[var(--primary)]">Select up to 2</p>
+                  )}
+                </div>
+                <Image
+                  src={STEP_ILLUSTRATIONS[currentStep]}
+                  alt=""
+                  width={80}
+                  height={80}
+                  className="hidden shrink-0 opacity-60 sm:block"
+                />
               </div>
+
+              {/* ── Custom Field for Step 1 ── */}
+              {currentStep === 1 && (
+                <div className="mb-6 space-y-3">
+                  <label
+                    htmlFor="app-desc"
+                    className="block text-sm font-medium text-[var(--foreground)]"
+                  >
+                    App Idea Description *
+                  </label>
+                  <Textarea
+                    id="app-desc"
+                    placeholder="E.g., A mobile app for tracking satellite orbits in real-time, needs to handle high-frequency data."
+                    value={answers.description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="h-24 resize-none"
+                  />
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    Be specific! Our AI uses this deep context to recommend specialized
+                    backend/infrastructure tools.
+                  </p>
+
+                  <div className="mt-8">
+                    <label className="mb-3 block text-sm font-medium text-[var(--foreground)]">
+                      Base Project Template *
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {/* ── Option Grid ── */}
               <div className={`grid gap-3 ${stepData.cols}`}>
@@ -370,17 +432,26 @@ export default function WizardPage() {
           ) : (
             /* ── Step 6: Review ── */
             <div>
-              <div className="mb-6">
-                <span className="text-xs font-medium text-[var(--primary)]">
-                  Step 6 of {STEPS.length}
-                </span>
-                <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-                  Review your answers
-                </h2>
-                <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                  Confirm your selections below, then generate your personalized tech stack
-                  recommendation.
-                </p>
+              <div className="mb-6 flex items-start justify-between gap-6">
+                <div>
+                  <span className="text-xs font-medium text-[var(--primary)]">
+                    Step 6 of {STEPS.length}
+                  </span>
+                  <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
+                    Review your answers
+                  </h2>
+                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                    Confirm your selections below, then generate your personalized tech stack
+                    recommendation.
+                  </p>
+                </div>
+                <Image
+                  src={STEP_ILLUSTRATIONS[6]}
+                  alt=""
+                  width={80}
+                  height={80}
+                  className="hidden shrink-0 opacity-60 sm:block"
+                />
               </div>
 
               {error && (
@@ -392,7 +463,12 @@ export default function WizardPage() {
               <div className="space-y-4">
                 {[
                   {
-                    label: 'Project Type',
+                    label: 'App Description',
+                    value: answers.description || '—',
+                    step: 1,
+                  },
+                  {
+                    label: 'Base Template',
                     value: getLabel(PROJECT_TYPES, answers.projectType),
                     step: 1,
                   },

@@ -40,6 +40,7 @@ function buildPrompt(answers: WizardAnswers): string {
 recommend a complete tech stack. Return ONLY valid JSON — no markdown fences, no explanation outside JSON.
 
 PROJECT REQUIREMENTS:
+- App Description: ${answers.description}
 - Project Type: ${answers.projectType}
 - Team Size: ${answers.teamSize}
 - Requirements: ${answers.requirements.join(', ')}

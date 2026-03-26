@@ -9,6 +9,8 @@ export interface ToolChipData {
   name: string;
   logoUrl?: string | null;
   confidence?: number;
+  description?: string;
+  costIndicator?: string;
 }
 
 interface ToolChipProps {
@@ -34,7 +36,7 @@ export function ToolChip({
       exit={{ opacity: 0, scale: 0.6 }}
       whileHover={{ scale: 1.05 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className="group relative flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs backdrop-blur-sm transition-all duration-200"
+      className="group relative flex flex-col items-start gap-1.5 rounded-xl border border-white/10 bg-white/5 p-3 text-xs backdrop-blur-sm transition-all duration-200"
       style={{
         boxShadow: `0 0 0 0px ${glowColor}`,
       }}
@@ -47,55 +49,75 @@ export function ToolChip({
         (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)';
       }}
     >
-      {/* Logo or fallback initial */}
-      <div
-        className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded-full"
-        style={{ backgroundColor: `${accentColor}20` }}
-      >
-        {tool.logoUrl ? (
-          <Image
-            src={tool.logoUrl}
-            alt={tool.name}
-            width={14}
-            height={14}
-            className="object-contain"
-            unoptimized
-          />
-        ) : (
-          <span className="text-[9px] font-bold" style={{ color: accentColor }}>
-            {tool.name.charAt(0).toUpperCase()}
-          </span>
-        )}
+      <div className="flex w-full items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {/* Logo or fallback initial */}
+          <div
+            className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full"
+            style={{ backgroundColor: `${accentColor}20` }}
+          >
+            {tool.logoUrl ? (
+              <Image
+                src={tool.logoUrl}
+                alt={tool.name}
+                width={16}
+                height={16}
+                className="object-contain"
+                unoptimized
+              />
+            ) : (
+              <span className="text-[10px] font-bold" style={{ color: accentColor }}>
+                {tool.name.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+
+          {/* Tool name */}
+          <span className="truncate font-semibold text-neutral-100">{tool.name}</span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          {/* Cost Indicator badge */}
+          {tool.costIndicator && (
+            <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] font-medium text-neutral-300">
+              {tool.costIndicator}
+            </span>
+          )}
+
+          {/* Confidence badge */}
+          {tool.confidence != null && tool.confidence > 0 && (
+            <span
+              className="rounded-full px-1.5 py-0.5 text-[9px] font-bold"
+              style={{
+                backgroundColor: `${accentColor}25`,
+                color: accentColor,
+              }}
+            >
+              {tool.confidence}% Match
+            </span>
+          )}
+
+          {/* Remove button (interactive mode only) */}
+          {interactive && onRemove && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(tool.id);
+              }}
+              className="ml-1 flex rounded-full p-1 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
+              aria-label={`Remove ${tool.name}`}
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Tool name */}
-      <span className="max-w-[80px] truncate font-medium text-neutral-200">{tool.name}</span>
-
-      {/* Confidence badge */}
-      {tool.confidence != null && tool.confidence > 0 && (
-        <span
-          className="rounded-full px-1 py-px text-[9px] font-semibold"
-          style={{
-            backgroundColor: `${accentColor}25`,
-            color: accentColor,
-          }}
-        >
-          {tool.confidence}%
-        </span>
-      )}
-
-      {/* Remove button (interactive mode only) */}
-      {interactive && onRemove && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove(tool.id);
-          }}
-          className="ml-0.5 hidden rounded-full p-0.5 text-neutral-400 transition-colors group-hover:flex hover:bg-white/10 hover:text-white"
-          aria-label={`Remove ${tool.name}`}
-        >
-          <X size={10} />
-        </button>
+      {/* Description */}
+      {tool.description && (
+        <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-neutral-400">
+          {tool.description}
+        </p>
       )}
     </motion.div>
   );

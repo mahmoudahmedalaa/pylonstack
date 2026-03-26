@@ -104,22 +104,21 @@ export function StackLayer({ layer, mode, index, onRemoveTool }: StackLayerProps
         damping: 30,
         delay: mode === 'reveal' ? index * 0.3 : index * 0.08,
       }}
-      className={`group relative overflow-hidden rounded-xl border border-white/[0.08] backdrop-blur-xl transition-shadow duration-300 ${isDragging ? 'z-50 shadow-2xl' : 'z-0'} ${isPreview ? 'px-3 py-2' : 'px-4 py-3'} `}
+      className={`group relative rounded-xl border border-white/[0.08] backdrop-blur-xl transition-shadow duration-300 ${isDragging ? 'z-50 shadow-2xl' : 'z-0'} ${isPreview ? 'px-3 py-2' : 'px-4 py-3'} `}
       whileHover={!isDragging ? { boxShadow: `0 4px 20px ${layer.color.glow}` } : undefined}
       onHoverStart={undefined}
       onHoverEnd={undefined}
     >
-      {/* Background gradient */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-80"
-        style={{ background: layer.color.gradient }}
-      />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl">
+        {/* Background gradient */}
+        <div className="absolute inset-0 opacity-80" style={{ background: layer.color.gradient }} />
 
-      {/* Left accent bar */}
-      <div
-        className="absolute top-0 left-0 h-full w-1 rounded-l-xl"
-        style={{ backgroundColor: layer.color.accent }}
-      />
+        {/* Left accent bar */}
+        <div
+          className="absolute top-0 left-0 h-full w-1"
+          style={{ backgroundColor: layer.color.accent }}
+        />
+      </div>
 
       {/* Content */}
       <div className="relative z-10">
@@ -186,7 +185,7 @@ export function StackLayer({ layer, mode, index, onRemoveTool }: StackLayerProps
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`flex flex-wrap gap-1.5 overflow-hidden ${isPreview ? 'mt-1.5' : 'mt-2.5'}`}
+              className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${isPreview ? 'mt-1.5' : 'mt-2.5'}`}
             >
               {layer.tools.map((tool) => (
                 <ToolChip

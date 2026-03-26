@@ -16,6 +16,9 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as WizardAnswers;
 
     // Validate required fields
+    if (!body.description || !body.description.trim()) {
+      return NextResponse.json({ error: 'App description is required' }, { status: 400 });
+    }
     if (!body.projectType) {
       return NextResponse.json({ error: 'projectType is required' }, { status: 400 });
     }

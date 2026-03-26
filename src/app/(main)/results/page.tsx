@@ -4,9 +4,9 @@ import { eq } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
 import { StackBuilder } from '@/components/stack-builder/StackBuilder';
 import { StackLayerData } from '@/components/stack-builder/StackLayer';
+import type { ToolChipData } from '@/components/stack-builder/ToolChip';
 import { getCategoryColor, CATEGORY_ICONS } from '@/components/stack-builder/stack-colors';
-import { TOOLS, CATEGORIES } from '@/lib/mock-data';
-import type { Tool } from '@/data/tools-catalog';
+import { TOOLS, CATEGORIES } from '@/data/tools-catalog';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 import { Sparkles, ArrowRight, Home } from 'lucide-react';
@@ -43,16 +43,23 @@ function buildLayersFromRecommendations(
 
     const tool = TOOLS.find((t) => t.slug === r.tool_slug);
 
-    const toolData: Tool =
-      tool ||
-      ({
-        id: r.tool_slug,
-        name: r.tool_slug.replace('-', ' '),
-        logo: '',
-        description: '',
-        category: r.category_slug,
-        website: '',
-      } as unknown as Tool);
+    const toolData: ToolChipData = tool
+      ? {
+          id: tool.id,
+          name: tool.name,
+          logoUrl: tool.logo,
+          description: tool.description,
+          costIndicator: tool.pricing,
+          confidence: r.confidence,
+        }
+      : {
+          id: r.tool_slug,
+          name: r.tool_slug.replace('-', ' '),
+          logoUrl: '',
+          description: r.reasoning || '',
+          costIndicator: 'Unknown',
+          confidence: r.confidence,
+        };
 
     layersMap.get(r.category_slug)!.tools.push(toolData);
   }

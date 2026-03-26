@@ -1,0 +1,269 @@
+'use client';
+
+import { useState, useCallback, useMemo } from 'react';
+import { Calendar, Download, FileText, FileSpreadsheet, Code, Rocket } from 'lucide-react';
+import { Button, Badge } from '@/components/ui';
+import { PhaseTimeline } from './PhaseTimeline';
+import { ToolTierSelector } from './ToolTierSelector';
+import { PhaseCostSummary } from './PhaseCostSummary';
+import type { ProjectPhaseRoadmap, ToolPhaseAssignment } from '@/data/phase-types';
+import { createDefaultRoadmap } from '@/data/phase-types';
+import type { StackLayerData } from '@/components/stack-builder/StackLayer';
+
+/* ── Props ── */
+interface PhaseRoadmapPanelProps {
+  /** Current stack layers (from StackBuilder) */
+  layers: StackLayerData[];
+  /** Persisted roadmap data (from project.stackData) */
+  initialRoadmap?: ProjectPhaseRoadmap;
+  /** Called when roadmap changes, so parent can persist */
+  onRoadmapChange: (roadmap: ProjectPhaseRoadmap) => void;
+}
+
+export function PhaseRoadmapPanel({
+  layers,
+  initialRoadmap,
+  onRoadmapChange,
+}: PhaseRoadmapPanelProps) {
+  const [roadmap, setRoadmap] = useState<ProjectPhaseRoadmap>(
+    initialRoadmap || createDefaultRoadmap(),
+  );
+  const [selectedPhaseId, setSelectedPhaseId] = useState<string | null>(null);
+  const [addToolPhaseId, setAddToolPhaseId] = useState<string | null>(null);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+
+  // Gather all tool IDs from the stack
+  const stackToolIds = useMemo(() => layers.flatMap((l) => l.tools.map((t) => t.id)), [layers]);
+
+  const updateRoadmap = useCallback(
+    (updated: ProjectPhaseRoadmap) => {
+      setRoadmap(updated);
+      onRoadmapChange(updated);
+    },
+    [onRoadmapChange],
+  );
+
+  const handleAssignTool = useCallback(
+    (assignment: ToolPhaseAssignment) => {
+      const updated: ProjectPhaseRoadmap = {
+        ...roadmap,
+        assignments: [...roadmap.assignments, assignment],
+      };
+      updateRoadmap(updated);
+    },
+    [roadmap, updateRoadmap],
+  );
+
+  const handleRemoveAssignment = useCallback(
+    (toolId: string, phaseId: string) => {
+      const updated: ProjectPhaseRoadmap = {
+        ...roadmap,
+        assignments: roadmap.assignments.filter(
+          (a) => !(a.toolId === toolId && a.phaseId === phaseId),
+        ),
+      };
+      updateRoadmap(updated);
+    },
+    [roadmap, updateRoadmap],
+  );
+
+  const activePhase = addToolPhaseId ? roadmap.phases.find((p) => p.id === addToolPhaseId) : null;
+
+  // ── Export functions ──
+
+  const exportCSV = () => {
+    const headers = ['Phase', 'Tool', 'Tier', 'Monthly Cost', 'Notes'];
+    const rows = roadmap.phases
+      .sort((a, b) => a.order - b.order)
+      .flatMap((phase) =>
+        roadmap.assignments
+          .filter((a) => a.phaseId === phase.id)
+          .map((a) => [
+            phase.name,
+            a.toolName,
+            a.selectedTierName,
+            `$${a.monthlyCost}`,
+            a.notes || '',
+          ]),
+      );
+
+    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
+    downloadFile(csv, 'text/csv', 'roadmap.csv');
+    setIsExportOpen(false);
+  };
+
+  const exportMarkdown = () => {
+    let md = '# Tech Stack Roadmap\n\n';
+
+    roadmap.phases
+      .sort((a, b) => a.order - b.order)
+      .forEach((phase) => {
+        const tools = roadmap.assignments.filter((a) => a.phaseId === phase.id);
+        const cost = tools.reduce((s, t) => s + t.monthlyCost, 0);
+        md += `## ${phase.name} — $${cost}/mo\n\n`;
+        md += `${phase.description}\n\n`;
+
+        if (tools.length === 0) {
+          md += '_No tools assigned_\n\n';
+        } else {
+          md += '| Tool | Tier | Cost |\n|------|------|------|\n';
+          tools.forEach((t) => {
+            md += `| ${t.toolName} | ${t.selectedTierName} | $${t.monthlyCost}/mo |\n`;
+          });
+          md += '\n';
+        }
+      });
+
+    downloadFile(md, 'text/markdown', 'roadmap.md');
+    setIsExportOpen(false);
+  };
+
+  const exportHTML = () => {
+    let html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Tech Stack Roadmap</title>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#1a1a2e;background:#f8fafc}
+h1{font-size:24px;margin-bottom:8px}
+.phase{border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:16px;background:#fff}
+.phase h2{font-size:18px;margin:0 0 4px}
+.phase .desc{color:#64748b;font-size:14px;margin-bottom:12px}
+.phase .cost{font-size:14px;font-weight:600;color:#10b981}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;padding:8px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:500}
+td{padding:8px;border-bottom:1px solid #f1f5f9}
+.footer{text-align:center;color:#94a3b8;font-size:12px;margin-top:24px}
+</style></head><body>
+<h1>Tech Stack Roadmap</h1>
+<p style="color:#64748b">Generated by Pylon Tech Stack Engine</p>\n`;
+
+    roadmap.phases
+      .sort((a, b) => a.order - b.order)
+      .forEach((phase) => {
+        const tools = roadmap.assignments.filter((a) => a.phaseId === phase.id);
+        const cost = tools.reduce((s, t) => s + t.monthlyCost, 0);
+        html += `<div class="phase">
+<h2>${phase.name}</h2>
+<p class="desc">${phase.description}</p>
+<p class="cost">$${cost}/mo</p>`;
+
+        if (tools.length > 0) {
+          html += '<table><thead><tr><th>Tool</th><th>Tier</th><th>Cost</th></tr></thead><tbody>';
+          tools.forEach((t) => {
+            html += `<tr><td>${t.toolName}</td><td>${t.selectedTierName}</td><td>$${t.monthlyCost}/mo</td></tr>`;
+          });
+          html += '</tbody></table>';
+        } else {
+          html += '<p style="color:#94a3b8;font-style:italic">No tools assigned</p>';
+        }
+        html += '</div>\n';
+      });
+
+    html += '<p class="footer">Pylon Tech Stack Engine</p></body></html>';
+    downloadFile(html, 'text/html', 'roadmap.html');
+    setIsExportOpen(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header bar */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-5 w-5 text-[var(--color-primary-500)]" />
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Phased Roadmap</h2>
+          <Badge variant="secondary" className="text-[10px]">
+            {roadmap.assignments.length} assignment
+            {roadmap.assignments.length !== 1 ? 's' : ''}
+          </Badge>
+        </div>
+
+        <div className="relative">
+          <Button variant="outline" size="sm" onClick={() => setIsExportOpen(!isExportOpen)}>
+            <Download className="mr-1.5 h-4 w-4" /> Export
+          </Button>
+          {isExportOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsExportOpen(false)} />
+              <div className="animate-in fade-in slide-in-from-top-2 absolute top-full right-0 z-50 mt-2 w-48 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-xl">
+                <button
+                  onClick={exportMarkdown}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] transition-colors hover:bg-[var(--muted)]/50"
+                >
+                  <FileText className="h-4 w-4 text-[var(--muted-foreground)]" />
+                  Markdown (.md)
+                </button>
+                <button
+                  onClick={exportCSV}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] transition-colors hover:bg-[var(--muted)]/50"
+                >
+                  <FileSpreadsheet className="h-4 w-4 text-[var(--muted-foreground)]" />
+                  CSV (.csv)
+                </button>
+                <button
+                  onClick={exportHTML}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] transition-colors hover:bg-[var(--muted)]/50"
+                >
+                  <Code className="h-4 w-4 text-[var(--muted-foreground)]" />
+                  HTML Report
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Empty state */}
+      {layers.length === 0 && (
+        <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--muted)]/20 p-8 text-center">
+          <Rocket className="mx-auto mb-3 h-10 w-10 text-[var(--muted-foreground)]/40" />
+          <h3 className="text-sm font-semibold text-[var(--foreground)]">Build your stack first</h3>
+          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+            Add tools to your stack above, then plan your phased rollout here.
+          </p>
+        </div>
+      )}
+
+      {layers.length > 0 && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          {/* Timeline (3 cols) */}
+          <div className="lg:col-span-3">
+            <PhaseTimeline
+              roadmap={roadmap}
+              selectedPhaseId={selectedPhaseId}
+              onSelectPhase={setSelectedPhaseId}
+              onAddTool={(phaseId) => setAddToolPhaseId(phaseId)}
+              onRemoveAssignment={handleRemoveAssignment}
+            />
+          </div>
+
+          {/* Cost Summary (2 cols) */}
+          <div className="lg:col-span-2">
+            <PhaseCostSummary roadmap={roadmap} />
+          </div>
+        </div>
+      )}
+
+      {/* Tier selector modal */}
+      {activePhase && (
+        <ToolTierSelector
+          phase={activePhase}
+          existingAssignments={roadmap.assignments}
+          stackToolIds={stackToolIds}
+          onAssign={handleAssignTool}
+          onClose={() => setAddToolPhaseId(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ── Utility ── */
+
+function downloadFile(content: string, mimeType: string, filename: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}

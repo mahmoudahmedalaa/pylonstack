@@ -27,7 +27,7 @@
   --color-accent-500: #10b981;
   --color-accent-600: #059669;
 
-  /* ── Neutral Colors (Slate) ── */
+  /* ── Neutral Colors (Slate -> Deep Navy) ── */
   --color-neutral-50: #f8fafc;
   --color-neutral-100: #f1f5f9;
   --color-neutral-200: #e2e8f0;
@@ -38,7 +38,7 @@
   --color-neutral-700: #334155;
   --color-neutral-800: #1e293b;
   --color-neutral-850: #172033;
-  --color-neutral-900: #0f172a;
+  --color-neutral-900: #0a0e1a; /* Deeper navy */
   --color-neutral-950: #020617;
 
   /* ── Semantic Colors ── */
@@ -56,13 +56,43 @@
   --radius-2xl: 1.5rem;
   --radius-full: 9999px;
 
-  /* ── Shadows (dark-mode optimized) ── */
+  /* ── Premium Shadows ── */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.3);
   --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
   --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  /* ── Premium Animations ── */
+  --animate-border-beam: border-beam calc(var(--duration) * 1s) infinite linear;
+  --animate-shimmer-btn-shimmer: shimmer-btn-shimmer var(--speed) infinite linear;
+  --animate-gradient-text: gradient-text 3s linear infinite;
+
+  @keyframes border-beam {
+    100% {
+      offset-distance: 100%;
+    }
+  }
+
+  @keyframes shimmer-btn-shimmer {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes gradient-text {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
 }
 
 /* ───────────────────────────────────────────────
@@ -71,27 +101,34 @@
    ─────────────────────────────────────────────── */
 
 :root {
-  /* Dark mode (default) */
-  --background: #0f172a;
+  /* Dark mode (default) — Deep Navy Premium */
+  --background: #0a0e1a;
   --foreground: #f1f5f9;
-  --card: #1e293b;
+  --card: rgba(30, 41, 59, 0.5); /* Semi-transparent for glassmorphism */
   --card-foreground: #f1f5f9;
-  --popover: #172033;
+  --popover: #0a0e1a;
   --popover-foreground: #f1f5f9;
   --primary: #6366f1;
   --primary-foreground: #ffffff;
-  --secondary: #334155;
+  --secondary: #1e293b;
   --secondary-foreground: #f1f5f9;
-  --muted: #334155;
+  --muted: #1e293b;
   --muted-foreground: #94a3b8;
   --accent: #10b981;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: rgba(51, 65, 85, 0.5);
-  --input: #475569;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(30, 41, 59, 0.5);
   --ring: #6366f1;
-  --elevated: #172033;
+  --elevated: #1e293b;
+
+  /* Premium UI Tokens */
+  --glow-primary: rgba(99, 102, 241, 0.15);
+  --glow-accent: rgba(16, 185, 129, 0.12);
+  --glass-bg: rgba(10, 14, 26, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 16px;
 }
 
 .light {
@@ -174,4 +211,76 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
+}
+
+/* ── Premium Utilities ── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.noise {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.03;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.premium-gradient {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.03) 0%, transparent 30%);
+}
+
+.gradient-text {
+  background: linear-gradient(
+    to right,
+    var(--color-primary-400),
+    var(--color-accent-400),
+    var(--color-primary-400)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-flow 3s linear infinite;
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.glow-border {
+  position: relative;
+}
+
+.glow-border::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(
+    45deg,
+    var(--color-primary-500),
+    transparent,
+    var(--color-accent-500)
+  );
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.glow-border:hover::after {
+  opacity: 1;
 }

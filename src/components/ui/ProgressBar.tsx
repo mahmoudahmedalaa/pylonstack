@@ -19,10 +19,10 @@ const sizeStyles = {
 } as const;
 
 const variantStyles = {
-  default: 'bg-[var(--primary)]',
-  success: 'bg-emerald-500',
-  warning: 'bg-amber-500',
-  error: 'bg-red-500',
+  default: 'bg-gradient-to-r from-[var(--color-primary-400)] to-[var(--color-primary-600)]',
+  success: 'bg-gradient-to-r from-[var(--color-success-400)] to-[var(--color-success-600)]',
+  warning: 'bg-gradient-to-r from-[var(--color-warning-400)] to-[var(--color-warning-600)]',
+  error: 'bg-gradient-to-r from-[var(--color-error-400)] to-[var(--color-error-600)]',
 } as const;
 
 /* ─── Component ─── */
@@ -57,15 +57,21 @@ function ProgressBar({
         aria-valuemin={0}
         aria-valuemax={max}
         aria-label={label || 'Progress'}
-        className={cn('w-full overflow-hidden rounded-full bg-[var(--muted)]', sizeStyles[size])}
+        className={cn(
+          'relative w-full overflow-hidden rounded-full bg-[var(--muted)]/40 inset-shadow-sm',
+          sizeStyles[size],
+        )}
       >
         <div
           className={cn(
-            'h-full rounded-full transition-all duration-500 ease-out',
+            'relative h-full rounded-full shadow-[0_0_10px_rgba(0,0,0,0.1)] transition-all duration-700 ease-out',
             variantStyles[variant],
           )}
           style={{ width: `${percentage}%` }}
-        />
+        >
+          {/* Animated shimmer overlay for premium feel */}
+          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        </div>
       </div>
     </div>
   );

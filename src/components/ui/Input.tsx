@@ -40,21 +40,23 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             disabled={disabled}
             className={cn(
               // Base
-              'flex h-10 w-full rounded-[var(--radius-md)] px-3 py-2',
-              'bg-[var(--card)] text-sm text-[var(--foreground)]',
-              'border border-[var(--border)]',
-              'placeholder:text-[var(--muted-foreground)]',
-              'transition-colors duration-200',
+              'flex h-11 w-full rounded-xl px-4 py-2',
+              'bg-[var(--card)]/40 text-sm text-[var(--foreground)] backdrop-blur-md',
+              'border border-[var(--border)]/60 shadow-sm',
+              'placeholder:text-[var(--muted-foreground)]/70',
+              'transition-all duration-300 ease-in-out',
+              // Hover
+              'hover:border-[var(--border)] hover:bg-[var(--card)]/60',
               // Focus
-              'focus:border-[var(--ring)] focus:ring-1 focus:ring-[var(--ring)] focus:outline-none',
+              'focus:border-[var(--primary)] focus:bg-[var(--card)] focus:ring-4 focus:ring-[var(--primary)]/10 focus:outline-none',
               // Disabled
-              'disabled:cursor-not-allowed disabled:opacity-50',
+              'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-[var(--border)]/60',
               // Error
               error &&
-                'border-[var(--destructive)] focus:border-[var(--destructive)] focus:ring-[var(--destructive)]',
+                'border-[var(--color-error)] focus:border-[var(--color-error)] focus:ring-[var(--color-error)]/20',
               // Icon padding
-              leftIcon && 'pl-10',
-              rightIcon && 'pr-10',
+              leftIcon && 'pl-11',
+              rightIcon && 'pr-11',
               className,
             )}
             {...props}

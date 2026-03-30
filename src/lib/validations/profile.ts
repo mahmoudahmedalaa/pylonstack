@@ -11,8 +11,20 @@ export const profileUpdateSchema = z.object({
     .object({
       theme: z.enum(['light', 'dark', 'system']).optional(),
       default_currency: z.enum(['USD', 'EUR', 'GBP']).optional(),
+      notifications_ai: z.boolean().optional(),
+      notifications_email_digest: z.boolean().optional(),
+      notifications_cost_alerts: z.boolean().optional(),
     })
     .optional(),
 });
 
 export type ProfileUpdatePayload = z.infer<typeof profileUpdateSchema>;
+
+/** Shape of the preferences object stored in user_metadata */
+export interface UserPreferences {
+  theme?: 'light' | 'dark' | 'system';
+  default_currency?: 'USD' | 'EUR' | 'GBP';
+  notifications_ai?: boolean;
+  notifications_email_digest?: boolean;
+  notifications_cost_alerts?: boolean;
+}

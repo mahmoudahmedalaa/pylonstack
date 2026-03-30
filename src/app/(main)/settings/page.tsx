@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import type { UserPreferences } from '@/lib/validations/profile';
 import { createClient } from '@/lib/supabase/client';
 import {
   User,
@@ -300,6 +302,9 @@ function AccountTab({ user }: { user: ReturnType<typeof useAuth>['user'] }) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleUpdatePassword = async () => {
     setError(null);
@@ -414,21 +419,55 @@ function AccountTab({ user }: { user: ReturnType<typeof useAuth>['user'] }) {
             </div>
           </div>
           {showDeleteConfirm ? (
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirm(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
-                onClick={() => {
-                  // TODO: Call delete account API
-                  alert('Account deletion is not yet implemented.');
-                }}
-              >
-                Confirm Delete
-              </Button>
+            <div className="flex flex-col items-end gap-2">
+              {deleteError && <p className="text-xs text-[var(--color-error)]">{deleteError}</p>}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteError(null);
+                  }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
+                  disabled={deleting}
+                  onClick={async () => {
+                    setDeleting(true);
+                    setDeleteError(null);
+                    try {
+                      const res = await fetch('/api/account', { method: 'DELETE' });
+                      if (!res.ok) {
+                        const data = await res.json();
+                        throw new Error(data.error || 'Failed to delete account');
+                      }
+                      // Sign out and redirect
+                      const supabase = createClient();
+                      await supabase.auth.signOut();
+                      router.push('/login');
+                    } catch (err) {
+                      setDeleteError(
+                        err instanceof Error ? err.message : 'Failed to delete account',
+                      );
+                      setDeleting(false);
+                    }
+                  }}
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> Deleting...
+                    </>
+                  ) : (
+                    'Confirm Delete'
+                  )}
+                </Button>
+              </div>
             </div>
           ) : (
             <Button
@@ -450,17 +489,87 @@ function AccountTab({ user }: { user: ReturnType<typeof useAuth>['user'] }) {
 
 function PreferencesTab() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [currency, setCurrency] = useState<'USD' | 'EUR' | 'GBP'>('USD');
+  const [notifAi, setNotifAi] = useState(true);
+  const [notifDigest, setNotifDigest] = useState(false);
+  const [notifCostAlerts, setNotifCostAlerts] = useState(true);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Load preferences from API on mount
   useEffect(() => {
-    const stored = localStorage.getItem('theme') || 'dark';
-    setTheme(stored as 'dark' | 'light');
+    async function loadPrefs() {
+      try {
+        const res = await fetch('/api/profile');
+        if (res.ok) {
+          const data = await res.json();
+          const prefs: UserPreferences = data.preferences || {};
+          if (prefs.theme === 'light' || prefs.theme === 'dark') setTheme(prefs.theme);
+          else setTheme((localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
+          if (prefs.default_currency) setCurrency(prefs.default_currency);
+          if (prefs.notifications_ai !== undefined) setNotifAi(prefs.notifications_ai);
+          if (prefs.notifications_email_digest !== undefined)
+            setNotifDigest(prefs.notifications_email_digest);
+          if (prefs.notifications_cost_alerts !== undefined)
+            setNotifCostAlerts(prefs.notifications_cost_alerts);
+        }
+      } catch {
+        // fall back to localStorage for theme
+        setTheme((localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
+      }
+      setPrefsLoaded(true);
+    }
+    loadPrefs();
+  }, []);
+
+  // Auto-save preferences with debounce
+  const savePrefs = useCallback((prefs: UserPreferences) => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(async () => {
+      setSaving(true);
+      try {
+        await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ preferences: prefs }),
+        });
+      } catch {
+        // silently fail — preferences not critical
+      }
+      setSaving(false);
+    }, 600);
   }, []);
 
   const handleThemeChange = (newTheme: 'dark' | 'light') => {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
+    savePrefs({ theme: newTheme });
   };
+
+  const handleCurrencyChange = (val: string) => {
+    const c = val.toUpperCase() as 'USD' | 'EUR' | 'GBP';
+    setCurrency(c);
+    savePrefs({ default_currency: c });
+  };
+
+  const handleToggle = (
+    key: 'notifications_ai' | 'notifications_email_digest' | 'notifications_cost_alerts',
+    value: boolean,
+    setter: (v: boolean) => void,
+  ) => {
+    setter(value);
+    savePrefs({ [key]: value });
+  };
+
+  if (!prefsLoaded) {
+    return (
+      <div className="flex min-h-[200px] items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--muted-foreground)]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -494,12 +603,21 @@ function PreferencesTab() {
           </FieldRow>
 
           <FieldRow label="Default Currency" hint="Currency for cost estimates.">
-            <Select defaultValue="usd">
+            <Select
+              value={currency.toLowerCase()}
+              onChange={(e) => handleCurrencyChange(e.target.value)}
+            >
               <option value="usd">USD — US Dollar</option>
               <option value="eur">EUR — Euro</option>
               <option value="gbp">GBP — British Pound</option>
             </Select>
           </FieldRow>
+
+          {saving && (
+            <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
+              <Loader2 className="h-3 w-3 animate-spin" /> Saving...
+            </div>
+          )}
         </div>
       </Section>
 
@@ -515,7 +633,10 @@ function PreferencesTab() {
                 </p>
               </div>
             </div>
-            <Toggle defaultChecked />
+            <Toggle
+              checked={notifAi}
+              onChange={(v) => handleToggle('notifications_ai', v, setNotifAi)}
+            />
           </div>
           <div className="border-t border-[var(--border)]/50" />
           <div className="flex items-center justify-between">
@@ -528,7 +649,10 @@ function PreferencesTab() {
                 </p>
               </div>
             </div>
-            <Toggle />
+            <Toggle
+              checked={notifDigest}
+              onChange={(v) => handleToggle('notifications_email_digest', v, setNotifDigest)}
+            />
           </div>
           <div className="border-t border-[var(--border)]/50" />
           <div className="flex items-center justify-between">
@@ -541,7 +665,10 @@ function PreferencesTab() {
                 </p>
               </div>
             </div>
-            <Toggle defaultChecked />
+            <Toggle
+              checked={notifCostAlerts}
+              onChange={(v) => handleToggle('notifications_cost_alerts', v, setNotifCostAlerts)}
+            />
           </div>
         </div>
       </Section>

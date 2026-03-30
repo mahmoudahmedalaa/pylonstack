@@ -7,23 +7,22 @@ import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import {
   ArrowRight,
   Layers,
-  Cpu,
   ArrowUpRight,
   BrainCircuit,
   Menu,
   X,
-  GitCompareArrows,
   Check,
   Star,
   Rocket,
-  Code2,
   Twitter,
   Github,
   Linkedin,
   CircleDollarSign,
-  ShieldCheck,
-  Blocks,
   LibraryBig,
+  FolderKanban,
+  TrendingUp,
+  Sparkles,
+  Wrench,
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
@@ -187,68 +186,68 @@ export default function HomePage() {
 
   const FEATURES = [
     {
-      icon: BrainCircuit,
-      title: 'AI-Powered Decisions',
-      desc: 'Our intelligence engine analyzes your project constraints and recommends tools that actually work together, not just popular choices.',
-      gradient: 'from-violet-500 to-purple-600',
-      illustration: 'ai-code-assistant',
+      icon: FolderKanban,
+      title: 'Stack Tracking',
+      desc: 'Track every technology deployed across all your projects. Never lose sight of which frameworks, databases, and services power your products.',
+      gradient: 'from-teal-500 to-emerald-600',
+      illustration: 'completed-tasks',
     },
     {
-      icon: Blocks,
-      title: 'Interactive Blueprints',
-      desc: 'Visualize your entire stack with drag-and-drop layers. See how each piece connects, from frontend frameworks to deployment.',
+      icon: TrendingUp,
+      title: 'Phased Planning',
+      desc: 'Plan your tech stack in phases — start with free tiers, then scale to paid plans as you grow. Export roadmaps as Gantt charts or interactive timelines.',
       gradient: 'from-blue-500 to-cyan-500',
       illustration: 'building-a-website',
     },
     {
-      icon: ShieldCheck,
-      title: 'Enterprise Validated',
-      desc: 'Every recommendation is backed by real-world usage data and compatibility guarantees across the full ecosystem.',
-      gradient: 'from-emerald-500 to-green-600',
-      illustration: 'code-inspection',
+      icon: BrainCircuit,
+      title: 'AI-Powered Recommendations',
+      desc: 'Let AI analyze your project requirements and generate optimized stacks using industry standards and best practices — no guesswork.',
+      gradient: 'from-violet-500 to-purple-600',
+      illustration: 'ai-code-assistant',
     },
     {
-      icon: CircleDollarSign,
-      title: 'Cost Intelligence',
-      desc: 'Get instant cost projections — free tiers, paid plans, total monthly estimates per tool and for your entire stack.',
+      icon: Sparkles,
+      title: 'AI Stack Optimization',
+      desc: 'Already have a stack? Our AI scans live pricing and feature data to find cost savings, better alternatives, and optimization opportunities.',
       gradient: 'from-orange-500 to-amber-500',
       illustration: 'business-analytics',
     },
     {
-      icon: GitCompareArrows,
-      title: 'Version & Compare',
-      desc: 'Save multiple stack configurations, compare them side by side, and iterate until you find the perfect architecture.',
+      icon: CircleDollarSign,
+      title: 'Cost Intelligence',
+      desc: 'Real-time cost projections with live pricing data — free tiers, paid plans, and total monthly estimates for your entire stack.',
       gradient: 'from-pink-500 to-rose-500',
-      illustration: 'version-control',
+      illustration: 'data-points',
     },
     {
       icon: LibraryBig,
       title: 'Smart Catalog',
-      desc: 'Browse 200+ curated tools across 12 categories with real pricing, pros/cons, and community-driven ratings.',
+      desc: 'Browse 230+ curated tools across 12 categories with real pricing, pros/cons, compatibility scores, and community-driven ratings.',
       gradient: 'from-indigo-500 to-blue-600',
-      illustration: 'data-points',
+      illustration: 'code-inspection',
     },
   ];
 
   const STEPS = [
     {
       num: '01',
-      title: 'Describe Your Project',
-      desc: 'Tell us about your app — type, scale, team size, and technical preferences. Our wizard guides you through every dimension.',
-      icon: Code2,
+      title: 'Build or Generate',
+      desc: 'Choose your path: manually assemble your stack from our 230+ tool catalog, or let our AI wizard analyze your project requirements and generate a tailored recommendation.',
+      icon: Wrench,
       illustration: 'programming',
     },
     {
       num: '02',
-      title: 'AI Generates Your Stack',
-      desc: 'Our engine processes your requirements against 200+ tools and generates a tailored, optimized tech stack in seconds.',
-      icon: Cpu,
+      title: 'Plan Your Phases',
+      desc: 'Organize your stack into growth phases. Start with free tiers, schedule upgrades as you scale, and map out your technology roadmap from MVP to enterprise.',
+      icon: TrendingUp,
       illustration: 'ai-response',
     },
     {
       num: '03',
-      title: 'Customize & Export',
-      desc: 'Fine-tune the recommendations. Swap tools, compare alternatives, and export your blueprint to share with your team.',
+      title: 'Track, Optimize & Export',
+      desc: 'Monitor every technology across all your projects. Get AI-powered optimization insights, compare alternatives side-by-side, and export interactive roadmaps for your team.',
       icon: Rocket,
       illustration: 'completed-tasks',
     },
@@ -415,7 +414,7 @@ export default function HomePage() {
               className="mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--primary)]/20 bg-[var(--primary)]/5 px-4 py-1.5 text-sm font-medium text-[var(--primary)] backdrop-blur-sm"
             >
               <span className="flex h-2 w-2 animate-pulse rounded-full bg-[var(--color-success-500)]" />
-              ✨ Now with AI-powered recommendations
+              ✨ Track, plan & optimize your entire tech stack
             </motion.div>
 
             {/* Heading */}
@@ -425,10 +424,10 @@ export default function HomePage() {
               transition={{ duration: 0.8, delay: 0.1 }}
               className="mb-6 max-w-5xl text-4xl leading-[1.08] font-extrabold tracking-tight text-[var(--foreground)] sm:text-5xl md:text-6xl lg:text-7xl"
             >
-              Architect Your{' '}
+              Your Tech Stack,{' '}
               <span className="relative">
                 <span className="bg-gradient-to-r from-[var(--color-primary-400)] via-[var(--color-accent-400)] to-[var(--color-primary-500)] bg-clip-text text-transparent">
-                  Perfect Stack
+                  Tracked & Optimized
                 </span>
                 <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
                   <path
@@ -439,8 +438,7 @@ export default function HomePage() {
                     opacity="0.3"
                   />
                 </svg>
-              </span>{' '}
-              in Seconds
+              </span>
             </motion.h1>
 
             {/* Subheading */}
@@ -450,8 +448,9 @@ export default function HomePage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-[var(--muted-foreground)] sm:text-xl lg:mx-0"
             >
-              The intelligent Tech Stack Engine that understands your project requirements and
-              instantly generates optimized architectures with interactive blueprints.
+              Track every technology across your projects. Plan stack phases from free tiers to
+              enterprise. Get AI-driven recommendations and optimization insights powered by live
+              pricing data.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -538,12 +537,12 @@ export default function HomePage() {
             <h2 className="mb-4 text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl lg:text-5xl">
               Everything you need to{' '}
               <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--color-accent-500)] bg-clip-text text-transparent">
-                ship faster
+                manage your tech stack
               </span>
             </h2>
             <p className="mx-auto max-w-2xl text-lg text-[var(--muted-foreground)]">
-              Stop guessing which tools to use. Let AI craft the optimal combination tailored to
-              your exact needs.
+              Track deployed technologies, plan phased upgrades, get AI recommendations, and
+              discover optimization opportunities — all in one place.
             </p>
           </div>
 
@@ -568,7 +567,7 @@ export default function HomePage() {
               How It Works
             </p>
             <h2 className="mb-4 text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl lg:text-5xl">
-              From idea to architecture in 3 steps
+              Build, plan, and optimize in 3 steps
             </h2>
           </div>
 
@@ -736,7 +735,9 @@ export default function HomePage() {
                   'Unlimited projects',
                   'Unlimited tool comparisons',
                   'AI-powered stack advisor',
-                  'Export to PDF',
+                  'AI Stack Optimization',
+                  'Phased planning & roadmaps',
+                  'Export to PDF & Gantt charts',
                   'Priority support',
                   'Early access to new features',
                 ].map((f) => (

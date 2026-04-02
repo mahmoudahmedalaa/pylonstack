@@ -85,6 +85,7 @@ export function StackBuilder({
               ? { ...layer, tools: layer.tools.filter((t) => t.id !== toolId) }
               : layer,
           )
+          // Only remove fully empty layers in interactive mode — preserve skeletons in preview
           .filter((layer) => layer.tools.length > 0),
       );
       onRemoveTool?.(layerId, toolId);
@@ -93,7 +94,8 @@ export function StackBuilder({
   );
 
   const isPreview = mode === 'preview';
-  const filledCount = layers.length;
+  // filledCount = layers that actually have tools (not skeleton-only)
+  const filledCount = layers.filter((l) => l.tools.length > 0).length;
   const total = totalCategories ?? layers.length;
 
   // Sortable IDs
@@ -185,6 +187,18 @@ export function StackBuilder({
         </DndContext>
       ) : (
         content
+      )}
+
+      {/* AI Tailoring Note (Preview only) */}
+      {isPreview && layers.length > 0 && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-2 text-center text-[10px] text-neutral-500 italic"
+        >
+          * Our AI engine will tailor these base layers perfectly to your workflow.
+        </motion.p>
       )}
 
       {/* Platform line (decorative bottom) */}

@@ -19,7 +19,11 @@ import {
   Check,
   Layers,
   Calendar,
+  FileDown,
+  Github,
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import type { StackLayerData } from '@/components/stack-builder/StackLayer';
 import type { ToolChipData } from '@/components/stack-builder/ToolChip';
 import { TOOLS, CATEGORIES, type Tool } from '@/data/tools-catalog';
@@ -334,6 +338,33 @@ export default function ProjectDetailPage() {
     setIsExportOpen(false);
   };
 
+  const handleExportPdf = async () => {
+    const element = document.getElementById('project-content-area');
+    if (!element) return;
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`${project?.name?.replace(/\s+/g, '-').toLowerCase() || 'stack'}-export.pdf`);
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+    }
+    setIsExportOpen(false);
+  };
+
+  const handleSyncGit = () => {
+    alert(
+      'Sync to GitHub/Jira is coming soon! This will automatically create issues for your tech stack tools.',
+    );
+  };
+
   if (isLoading && !isNew) {
     return (
       <div className="flex flex-1 items-center justify-center p-12">
@@ -361,7 +392,10 @@ export default function ProjectDetailPage() {
   const currentToolCount = layers.reduce((acc, layer) => acc + layer.tools.length, 0);
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 flex flex-1 flex-col pb-12 duration-500">
+    <div
+      id="project-content-area"
+      className="animate-in fade-in slide-in-from-bottom-4 flex flex-1 flex-col pb-12 duration-500"
+    >
       {/* ── Header ── */}
       <div className="sticky top-0 z-10 -mx-4 mb-8 border-b border-[var(--border)] bg-[var(--background)]/80 px-4 py-4 backdrop-blur-md sm:-mx-8 sm:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -410,10 +444,21 @@ export default function ProjectDetailPage() {
                       <FileJson className="h-4 w-4 text-[var(--muted-foreground)]" />
                       JSON (.json)
                     </button>
+                    <div className="my-1 h-px border-t border-[var(--border)]" />
+                    <button
+                      onClick={handleExportPdf}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] transition-colors hover:bg-[var(--muted)]/50"
+                    >
+                      <FileDown className="h-4 w-4 text-[var(--muted-foreground)]" />
+                      Download PDF
+                    </button>
                   </div>
                 </>
               )}
             </div>
+            <Button variant="outline" size="sm" onClick={handleSyncGit}>
+              <Github className="mr-1.5 h-4 w-4" /> Sync
+            </Button>
             <Button variant="outline" size="sm">
               <Settings className="mr-1.5 h-4 w-4" /> Configure
             </Button>

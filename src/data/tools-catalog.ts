@@ -35,13 +35,20 @@ export interface ToolPricingTier {
   name: string; // "Free", "Hobby", "Pro", "Team", "Enterprise"
   price: number | null; // null = "Contact Sales" / custom pricing
   period: 'month' | 'year' | 'once' | null;
+  pricingModel?: 'Flat' | 'Usage-Based' | 'Per-Seat' | 'Percentage';
   limits?: string; // "500 MB DB, 1 GB storage"
 }
 
 export interface ToolPricing {
   model: 'free' | 'freemium' | 'paid' | 'open_source' | 'self_hosted';
   hasFreeTier: boolean;
+  isOpenSource?: boolean;
+  estimatedImplementationTimeDays?: number;
   tiers: ToolPricingTier[];
+  /** ISO date of last pricing verification, e.g. "2026-03-31" */
+  lastVerified?: string;
+  /** URL to the official pricing page */
+  pricingUrl?: string;
 }
 
 // ── Tool Interface ──────────────────────────────
@@ -3002,5 +3009,24 @@ export const TOOLS: Tool[] = [
   if (pricing) {
     return { ...tool, pricingDetails: pricing };
   }
+
+  // Inject a default structured pricing for tools explicitly marked as Free or Open Source
+  if (
+    tool.pricing === 'Free' ||
+    tool.pricing === 'Open Source' ||
+    tool.pricing.toLowerCase().includes('free')
+  ) {
+    return {
+      ...tool,
+      pricingDetails: {
+        model: 'open_source',
+        hasFreeTier: true,
+        isOpenSource: true,
+        estimatedImplementationTimeDays: 1,
+        tiers: [{ name: 'Free', price: 0, period: 'month', pricingModel: 'Flat' }],
+      },
+    };
+  }
+
   return tool;
 });

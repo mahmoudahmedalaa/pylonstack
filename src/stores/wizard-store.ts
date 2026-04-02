@@ -10,12 +10,14 @@ import { create } from 'zustand';
  */
 
 export interface WizardAnswers {
+  projectName: string;
   description: string;
   projectType: string | null;
   teamSize: string | null;
   requirements: string[];
   priorities: string[];
   preferences: string[];
+  analytics: string[];
 }
 
 interface WizardStore {
@@ -30,6 +32,7 @@ interface WizardStore {
   nextStep: () => void;
   prevStep: () => void;
 
+  setProjectName: (name: string) => void;
   setDescription: (desc: string) => void;
 
   setProjectType: (id: string) => void;
@@ -37,6 +40,7 @@ interface WizardStore {
   toggleRequirement: (id: string) => void;
   togglePriority: (id: string) => void;
   togglePreference: (id: string) => void;
+  toggleAnalytics: (id: string) => void;
 
   canAdvance: () => boolean;
   reset: () => void;
@@ -45,12 +49,14 @@ interface WizardStore {
 }
 
 const INITIAL_ANSWERS: WizardAnswers = {
+  projectName: '',
   description: '',
   projectType: null,
   teamSize: null,
   requirements: [],
   priorities: [],
   preferences: [],
+  analytics: [],
 };
 
 export const useWizardStore = create<WizardStore>((set, get) => ({
@@ -62,10 +68,11 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
 
   // ── Navigation ──
   setStep: (step) => set({ currentStep: step }),
-  nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 6) })),
+  nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 7) })),
   prevStep: () => set((s) => ({ currentStep: Math.max(s.currentStep - 1, 1) })),
 
   // ── Single-select answers ──
+  setProjectName: (name) => set((s) => ({ answers: { ...s.answers, projectName: name } })),
   setDescription: (desc) => set((s) => ({ answers: { ...s.answers, description: desc } })),
   setProjectType: (id) => set((s) => ({ answers: { ...s.answers, projectType: id } })),
   setTeamSize: (id) => set((s) => ({ answers: { ...s.answers, teamSize: id } })),
@@ -106,12 +113,25 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
       };
     }),
 
+  toggleAnalytics: (id) =>
+    set((s) => {
+      const arr = s.answers.analytics;
+      return {
+        answers: {
+          ...s.answers,
+          analytics: arr.includes(id) ? arr.filter((v) => v !== id) : [...arr, id],
+        },
+      };
+    }),
+
   // ── Validation ──
   canAdvance: () => {
     const { currentStep, answers } = get();
     switch (currentStep) {
       case 1:
-        return !!answers.projectType && !!answers.description?.trim();
+        return (
+          !!answers.projectName?.trim() && !!answers.projectType && !!answers.description?.trim()
+        );
       case 2:
         return !!answers.teamSize;
       case 3:
@@ -121,6 +141,8 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
       case 5:
         return true; // preferences are optional
       case 6:
+        return true; // analytics are optional
+      case 7:
         return true;
       default:
         return false;

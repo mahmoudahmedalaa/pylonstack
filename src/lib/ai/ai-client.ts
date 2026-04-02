@@ -7,6 +7,7 @@
 
 import { GoogleGenAI } from '@google/genai';
 import type { WizardAnswers } from '@/stores/wizard-store';
+import { TOOLS, getToolTiers } from '@/data/tools-catalog';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -26,10 +27,27 @@ export interface ToolRecommendation {
   alternatives: string[]; // Names of alternative tools
 }
 
+export interface PhaseTool {
+  toolName: string;
+  reason?: string; // Quick reason why it's introduced in this phase
+  tier: string;
+  monthlyCost: number;
+  pricingModel?: 'Flat' | 'Usage-Based' | 'Per-Seat' | 'Percentage';
+}
+
+export interface ProjectPhase {
+  name: string;
+  description: string;
+  tools: PhaseTool[];
+  estimatedMonthlyCost: number;
+  estimatedImplementationTimeDays: number;
+}
+
 export interface AIRecommendationResult {
   recommendations: ToolRecommendation[];
   summary: string; // Executive summary of the recommended stack
   estimatedMonthlyCost: number;
+  phases: ProjectPhase[];
   source: 'gemini' | 'fallback';
 }
 
@@ -46,11 +64,41 @@ PROJECT REQUIREMENTS:
 - Requirements: ${answers.requirements.join(', ')}
 - Priorities: ${answers.priorities.join(', ')}
 - Preferences: ${answers.preferences.join(', ') || 'None specified'}
+- Analytics Tools Preferences: ${answers.analytics?.join(', ') || 'No specific preference'}
 
 Return a JSON object with this exact shape:
 {
   "summary": "A 2-3 sentence summary of the recommended stack and why it fits.",
   "estimatedMonthlyCost": <number>,
+  "phases": [
+    {
+      "name": "Phase 1 - MVP",
+      "description": "<1-2 sentences about the focus of this phase>",
+      "tools": [
+        { "toolName": "<tool name>", "reason": "<1-sentence reason taking this on now>", "tier": "free", "monthlyCost": 0, "pricingModel": "Flat" }
+      ],
+      "estimatedMonthlyCost": 0,
+      "estimatedImplementationTimeDays": 14
+    },
+    {
+      "name": "Phase 2 - Growth",
+      "description": "<building on MVP, scaling up>",
+      "tools": [
+        { "toolName": "<tool name>", "reason": "<why upgrade now>", "tier": "pro", "monthlyCost": 20, "pricingModel": "Usage-Based" }
+      ],
+      "estimatedMonthlyCost": 20,
+      "estimatedImplementationTimeDays": 30
+    },
+    {
+      "name": "Phase 3 - Scale",
+      "description": "<enterprise limits and strict compliance>",
+      "tools": [
+        { "toolName": "<tool name>", "reason": "<why scale up now>", "tier": "enterprise", "monthlyCost": 150, "pricingModel": "Per-Seat" }
+      ],
+      "estimatedMonthlyCost": 150,
+      "estimatedImplementationTimeDays": 60
+    }
+  ],
   "recommendations": [
     {
       "categoryName": "<category like Frontend Framework, Backend, Database, Hosting, etc.>",
@@ -62,6 +110,8 @@ Return a JSON object with this exact shape:
   ]
 }
 
+ALWAYS return EXACTLY 3 phases (Phase 1, Phase 2, and Phase 3).
+
 Include recommendations for at least these categories:
 - Frontend Framework
 - Backend / API
@@ -71,7 +121,7 @@ Include recommendations for at least these categories:
 - State Management (if applicable)
 - Styling / UI Library
 
-Add more categories based on the requirements (e.g. Payments, Real-time, AI/ML, Search, etc.).
+Make sure 'pricingModel' is accurate. For usage-based tools like Stripe, AWS, or Vercel, set to 'Usage-Based' and predict a realistic baseline 'monthlyCost' for the phase scale (do NOT use 0 unless it is truly free).
 Order by importance. Prefer production-proven tools. Consider the team size and priorities when choosing.`;
 }
 
@@ -102,7 +152,13 @@ export async function getAIRecommendation(answers: WizardAnswers): Promise<AIRec
       summary: string;
       estimatedMonthlyCost: number;
       recommendations: ToolRecommendation[];
+      phases: ProjectPhase[];
     };
+
+    // Explicit validation to force fallback if structure is broken
+    if (!parsed || !Array.isArray(parsed.recommendations) || !Array.isArray(parsed.phases)) {
+      throw new Error('Missing required arrays in Gemini response');
+    }
 
     return {
       ...parsed,
@@ -199,10 +255,118 @@ function getFallbackRecommendation(answers: WizardAnswers): AIRecommendationResu
     });
   }
 
+  // Tools that are genuinely usage-based (pay-per-transaction or metered)
+  const usageBasedTools = new Set([
+    'Stripe',
+    'Vercel',
+    'Vercel Functions',
+    'AWS Lambda',
+    'Cloudflare Workers',
+    'OpenAI',
+    'Twilio',
+  ]);
+
+  const phases: ProjectPhase[] = [
+    {
+      name: 'Phase 1 — MVP Launch',
+      description:
+        'Ship a production-ready MVP using free-tier allocations. Validate your core product with real users before investing in scaling infrastructure.',
+      tools: recommendations.map((r) => {
+        const catalogTool = TOOLS.find((t) => t.name === r.toolName);
+        const tiers = catalogTool ? getToolTiers(catalogTool) : [];
+        const freeTier = tiers.find((t) => t.price === 0) || tiers[0];
+
+        return {
+          toolName: r.toolName,
+          reason: `Start with ${r.toolName}'s ${freeTier?.name || 'Free Tier'} to validate your core product.`,
+          tier: freeTier?.name || 'Free Tier',
+          monthlyCost: freeTier?.price || 0,
+          pricingModel:
+            freeTier?.pricingModel || (usageBasedTools.has(r.toolName) ? 'Usage-Based' : 'Flat'),
+        };
+      }),
+      estimatedMonthlyCost: 0,
+      estimatedImplementationTimeDays: 14,
+    },
+    {
+      name: 'Phase 2 — Growth',
+      description:
+        'Upgrade to pro tiers as you gain traction. Unlock higher limits, team collaboration, and production-grade SLAs.',
+      tools: recommendations.map((r) => {
+        const catalogTool = TOOLS.find((t) => t.name === r.toolName);
+        const tiers = catalogTool ? getToolTiers(catalogTool) : [];
+        // Extract a mid tier for growth
+        const growthTier =
+          tiers.length > 2
+            ? tiers[1]
+            : tiers.find((t) => t.price !== 0 && t.price !== null) || tiers[tiers.length - 1];
+
+        return {
+          toolName: r.toolName,
+          reason: `Upgrade to ${growthTier?.name || 'Pro'} for higher limits and production reliability.`,
+          tier: growthTier?.name || 'Pro',
+          monthlyCost:
+            growthTier?.price !== null && growthTier?.price !== undefined
+              ? growthTier.price
+              : catalogTool?.pricingDetails?.model === 'open_source'
+                ? 0
+                : 20,
+          pricingModel:
+            growthTier?.pricingModel || (usageBasedTools.has(r.toolName) ? 'Usage-Based' : 'Flat'),
+        };
+      }),
+      estimatedMonthlyCost: 0,
+      estimatedImplementationTimeDays: 30,
+    },
+    {
+      name: 'Phase 3 — Scale',
+      description:
+        'Enterprise-grade infrastructure for high traffic, compliance requirements, and dedicated support.',
+      tools: recommendations.map((r) => {
+        const catalogTool = TOOLS.find((t) => t.name === r.toolName);
+        const tiers = catalogTool ? getToolTiers(catalogTool) : [];
+        // Extract highest tier for scale
+        const scaleTier = tiers[tiers.length - 1];
+
+        return {
+          toolName: r.toolName,
+          reason: `Scale to ${scaleTier?.name || 'Enterprise'} for dedicated support, SLAs, and enterprise features.`,
+          tier: scaleTier?.name || 'Enterprise',
+          monthlyCost:
+            scaleTier?.price !== null && scaleTier?.price !== undefined
+              ? scaleTier.price
+              : catalogTool?.pricingDetails?.model === 'open_source'
+                ? 0
+                : 150,
+          pricingModel:
+            scaleTier?.pricingModel || (usageBasedTools.has(r.toolName) ? 'Usage-Based' : 'Flat'),
+        };
+      }),
+      estimatedMonthlyCost: 0,
+      estimatedImplementationTimeDays: 60,
+    },
+  ];
+
+  phases[0].estimatedMonthlyCost = phases[0].tools.reduce(
+    (sum, t) => sum + (t.monthlyCost || 0),
+    0,
+  );
+  phases[1].estimatedMonthlyCost = phases[1].tools.reduce(
+    (sum, t) => sum + (t.monthlyCost || 0),
+    0,
+  );
+  phases[2].estimatedMonthlyCost = phases[2].tools.reduce(
+    (sum, t) => sum + (t.monthlyCost || 0),
+    0,
+  );
+
+  const totalGrowthCost = phases[1].estimatedMonthlyCost;
+
   return {
     recommendations,
-    summary: `A ${answers.projectType?.replace('_', ' ')} stack optimized for ${answers.priorities[0] ?? 'general use'}, suitable for a ${answers.teamSize} team.`,
-    estimatedMonthlyCost: wantsServerless ? 25 : 50,
+    summary: `A ${answers.projectType?.replace('_', ' ')} stack optimized for ${answers.priorities[0] ?? 'general use'}, suitable for a ${answers.teamSize} team. Starts free with generous free tiers, scaling to ~$${totalGrowthCost}/mo as you grow.`,
+    estimatedMonthlyCost: totalGrowthCost,
+    phases,
     source: 'fallback',
   };
 }

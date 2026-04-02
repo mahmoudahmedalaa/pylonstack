@@ -6,6 +6,13 @@ description: Generates a comprehensive handover summary for the next AI session,
 
 **Skill Objective**: To create a complete, high-context transfer of knowledge to the next AI agent so they can immediately become productive without re-reading thousands of lines of chat history.
 
+> [!IMPORTANT]
+> **Always save handover files inside the project directory**, not in the AI agent's brain/artifacts folder (e.g., `~/.gemini/antigravity/brain/...`). The correct location is:
+> ```
+> /Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/docs/handover/HANDOVER_REPORT.md
+> ```
+> This ensures handover docs are version-controlled, accessible to future sessions, and live alongside the codebase. Create the `docs/handover/` directory if it doesn't exist.
+
 ## When to Use
 - At the end of a significant development session.
 - Before switching tasks or "ending the day".

@@ -373,7 +373,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
               <div className="flex items-center gap-3">
                 <h2 className="text-sm font-bold tracking-widest text-white/80 uppercase">
-                  Your Workspaces
+                  Your Projects
                 </h2>
                 <Badge variant="secondary" className="bg-white/5 text-[10px]">
                   {projectCount}

@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { DollarSign, TrendingUp, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import type { ProjectPhaseRoadmap } from '@/data/phase-types';
-import { PHASE_COLORS, getPhaseCost, getPhaseTools } from '@/data/phase-types';
+import { PHASE_COLORS, getPhaseCost, getPhaseTools, getPhaseTime } from '@/data/phase-types';
 
 interface PhaseCostSummaryProps {
   roadmap: ProjectPhaseRoadmap;
@@ -17,6 +17,7 @@ export function PhaseCostSummary({ roadmap }: PhaseCostSummaryProps) {
       .map((phase) => ({
         phase,
         cost: getPhaseCost(roadmap, phase.id),
+        time: getPhaseTime(roadmap, phase.id),
         toolCount: getPhaseTools(roadmap, phase.id).length,
         colors: PHASE_COLORS[phase.id] || PHASE_COLORS.mvp,
       }));
@@ -60,6 +61,8 @@ export function PhaseCostSummary({ roadmap }: PhaseCostSummaryProps) {
                 </span>
                 <span className="text-xs text-[var(--muted-foreground)]">
                   {item.toolCount} tool{item.toolCount !== 1 ? 's' : ''}
+                  {' · '}
+                  <span>{item.time || 0} days</span>
                   {' · '}
                   <span className="font-semibold" style={{ color: item.colors.text }}>
                     ${item.cost}/mo

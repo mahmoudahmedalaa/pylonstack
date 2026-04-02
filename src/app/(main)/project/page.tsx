@@ -126,7 +126,7 @@ function ProjectCard({ project }: { project: ProjectRow }) {
               View Project Details
             </span>
             <div className="ml-auto flex items-center gap-1">
-              <span>Go back to workspace</span>
+              <span>Go back to dashboard</span>
               <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </div>
           </div>
@@ -186,7 +186,7 @@ function EmptyState() {
         </div>
       </div>
       <h3 className="mt-8 text-xl font-semibold tracking-tight text-[var(--foreground)]">
-        Your workspace is empty
+        Your project archive is empty
       </h3>
       <p className="mt-2 max-w-sm px-6 text-center text-sm text-[var(--muted-foreground)]">
         Every great project starts with a single step. Use our AI wizard to generate the perfect
@@ -261,7 +261,7 @@ export default function ProjectsPage() {
       {/* ── Summary Cards ── */}
       <div className="flex flex-wrap gap-4">
         <SummaryStat
-          label="Total Workspace"
+          label="Total Projects"
           value={isLoading ? 0 : projects?.length || 0}
           icon={Layers}
           colorClass="bg-blue-500"
@@ -298,7 +298,7 @@ export default function ProjectsPage() {
             </div>
             <h3 className="text-lg font-semibold text-[var(--foreground)]">Connection Error</h3>
             <p className="mx-auto mt-1 max-w-xs text-sm text-[var(--muted-foreground)]">
-              We encountered a problem while synchronizing your workspace data.
+              We encountered a problem while synchronizing your project data.
             </p>
             <Button
               variant="outline"

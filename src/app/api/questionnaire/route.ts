@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { projects, questionnaireResponses } from '@/lib/db/schema';
 import { getAIRecommendation } from '@/lib/ai/ai-client';
@@ -16,6 +17,9 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as WizardAnswers;
 
     // Validate required fields
+    if (!body.projectName || !body.projectName.trim()) {
+      return NextResponse.json({ error: 'Project name is required' }, { status: 400 });
+    }
     if (!body.description || !body.description.trim()) {
       return NextResponse.json({ error: 'App description is required' }, { status: 400 });
     }
@@ -32,13 +36,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'At least one priority is needed' }, { status: 400 });
     }
 
-    // Placeholder userId — will be replaced with real auth later
-    const userId = '00000000-0000-0000-0000-000000000000';
+    // Authenticate user via Supabase session
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please log in to generate a stack.' },
+        { status: 401 },
+      );
+    }
+
+    const userId = user.id;
 
     // 1. Create the project
-    const projectName = `${body.projectType?.replace(/_/g, ' ')} project`.replace(/\b\w/g, (c) =>
-      c.toUpperCase(),
-    );
+    const projectName =
+      body.projectName ||
+      `${body.projectType?.replace(/_/g, ' ')} project`.replace(/\b\w/g, (c) => c.toUpperCase());
 
     const [project] = await db
       .insert(projects)
@@ -73,13 +90,14 @@ export async function POST(request: NextRequest) {
           inputContext: body,
           summary: aiResult.summary,
           estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
+          phases: aiResult.phases,
         } as Record<string, unknown>,
-        recommendations: aiResult.recommendations.map((r) => ({
-          category_slug: r.categoryName.toLowerCase().replace(/\s+/g, '-'),
-          tool_slug: r.toolName.toLowerCase().replace(/\s+/g, '-'),
-          confidence: r.confidence,
-          reasoning: r.reasoning,
-          alternative_slug: r.alternatives[0]?.toLowerCase().replace(/\s+/g, '-'),
+        recommendations: (aiResult.recommendations || []).map((r) => ({
+          category_slug: (r.categoryName || 'uncategorized').toLowerCase().replace(/\s+/g, '-'),
+          tool_slug: (r.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
+          confidence: r.confidence || 80,
+          reasoning: r.reasoning || 'Recommended by AI',
+          alternative_slug: (r.alternatives?.[0] || 'none').toLowerCase().replace(/\s+/g, '-'),
         })),
       })
       .returning({ id: aiRecommendations.id });
@@ -88,6 +106,7 @@ export async function POST(request: NextRequest) {
       projectId: project.id,
       recommendationId: recommendation.id,
       recommendations: aiResult.recommendations,
+      phases: aiResult.phases,
       summary: aiResult.summary,
       estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
       source: aiResult.source,

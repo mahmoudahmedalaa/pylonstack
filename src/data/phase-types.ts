@@ -15,6 +15,7 @@ export interface Phase {
   order: number;
   targetDate?: string; // ISO date string
   budget?: number; // Monthly budget cap
+  estimatedImplementationTimeDays?: number; // Estimated days to implement
 }
 
 // ── Tool-Phase Assignments ──────────────────────
@@ -25,6 +26,7 @@ export interface ToolPhaseAssignment {
   phaseId: string; // Phase ID
   selectedTierName: string; // Pricing tier name ("Free", "Pro", etc.)
   monthlyCost: number;
+  estimatedImplementationTimeDays?: number;
   notes?: string;
 }
 
@@ -88,6 +90,13 @@ export function getPhaseCost(roadmap: ProjectPhaseRoadmap, phaseId: string): num
   return roadmap.assignments
     .filter((a) => a.phaseId === phaseId)
     .reduce((sum, a) => sum + a.monthlyCost, 0);
+}
+
+/** Get total estimated implementation time for a specific phase */
+export function getPhaseTime(roadmap: ProjectPhaseRoadmap, phaseId: string): number {
+  return roadmap.assignments
+    .filter((a) => a.phaseId === phaseId)
+    .reduce((sum, a) => sum + (a.estimatedImplementationTimeDays || 0), 0);
 }
 
 /** Get all tools assigned to a specific phase */

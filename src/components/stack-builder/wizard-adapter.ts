@@ -25,73 +25,12 @@ const REQ_TO_CATEGORY: Record<string, string> = {
 
 /** Project type → suggested base categories */
 const PROJECT_BASE_CATEGORIES: Record<string, string[]> = {
-  web_app: ['Frontend', 'Backend', 'Database'],
-  mobile_app: ['Mobile Development', 'Backend', 'Database'],
-  desktop_app: ['Frontend', 'Backend', 'Database'],
-  backend_service: ['Backend', 'Database', 'DevOps'],
-  cli_tool: ['Backend', 'Testing'],
-  browser_extension: ['Frontend'],
-};
-
-/** Example tools per category (shown as placeholders in the preview) */
-const EXAMPLE_TOOLS: Record<string, { id: string; name: string }[]> = {
-  Frontend: [
-    { id: 'react', name: 'React' },
-    { id: 'nextjs', name: 'Next.js' },
-    { id: 'tailwindcss', name: 'Tailwind CSS' },
-  ],
-  Backend: [
-    { id: 'nodejs', name: 'Node.js' },
-    { id: 'express', name: 'Express' },
-  ],
-  Database: [
-    { id: 'postgresql', name: 'PostgreSQL' },
-    { id: 'redis', name: 'Redis' },
-  ],
-  'Mobile Development': [
-    { id: 'react-native', name: 'React Native' },
-    { id: 'expo', name: 'Expo' },
-  ],
-  Authentication: [
-    { id: 'clerk', name: 'Clerk' },
-    { id: 'nextauth', name: 'NextAuth.js' },
-  ],
-  Payments: [
-    { id: 'stripe', name: 'Stripe' },
-    { id: 'lemonsqueezy', name: 'Lemon Squeezy' },
-  ],
-  'API & Communication': [
-    { id: 'resend', name: 'Resend' },
-    { id: 'twilio', name: 'Twilio' },
-  ],
-  Storage: [
-    { id: 's3', name: 'AWS S3' },
-    { id: 'cloudinary', name: 'Cloudinary' },
-  ],
-  Analytics: [
-    { id: 'posthog', name: 'PostHog' },
-    { id: 'mixpanel', name: 'Mixpanel' },
-  ],
-  'AI & ML': [
-    { id: 'openai', name: 'OpenAI' },
-    { id: 'langchain', name: 'LangChain' },
-  ],
-  Search: [
-    { id: 'algolia', name: 'Algolia' },
-    { id: 'meilisearch', name: 'Meilisearch' },
-  ],
-  DevOps: [
-    { id: 'docker', name: 'Docker' },
-    { id: 'github-actions', name: 'GitHub Actions' },
-  ],
-  Testing: [
-    { id: 'vitest', name: 'Vitest' },
-    { id: 'playwright', name: 'Playwright' },
-  ],
-  'Cloud & Hosting': [
-    { id: 'vercel', name: 'Vercel' },
-    { id: 'aws', name: 'AWS' },
-  ],
+  web_app: ['Frontend Framework', 'Backend / API', 'Database', 'Hosting / Deployment', 'Testing'],
+  mobile_app: ['Mobile Framework', 'Backend / API', 'Database', 'Authentication', 'Analytics'],
+  desktop_app: ['Frontend Framework', 'Backend / API', 'Database', 'Hosting / Deployment'],
+  backend_service: ['Backend / API', 'Database', 'DevOps', 'Hosting / Deployment', 'Testing'],
+  cli_tool: ['Backend / API', 'Testing', 'DevOps'],
+  browser_extension: ['Frontend Framework', 'Backend / API', 'Hosting / Deployment'],
 };
 
 /**
@@ -125,16 +64,14 @@ export function wizardAnswersToLayers(answers: WizardAnswers): StackLayerData[] 
 function makeCategoryLayer(category: string): StackLayerData {
   const color = getCategoryColor(category);
   const icon = CATEGORY_ICONS[category] ?? 'Layout';
-  const tools = (EXAMPLE_TOOLS[category] ?? []).map((t) => ({
-    id: t.id,
-    name: t.name,
-  }));
 
+  // Return skeleton layer — no tools pre-filled.
+  // Tools are populated only after AI generation completes.
   return {
     id: `layer-${category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
     category,
     icon,
     color,
-    tools,
+    tools: [],
   };
 }

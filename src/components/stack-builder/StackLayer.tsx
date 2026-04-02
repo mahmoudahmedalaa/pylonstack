@@ -177,7 +177,7 @@ export function StackLayer({ layer, mode, index, onRemoveTool }: StackLayerProps
           )}
         </div>
 
-        {/* Tools grid */}
+        {/* Tools grid or skeleton placeholder */}
         <AnimatePresence>
           {!isCollapsed && (
             <motion.div
@@ -185,18 +185,39 @@ export function StackLayer({ layer, mode, index, onRemoveTool }: StackLayerProps
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${isPreview ? 'mt-1.5' : 'mt-2.5'}`}
+              className={isPreview ? 'mt-1.5' : 'mt-2.5'}
             >
-              {layer.tools.map((tool) => (
-                <ToolChip
-                  key={tool.id}
-                  tool={tool}
-                  accentColor={layer.color.accent}
-                  glowColor={layer.color.glow}
-                  interactive={isInteractive}
-                  onRemove={onRemoveTool ? (toolId) => onRemoveTool(layer.id, toolId) : undefined}
-                />
-              ))}
+              {toolCount > 0 ? (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {layer.tools.map((tool) => (
+                    <ToolChip
+                      key={tool.id}
+                      tool={tool}
+                      accentColor={layer.color.accent}
+                      glowColor={layer.color.glow}
+                      interactive={isInteractive}
+                      onRemove={
+                        onRemoveTool ? (toolId) => onRemoveTool(layer.id, toolId) : undefined
+                      }
+                    />
+                  ))}
+                </div>
+              ) : (
+                /* Skeleton placeholder — shown when category exists but tools haven't been generated yet */
+                <div
+                  className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-2"
+                  style={{
+                    borderColor: `${layer.color.accent}30`,
+                    backgroundColor: `${layer.color.accent}08`,
+                  }}
+                >
+                  <span
+                    className="inline-block h-1.5 w-1.5 animate-pulse rounded-full"
+                    style={{ backgroundColor: layer.color.accent }}
+                  />
+                  <span className="text-[10px] text-neutral-500">AI will recommend tools here</span>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

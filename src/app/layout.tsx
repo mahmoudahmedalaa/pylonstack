@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
+import { AuthProvider } from '@/hooks/useAuth';
 import './globals.css';
 
 const inter = Inter({
@@ -62,7 +63,9 @@ export default function RootLayout({
       >
         <div className="noise" aria-hidden="true" />
         <ThemeProvider>
-          <QueryProvider>{children}</QueryProvider>
+          <AuthProvider>
+            <QueryProvider>{children}</QueryProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

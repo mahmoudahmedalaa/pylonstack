@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { HeroMockup } from '@/components/home/HeroMockup';
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Optimized Grid Background
@@ -257,8 +258,8 @@ function HowItWorks() {
               {idx < 2 && (
                 <div
                   className={`hidden md:block absolute top-[48px] left-[calc(50%+48px)] w-[calc(100%+4rem-96px)] h-[2px] bg-gradient-to-r rounded-full pointer-events-none ${idx === 0
-                      ? 'from-[var(--primary)]/40 to-emerald-500/40'
-                      : 'from-emerald-500/40 to-blue-500/40'
+                    ? 'from-[var(--primary)]/40 to-emerald-500/40'
+                    : 'from-emerald-500/40 to-blue-500/40'
                     }`}
                 />
               )}
@@ -523,7 +524,11 @@ export default function HomePage() {
               </Button>
             </motion.div>
           </div>
-          <div className="h-16 sm:h-24 md:h-32" />
+
+          {/* Interactive Hero App Mockup */}
+          <div className="mt-16 w-full relative z-20">
+            <HeroMockup />
+          </div>
         </div>
       </section>
 

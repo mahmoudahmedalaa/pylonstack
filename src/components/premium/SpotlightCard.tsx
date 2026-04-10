@@ -40,7 +40,7 @@ export function SpotlightCard({
     <div
       onMouseMove={handleMouseMove}
       className={cn(
-        'group relative flex size-full flex-col overflow-hidden rounded-xl border border-white/10 bg-neutral-900/50 p-6 text-left shadow-2xl transition-all hover:border-white/20',
+        'group relative flex size-full flex-col overflow-hidden rounded-xl border border-border bg-card p-6 text-left shadow-2xl transition-all hover:border-[var(--primary)]/40',
         className,
       )}
       {...props}

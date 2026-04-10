@@ -1,0 +1,206 @@
+
+> pylon@0.1.0 dev
+> next dev --turbopack -p 3000
+
+   ▲ Next.js 15.3.9 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://172.20.10.3:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 161ms
+ ✓ Ready in 946ms
+ ○ Compiling /api/questionnaire ...
+ ✓ Compiled /api/questionnaire in 647ms
+ POST /api/questionnaire 401 in 841ms
+[AI Client] Gemini error, using fallback: Error [ClientError]: got status: 400 Bad Request. {"error":{"code":400,"message":"User location is not supported for the API use.","status":"FAILED_PRECONDITION"}}
+    at async getAIRecommendation (src/lib/ai/ai-client.ts:137:21)
+    at async POST (src/app/api/questionnaire/route.ts:79:21)
+  135 |
+  136 |   try {
+> 137 |     const response = await ai.models.generateContent({
+      |                     ^
+  138 |       model: 'gemini-2.5-flash',
+  139 |       contents: buildPrompt(answers),
+  140 |       config: { {
+  [cause]: 'Error: \n' +
+    '    at new ClientError (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/cbdf0_@google_genai_dist_node_index_mjs_3edf976a._.js:13524:24)\n' +
+    '    at throwErrorIfNotOK (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/cbdf0_@google_genai_dist_node_index_mjs_3edf976a._.js:13994:33)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n' +
+    '    at async /Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/cbdf0_@google_genai_dist_node_index_mjs_3edf976a._.js:13779:13\n' +
+    '    at async Models.generateContent (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/cbdf0_@google_genai_dist_node_index_mjs_3edf976a._.js:14889:24)\n' +
+    '    at async getAIRecommendation (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/[root-of-the-server]__2e5acd12._.js:7599:26)\n' +
+    '    at async POST (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/[root-of-the-server]__2e5acd12._.js:7896:26)\n' +
+    '    at async AppRouteRouteModule.do (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:26:34112)\n' +
+    '    at async AppRouteRouteModule.handle (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:26:41338)\n' +
+    '    at async doRender (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:1518:42)\n' +
+    '    at async DevServer.renderToResponseWithComponentsImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:1920:28)\n' +
+    '    at async DevServer.renderPageComponent (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:2408:24)\n' +
+    '    at async DevServer.renderToResponseImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:2445:32)\n' +
+    '    at async DevServer.pipeImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:1008:25)\n' +
+    '    at async NextNodeServer.handleCatchallRenderRequest (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/next-server.js:305:17)\n' +
+    '    at async DevServer.handleRequestImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:900:17)\n' +
+    '    at async /Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/dev/next-dev-server.js:371:20\n' +
+    '    at async Span.traceAsyncFn (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/trace/trace.js:157:20)\n' +
+    '    at async DevServer.handleRequest (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/dev/next-dev-server.js:368:24)\n' +
+    '    at async invokeRender (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/lib/router-server.js:237:21)\n' +
+    '    at async handleRequest (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/lib/router-server.js:428:24)\n' +
+    '    at async requestHandlerImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/lib/router-server.js:452:13)\n' +
+    '    at async Server.requestListener (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/lib/start-server.js:158:13)'
+}
+ POST /api/questionnaire 200 in 1366ms
+ ○ Compiling /results/[id] ...
+ ✓ Compiled /results/[id] in 20.6s
+ GET /results/6529e786-f5a9-40c6-b0fc-efa1bf703501 200 in 21261ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 1114ms
+ GET /dashboard 200 in 1200ms
+ ○ Compiling /api/categories ...
+ ✓ Compiled /api/categories in 797ms
+ GET /api/categories 200 in 865ms
+ GET /api/projects 200 in 878ms
+ GET /dashboard 200 in 139ms
+ GET /api/categories 200 in 48ms
+ GET /api/projects 200 in 84ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 822ms
+ GET /login 200 in 902ms
+ ○ Compiling /register ...
+ ✓ Compiled /register in 981ms
+ GET /register 200 in 1064ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1268ms
+ GET / 200 in 1508ms
+ ✓ Compiled /favicon.ico in 292ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 538ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 950ms
+ GET /create 200 in 982ms
+ GET /api/projects 401 in 62ms
+ GET /api/projects 401 in 42ms
+ GET /api/projects 401 in 36ms
+ GET /login?redirectTo=%2Fproject 200 in 30ms
+ ○ Compiling /project ...
+ ✓ Compiled /project in 1299ms
+ GET /project 200 in 1343ms
+ GET /api/projects 200 in 70ms
+ ✓ Compiled in 609ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /project 200 in 1356ms
+ GET /api/projects 200 in 157ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 393ms
+ GET /dashboard 200 in 75ms
+ GET /api/categories 200 in 51ms
+ GET /api/projects 200 in 121ms
+ GET /create 200 in 63ms
+ ○ Compiling /wizard ...
+ ✓ Compiled /wizard in 1660ms
+ GET /wizard 200 in 1700ms
+[AI Client] Gemini error, using fallback: Error [ClientError]: got status: 400 Bad Request. {"error":{"code":400,"message":"User location is not supported for the API use.","status":"FAILED_PRECONDITION"}}
+    at async getAIRecommendation (src/lib/ai/ai-client.ts:137:21)
+    at async POST (src/app/api/questionnaire/route.ts:79:21)
+  135 |
+  136 |   try {
+> 137 |     const response = await ai.models.generateContent({
+      |                     ^
+  138 |       model: 'gemini-2.5-flash',
+  139 |       contents: buildPrompt(answers),
+  140 |       config: { {
+  [cause]: 'Error: \n' +
+    '    at new ClientError (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/cbdf0_@google_genai_dist_node_index_mjs_3edf976a._.js:13524:24)\n' +
+    '    at throwErrorIfNotOK (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/cbdf0_@google_genai_dist_node_index_mjs_3edf976a._.js:13994:33)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n' +
+    '    at async /Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/cbdf0_@google_genai_dist_node_index_mjs_3edf976a._.js:13779:13\n' +
+    '    at async Models.generateContent (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/cbdf0_@google_genai_dist_node_index_mjs_3edf976a._.js:14889:24)\n' +
+    '    at async getAIRecommendation (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/[root-of-the-server]__2e5acd12._.js:7599:26)\n' +
+    '    at async POST (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/chunks/[root-of-the-server]__2e5acd12._.js:7900:26)\n' +
+    '    at async AppRouteRouteModule.do (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:26:34112)\n' +
+    '    at async AppRouteRouteModule.handle (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:26:41338)\n' +
+    '    at async doRender (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:1518:42)\n' +
+    '    at async DevServer.renderToResponseWithComponentsImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:1920:28)\n' +
+    '    at async DevServer.renderPageComponent (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:2408:24)\n' +
+    '    at async DevServer.renderToResponseImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:2445:32)\n' +
+    '    at async DevServer.pipeImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:1008:25)\n' +
+    '    at async NextNodeServer.handleCatchallRenderRequest (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/next-server.js:305:17)\n' +
+    '    at async DevServer.handleRequestImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/base-server.js:900:17)\n' +
+    '    at async /Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/dev/next-dev-server.js:371:20\n' +
+    '    at async Span.traceAsyncFn (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/trace/trace.js:157:20)\n' +
+    '    at async DevServer.handleRequest (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/dev/next-dev-server.js:368:24)\n' +
+    '    at async invokeRender (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/lib/router-server.js:237:21)\n' +
+    '    at async handleRequest (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/lib/router-server.js:428:24)\n' +
+    '    at async requestHandlerImpl (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/lib/router-server.js:452:13)\n' +
+    '    at async Server.requestListener (/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/node_modules/.pnpm/next@15.3.9_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-d_408f310722bb8780c2cf1465951a1fe8/node_modules/next/dist/server/lib/start-server.js:158:13)'
+}
+ POST /api/questionnaire 200 in 1232ms
+ GET /results/83c97501-08db-497d-98f6-1428f11e744f 200 in 135ms
+ ✓ Compiled in 641ms
+ GET /dashboard 200 in 61ms
+ GET /api/categories 200 in 106ms
+ GET /api/projects 200 in 116ms
+ ✓ Compiled in 374ms
+ GET /dashboard 200 in 58ms
+ ○ Compiling /catalog ...
+ ✓ Compiled /catalog in 1154ms
+ GET /catalog 200 in 1192ms
+ ✓ Compiled in 246ms
+ ✓ Compiled in 478ms
+ ✓ Compiled in 428ms
+ ✓ Compiled in 205ms
+AuthApiError: Invalid Refresh Token: Refresh Token Not Found
+    at handleError (../../../src/lib/fetch.ts:102:8)
+    at async _handleRequest (../../../src/lib/fetch.ts:195:4)
+    at async _request (../../../src/lib/fetch.ts:157:15)
+    at async (../../src/GoTrueClient.ts:2670:17)
+    at async (../../../src/lib/helpers.ts:232:25) {
+  __isAuthError: true,
+  status: 400,
+  code: 'refresh_token_not_found'
+}
+AuthApiError: Invalid Refresh Token: Refresh Token Not Found
+    at handleError (../../../src/lib/fetch.ts:102:8)
+    at async _handleRequest (../../../src/lib/fetch.ts:195:4)
+    at async _request (../../../src/lib/fetch.ts:157:15)
+    at async (../../src/GoTrueClient.ts:2670:17)
+    at async (../../../src/lib/helpers.ts:232:25) {
+  __isAuthError: true,
+  status: 400,
+  code: 'refresh_token_not_found'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/app/page/app-build-manifest.json'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.2s
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/static/development/_buildManifest.js.tmp.wteqdwcvxt'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/static/development/_buildManifest.js.tmp.wteqdwcvxt'
+}
+[Error: ENOENT: no such file or directory, open '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/static/development/_buildManifest.js.tmp.bnqgpycm1j'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/static/development/_buildManifest.js.tmp.bnqgpycm1j'
+}
+[Error: ENOENT: no such file or directory, open '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/static/development/_buildManifest.js.tmp.99gclm74puc'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/static/development/_buildManifest.js.tmp.99gclm74puc'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mahmoudalaaeldin/Documents/Projects/VibeCoding/Projects/TechStackEngine/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'
+}

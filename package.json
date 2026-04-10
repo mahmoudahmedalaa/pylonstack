@@ -14,10 +14,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:push": "DATABASE_URL=$(grep DATABASE_URL .env.local | cut -d= -f2) npx drizzle-kit push --force",
-    "db:seed": "npx tsx --tsconfig tsconfig.json src/lib/db/seed.ts",
+    "db:seed": "DATABASE_URL=$(grep DATABASE_URL .env.local | cut -d= -f2) npx tsx --tsconfig tsconfig.json src/lib/db/seed.ts",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:eval": "npx tsx src/lib/validation/eval.ts",
     "prepare": "husky"
   },
   "dependencies": {

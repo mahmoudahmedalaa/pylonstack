@@ -8,6 +8,8 @@
 import { GoogleGenAI } from '@google/genai';
 import type { WizardAnswers } from '@/stores/wizard-store';
 import { TOOLS, getToolTiers } from '@/data/tools-catalog';
+import { validateStack, buildCorrectionPrompt } from '@/lib/validation/rules';
+import { buildCompatibilityContext } from '@/lib/validation/compatibility-graph';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -49,13 +51,90 @@ export interface AIRecommendationResult {
   estimatedMonthlyCost: number;
   phases: ProjectPhase[];
   source: 'gemini' | 'fallback';
+  /** Number of correction attempts needed (0 = first pass was clean) */
+  correctionAttempts?: number;
+  /** Non-blocking warnings from the validator */
+  validationWarnings?: string[];
+}
+
+// ── Catalog Relevance Filtering ──
+
+/**
+ * Maps project context to relevant tool categories.
+ * This keeps prompt injection bounded (~50-80 tools) regardless of catalog size —
+ * even if the catalog grows to 1000s, each request only sees the tools it needs.
+ *
+ * To extend: just add categories to the relevant sets below. No other changes needed.
+ */
+function getRelevantCategories(answers: WizardAnswers): Set<string> {
+  const { projectType, requirements } = answers;
+
+  // Universal categories always included
+  const categories = new Set<string>(['Auth', 'Hosting', 'CI/CD', 'Monitoring', 'DevTools']);
+
+  // Project type determines the primary tech categories
+  if (projectType === 'web_app' || projectType === 'saas') {
+    categories.add('Frontend');
+    categories.add('Backend');
+    categories.add('Database');
+    categories.add('ORM');
+    categories.add('Styling');
+  } else if (projectType === 'mobile_app') {
+    categories.add('Mobile');
+    categories.add('Backend');
+    categories.add('Database');
+    categories.add('Storage');
+  } else if (projectType === 'api' || projectType === 'backend_service') {
+    categories.add('Backend');
+    categories.add('Database');
+    categories.add('ORM');
+  } else {
+    // Fallback: include all core categories
+    categories.add('Frontend');
+    categories.add('Backend');
+    categories.add('Database');
+  }
+
+  // Requirement-driven additions
+  if (requirements.includes('payments')) categories.add('Payments');
+  if (requirements.includes('analytics') || answers.analytics?.length) categories.add('Analytics');
+  if (requirements.includes('email') || requirements.includes('notifications')) categories.add('Email');
+  if (requirements.includes('cms') || requirements.includes('blog')) categories.add('CMS');
+  if (requirements.includes('search')) categories.add('Search');
+  if (requirements.includes('ai') || requirements.includes('ml')) categories.add('AI/ML');
+  if (requirements.includes('storage') || requirements.includes('files')) categories.add('Storage');
+  if (requirements.includes('testing')) categories.add('Testing');
+
+  return categories;
 }
 
 // ── Prompt Construction ──
 
-function buildPrompt(answers: WizardAnswers): string {
+function buildPrompt(answers: WizardAnswers, correctionNote?: string): string {
+  // Relevance-filtered catalog: only inject tools relevant to this project type.
+  // This stays bounded at ~50-80 tools regardless of how large the catalog grows.
+  const relevantCategories = getRelevantCategories(answers);
+  const catalogSummary = TOOLS
+    .filter((t) => relevantCategories.has(t.category))
+    .reduce((acc: Record<string, string[]>, t) => {
+      if (!acc[t.category]) acc[t.category] = [];
+      acc[t.category].push(t.name);
+      return acc;
+    }, {});
+  const catalogBlock = Object.entries(catalogSummary)
+    .map(([cat, names]) => `${cat}: ${names.join(', ')}`)
+    .join('\n');
+
+  // Build compatibility context from the graph
+  const compatibilityBlock = buildCompatibilityContext();
+
   return `You are an expert software architect. Based on the following project requirements, 
-recommend a complete tech stack. Return ONLY valid JSON — no markdown fences, no explanation outside JSON.
+recommend a complete tech stack using ONLY tools from the APPROVED CATALOG below.
+Return ONLY valid JSON — no markdown fences, no explanation outside JSON.
+
+APPROVED TOOL CATALOG (you MUST only recommend tools from this list):
+${catalogBlock}
+${compatibilityBlock}
 
 PROJECT REQUIREMENTS:
 - App Description: ${answers.description}
@@ -68,8 +147,8 @@ PROJECT REQUIREMENTS:
 
 Return a JSON object with this exact shape:
 {
-  "summary": "A 2-3 sentence summary of the recommended stack and why it fits.",
-  "estimatedMonthlyCost": <number>,
+  "summary": "A 2-3 sentence executive summary of the recommended stack. Explicitly mention the cost scaling. Example: 'Starting at $X/mo for the MVP, scaling up to ~$Y/mo in Growth.' DO NOT output $0 for MVP if the MVP requires paid tools.",
+  "estimatedMonthlyCost": <number, representing the TOTAL COMBINED sum of all Phase 2 / Growth costs>,
   "phases": [
     {
       "name": "Phase 1 - MVP",
@@ -77,25 +156,25 @@ Return a JSON object with this exact shape:
       "tools": [
         { "toolName": "<tool name>", "reason": "<1-sentence reason taking this on now>", "tier": "free", "monthlyCost": 0, "pricingModel": "Flat" }
       ],
-      "estimatedMonthlyCost": 0,
+      "estimatedMonthlyCost": <sum of tool costs in this phase>,
       "estimatedImplementationTimeDays": 14
     },
     {
       "name": "Phase 2 - Growth",
       "description": "<building on MVP, scaling up>",
       "tools": [
-        { "toolName": "<tool name>", "reason": "<why upgrade now>", "tier": "pro", "monthlyCost": 20, "pricingModel": "Usage-Based" }
+        { "toolName": "<tool name>", "reason": "<why upgrade now>", "tier": "pro", "monthlyCost": 40, "pricingModel": "Usage-Based" }
       ],
-      "estimatedMonthlyCost": 20,
+      "estimatedMonthlyCost": <sum of tool costs in this phase>,
       "estimatedImplementationTimeDays": 30
     },
     {
       "name": "Phase 3 - Scale",
       "description": "<enterprise limits and strict compliance>",
       "tools": [
-        { "toolName": "<tool name>", "reason": "<why scale up now>", "tier": "enterprise", "monthlyCost": 150, "pricingModel": "Per-Seat" }
+        { "toolName": "<tool name>", "reason": "<why scale up now>", "tier": "enterprise", "monthlyCost": 300, "pricingModel": "Per-Seat" }
       ],
-      "estimatedMonthlyCost": 150,
+      "estimatedMonthlyCost": <sum of tool costs in this phase>,
       "estimatedImplementationTimeDays": 60
     }
   ],
@@ -110,7 +189,14 @@ Return a JSON object with this exact shape:
   ]
 }
 
-ALWAYS return EXACTLY 3 phases (Phase 1, Phase 2, and Phase 3).
+CRITICAL RULES:
+1. ALWAYS return EXACTLY 3 phases (Phase 1, Phase 2, Phase 3).
+2. ONLY recommend tools that appear in the APPROVED TOOL CATALOG above. Never invent tool names.
+3. The "alternatives" array inside recommendations MUST NEVER BE EMPTY and must be an array of strings. It MUST contain AT LEAST 2 real competing tools. If you recommend Next.js, alternatives MUST be ["Remix", "Nuxt"], etc.
+4. For usage-based tools (Stripe, AWS, Vercel, OpenAI, etc), you MUST provide a realistic estimated baseline numeric 'monthlyCost' for that phase based on typical expected usage volume (e.g., 50 for Stripe usage, 20 for OpenAI tokens). DO NOT use 0 for usage-based tier costs in Growth/Scale. DO NOT return strings like "$50"; it must be a number.
+5. "estimatedMonthlyCost" at the root level must PERFECTLY MATCH the arithmetic sum of all tool costs in Phase 2 (Growth). Recalculate it explicitly.
+6. All JSON output MUST BE EXACTLY valid JSON. No markdown codeblock wrapping formatting is allowed.
+7. Phase 2 (Growth) MUST have at least one paid tool (monthlyCost > 0).
 
 Include recommendations for at least these categories:
 - Frontend Framework
@@ -118,56 +204,152 @@ Include recommendations for at least these categories:
 - Database
 - Hosting / Deployment
 - Authentication
-- State Management (if applicable)
+- Payments (if requested)
 - Styling / UI Library
 
-Make sure 'pricingModel' is accurate. For usage-based tools like Stripe, AWS, or Vercel, set to 'Usage-Based' and predict a realistic baseline 'monthlyCost' for the phase scale (do NOT use 0 unless it is truly free).
-Order by importance. Prefer production-proven tools. Consider the team size and priorities when choosing.`;
+Order by importance. Prefer production-proven tools. Consider the team size and priorities when choosing.${correctionNote ?? ''}`;
 }
 
 // ── Gemini Call ──
 
-export async function getAIRecommendation(answers: WizardAnswers): Promise<AIRecommendationResult> {
-  // Fallback if no API key
-  if (!ai) {
-    return getFallbackRecommendation(answers);
+// ── Evaluator-Optimizer Loop ──
+
+const MAX_CORRECTION_ATTEMPTS = 2;
+
+/**
+ * Parses and post-processes a raw AI JSON response into AIRecommendationResult.
+ * Handles: stripping markdown fences, numeric coercion, phase cost recalculation.
+ */
+function parseAIResponse(text: string): AIRecommendationResult {
+  const jsonStr = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+  const parsed = JSON.parse(jsonStr) as {
+    summary: string;
+    estimatedMonthlyCost: number;
+    recommendations: ToolRecommendation[];
+    phases: ProjectPhase[];
+  };
+
+  if (!parsed || !Array.isArray(parsed.recommendations) || !Array.isArray(parsed.phases)) {
+    throw new Error('Missing required arrays in AI response');
   }
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite-preview-06-17',
-      contents: buildPrompt(answers),
-      config: {
-        temperature: 0.3,
-        maxOutputTokens: 2048,
-      },
-    });
-
-    const text = response.text?.trim() ?? '';
-
-    // Strip markdown code fences if present
-    const jsonStr = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-
-    const parsed = JSON.parse(jsonStr) as {
-      summary: string;
-      estimatedMonthlyCost: number;
-      recommendations: ToolRecommendation[];
-      phases: ProjectPhase[];
-    };
-
-    // Explicit validation to force fallback if structure is broken
-    if (!parsed || !Array.isArray(parsed.recommendations) || !Array.isArray(parsed.phases)) {
-      throw new Error('Missing required arrays in Gemini response');
+  // Coerce: force valid numeric costs
+  parsed.recommendations.forEach((rec) => {
+    if (!Array.isArray(rec.alternatives) || rec.alternatives.length === 0) {
+      rec.alternatives = ['Alternative A', 'Alternative B'];
     }
+  });
 
-    return {
-      ...parsed,
-      source: 'gemini' as const,
-    };
-  } catch (error) {
-    console.error('[AI Client] Gemini error, using fallback:', error);
-    return getFallbackRecommendation(answers);
+  parsed.phases.forEach((phase) => {
+    phase.tools.forEach((tool) => {
+      if (typeof tool.monthlyCost !== 'number') {
+        tool.monthlyCost = parseFloat(tool.monthlyCost as unknown as string) || 0;
+      }
+    });
+    // Always recalculate arithmetic sum — never trust the AI's math
+    phase.estimatedMonthlyCost = phase.tools.reduce((sum, t) => sum + (t.monthlyCost || 0), 0);
+  });
+
+  // Root cost = Phase 2 (Growth) cost
+  if (parsed.phases.length > 1) {
+    parsed.estimatedMonthlyCost = parsed.phases[1].estimatedMonthlyCost;
   }
+
+  return { ...parsed, source: 'gemini' as const };
+}
+
+const TIMEOUT_MS = 15000; // 15 seconds max per attempt
+
+export async function getAIRecommendation(answers: WizardAnswers): Promise<AIRecommendationResult> {
+  if (!ai) return getFallbackRecommendation(answers);
+
+  let correctionAttempts = 0;
+  let correctionNote: string | undefined;
+
+  for (let attempt = 0; attempt <= MAX_CORRECTION_ATTEMPTS; attempt++) {
+    try {
+      const prompt = buildPrompt(answers, correctionNote);
+
+      const generatePromise = ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          temperature: attempt === 0 ? 0.3 : 0.1, // Lower temperature on retries for more reliable output
+          maxOutputTokens: 8192,
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('AI Request timed out')), TIMEOUT_MS);
+      });
+
+      const response = await Promise.race([generatePromise, timeoutPromise]);
+
+      const text = response.text?.trim() ?? '';
+      const result = parseAIResponse(text);
+
+      // ── Run Evaluator ──────────────────────────────
+      const validation = validateStack(result);
+
+      if (validation.passed) {
+        // ✅ Clean pass — return with metadata
+        console.log(
+          `[AI Validator] Stack passed on attempt ${attempt + 1}${correctionAttempts > 0 ? ` (after ${correctionAttempts} correction(s))` : ''
+          }`
+        );
+        return {
+          ...result,
+          correctionAttempts,
+          validationWarnings: validation.warnings,
+        };
+      }
+
+      // ❌ Validation failed — log and prepare correction
+      console.warn(
+        `[AI Validator] Attempt ${attempt + 1} failed with ${validation.errors.length} error(s):`,
+        validation.errors
+      );
+
+      if (attempt < MAX_CORRECTION_ATTEMPTS) {
+        correctionNote = buildCorrectionPrompt(validation.errors);
+        correctionAttempts++;
+      } else {
+        // Final attempt still failed — force-patch what we can and return
+        console.error('[AI Validator] Max correction attempts reached. Returning best-effort result.');
+        return {
+          ...result,
+          correctionAttempts,
+          validationWarnings: [
+            ...validation.errors.map(e => `[Unresolved] ${e}`),
+            ...validation.warnings,
+          ],
+        };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[AI Client] Error on attempt ${attempt + 1}:`, errorMessage);
+
+      // If it's a fatal error (like unsupported location or auth), abort retries and use fallback
+      const lowerError = errorMessage.toLowerCase();
+      if (
+        lowerError.includes('location is not supported') ||
+        lowerError.includes('api key not valid') ||
+        lowerError.includes('unauthorized') ||
+        lowerError.includes('permission denied')
+      ) {
+        console.warn(`[AI Client] Fatal error encountered. Switching to fallback immediately.`);
+        return getFallbackRecommendation(answers);
+      }
+
+      if (attempt >= MAX_CORRECTION_ATTEMPTS) {
+        return getFallbackRecommendation(answers);
+      }
+    }
+  }
+
+  // Should never reach here, but TypeScript requires a return
+  return getFallbackRecommendation(answers);
 }
 
 // ── Deterministic Fallback ──

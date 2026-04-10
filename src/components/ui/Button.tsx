@@ -1,6 +1,7 @@
 'use client';
 
 import React, { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
@@ -85,11 +86,21 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     }
 
     return (
-      <button ref={ref} disabled={isDisabled} className={combinedClassName} {...props}>
+      <motion.button
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ref={ref as any}
+        disabled={isDisabled}
+        className={combinedClassName}
+        whileHover={!isDisabled ? { scale: 1.02 } : undefined}
+        whileTap={!isDisabled ? { scale: 0.98 } : undefined}
+        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        {...(props as any)}
+      >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : leftIcon}
         {children}
         {!loading && rightIcon}
-      </button>
+      </motion.button>
     );
   },
 );

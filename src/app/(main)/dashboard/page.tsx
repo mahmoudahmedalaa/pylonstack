@@ -81,10 +81,10 @@ function StatCard({
       className="flex flex-col justify-between p-5"
     >
       <div className="flex items-start justify-between">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 shadow-sm transition-transform duration-300 group-hover:scale-110">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-card shadow-sm transition-transform duration-300 group-hover:scale-110">
           <Icon className="h-5 w-5" style={{ color: accent }} />
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-bold tracking-wider uppercase backdrop-blur-md">
+        <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-1 text-[10px] font-bold tracking-wider uppercase backdrop-blur-md">
           {trend === 'up' && (
             <>
               <ArrowUpRight className="h-3 w-3 text-[var(--color-accent-500)]" />
@@ -129,10 +129,10 @@ function ProjectRow({ project }: { project: ProjectRow }) {
   return (
     <Link
       href={`/project/${project.id}`}
-      className="group flex items-center gap-4 rounded-xl border border-transparent px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/5 hover:shadow-md"
+      className="group flex items-center gap-4 rounded-xl border border-transparent px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:bg-secondary hover:shadow-md"
     >
       {/* Project icon with pulse on hover */}
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-[var(--primary)] transition-transform duration-300 group-hover:scale-105">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-[var(--primary)] transition-transform duration-300 group-hover:scale-105">
         <Layers className="h-5 w-5" />
       </div>
 
@@ -157,7 +157,7 @@ function ProjectRow({ project }: { project: ProjectRow }) {
       {/* Type */}
       {project.projectType && (
         <div className="hidden text-right sm:block">
-          <p className="rounded-md border border-white/5 bg-white/5 px-2 py-1 text-xs font-bold tracking-wider text-[var(--muted-foreground)] uppercase">
+          <p className="rounded-md border border-border bg-secondary px-2 py-1 text-xs font-bold tracking-wider text-[var(--muted-foreground)] uppercase">
             {project.projectType}
           </p>
         </div>
@@ -168,8 +168,8 @@ function ProjectRow({ project }: { project: ProjectRow }) {
         {timeAgo(project.createdAt)}
       </p>
 
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/0 transition-all duration-300 group-hover:bg-white/10">
-        <ChevronRight className="h-5 w-5 shrink-0 text-[var(--muted-foreground)] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" />
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent transition-all duration-300 group-hover:bg-secondary">
+        <ChevronRight className="h-5 w-5 shrink-0 text-[var(--muted-foreground)] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[var(--foreground)]" />
       </div>
     </Link>
   );
@@ -201,10 +201,10 @@ function EmptyProjects() {
 function SkeletonRow() {
   return (
     <div className="flex items-center gap-4 px-4 py-3.5">
-      <div className="h-10 w-10 animate-pulse rounded-lg bg-white/5" />
+      <div className="h-10 w-10 animate-pulse rounded-lg bg-secondary" />
       <div className="flex-1 space-y-2">
-        <div className="h-4 w-40 animate-pulse rounded bg-white/5" />
-        <div className="h-3 w-64 animate-pulse rounded bg-white/5" />
+        <div className="h-4 w-40 animate-pulse rounded bg-secondary" />
+        <div className="h-3 w-64 animate-pulse rounded bg-secondary" />
       </div>
     </div>
   );
@@ -214,7 +214,7 @@ function SkeletonRow() {
 
 function AIInsightCard({ handleNewProject }: { handleNewProject: (e: React.MouseEvent) => void }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40 p-8 shadow-2xl backdrop-blur-xl transition-all hover:border-white/20">
+    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-2xl backdrop-blur-xl transition-all hover:border-[var(--primary)]/50">
       <BorderBeam
         size={250}
         duration={12}
@@ -236,11 +236,11 @@ function AIInsightCard({ handleNewProject }: { handleNewProject: (e: React.Mouse
         </div>
         <div className="flex-1">
           <AnimatedGradientText className="mx-0 mb-4 px-3 py-1">
-            <span className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/80 uppercase">
+            <span className="flex items-center gap-2 text-xs font-bold tracking-widest text-[var(--foreground)] uppercase">
               ✨ AI Powered Builder
             </span>
           </AnimatedGradientText>
-          <h3 className="text-2xl font-bold tracking-tight text-white">
+          <h3 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">
             Ready to ship your next big idea?
           </h3>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--muted-foreground)]">
@@ -258,7 +258,7 @@ function AIInsightCard({ handleNewProject }: { handleNewProject: (e: React.Mouse
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white/10 bg-white/5 px-8 backdrop-blur hover:border-white/20 hover:bg-white/10"
+                className="border-border bg-secondary px-8 backdrop-blur hover:border-[var(--primary)]/50 hover:bg-secondary"
               >
                 Explore Components
               </Button>
@@ -302,18 +302,18 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <AnimatedGradientText className="mx-0 mb-2 px-3 py-1">
-            <span className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--foreground)]/80 uppercase">
               {greeting}, Architect
             </span>
           </AnimatedGradientText>
-          <h1 className="text-4xl font-bold tracking-tight text-white">Command Center</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-[var(--foreground)]">Command Center</h1>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/catalog">
             <Button
               variant="ghost"
               size="lg"
-              className="text-white/60 hover:bg-white/5 hover:text-white"
+              className="text-[var(--muted-foreground)] hover:bg-secondary hover:text-[var(--foreground)]"
             >
               <Search className="mr-2 h-4 w-4" />
               Browse Catalog
@@ -369,24 +369,24 @@ export default function DashboardPage() {
       <div className="grid gap-8 lg:grid-cols-5">
         {/* ── Projects (3/5) ── */}
         <div className="space-y-6 lg:col-span-3">
-          <div className="rounded-2xl border border-white/5 bg-neutral-900/20 backdrop-blur-sm">
-            <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+          <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between border-b border-border px-6 py-5">
               <div className="flex items-center gap-3">
-                <h2 className="text-sm font-bold tracking-widest text-white/80 uppercase">
+                <h2 className="text-sm font-bold tracking-widest text-[var(--foreground)] uppercase">
                   Your Projects
                 </h2>
-                <Badge variant="secondary" className="bg-white/5 text-[10px]">
+                <Badge variant="secondary" className="bg-secondary text-[10px]">
                   {projectCount}
                 </Badge>
               </div>
               <Link
                 href="/project"
-                className="text-xs font-bold tracking-wider text-white/40 uppercase transition-colors hover:text-white"
+                className="text-xs font-bold tracking-wider text-[var(--muted-foreground)] uppercase transition-colors hover:text-[var(--foreground)]"
               >
                 Full Archive
               </Link>
             </div>
-            <div className="divide-y divide-white/5 p-2">
+            <div className="divide-y divide-border p-2">
               {projectsLoading ? (
                 <>
                   <SkeletonRow />
@@ -407,11 +407,11 @@ export default function DashboardPage() {
 
         {/* ── Sidebar (2/5) ── */}
         <div className="space-y-6 lg:col-span-2">
-          <div className="rounded-2xl border border-white/5 bg-neutral-900/20 backdrop-blur-sm">
-            <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+          <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between border-b border-border px-6 py-5">
               <div className="flex items-center gap-3">
-                <Clock className="h-4 w-4 text-white/40" />
-                <h2 className="text-sm font-bold tracking-widest text-white/80 uppercase">
+                <Clock className="h-4 w-4 text-[var(--muted-foreground)]" />
+                <h2 className="text-sm font-bold tracking-widest text-[var(--foreground)] uppercase">
                   Quick Nav
                 </h2>
               </div>
@@ -420,40 +420,40 @@ export default function DashboardPage() {
               <Link
                 href="/create"
                 onClick={handleNewProject}
-                className="group flex items-center gap-4 rounded-xl px-4 py-4 transition-all hover:bg-white/5"
+                className="group flex items-center gap-4 rounded-xl px-4 py-4 transition-all hover:bg-secondary"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] transition-transform group-hover:scale-110">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-white">Stack Wizard</p>
+                  <p className="text-sm font-bold text-[var(--foreground)]">Stack Wizard</p>
                   <p className="text-xs text-[var(--muted-foreground)]">
                     Generate production-ready stacks
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-white/20 transition-all group-hover:translate-x-1 group-hover:text-white" />
+                <ChevronRight className="h-4 w-4 text-[var(--muted-foreground)]/30 transition-all group-hover:translate-x-1 group-hover:text-[var(--foreground)]" />
               </Link>
               <Link
                 href="/catalog"
-                className="group flex items-center gap-4 rounded-xl px-4 py-4 transition-all hover:bg-white/5"
+                className="group flex items-center gap-4 rounded-xl px-4 py-4 transition-all hover:bg-secondary"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-accent-500)]/10 text-[var(--color-accent-500)] transition-transform group-hover:scale-110">
                   <Search className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-white">Cloud Catalog</p>
+                  <p className="text-sm font-bold text-[var(--foreground)]">Cloud Catalog</p>
                   <p className="text-xs text-[var(--muted-foreground)]">
                     {totalTools} professional tools
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-white/20 transition-all group-hover:translate-x-1 group-hover:text-white" />
+                <ChevronRight className="h-4 w-4 text-[var(--muted-foreground)]/30 transition-all group-hover:translate-x-1 group-hover:text-[var(--foreground)]" />
               </Link>
             </div>
           </div>
 
           {/* ── Catalog Progress ── */}
-          <div className="rounded-2xl border border-white/5 bg-neutral-900/20 p-6 backdrop-blur-sm">
-            <h3 className="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase">
+          <div className="rounded-2xl border border-border bg-card/50 p-6 backdrop-blur-sm">
+            <h3 className="text-[10px] font-bold tracking-[0.3em] text-[var(--muted-foreground)] uppercase">
               Growth Velocity
             </h3>
             <div className="mt-6 space-y-5">
@@ -463,12 +463,12 @@ export default function DashboardPage() {
                   return (
                     <div key={cat.id}>
                       <div className="mb-2 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-white/70">{cat.name}</span>
-                        <span className="text-[10px] font-bold text-white/30">
+                        <span className="text-xs font-semibold text-[var(--foreground)]/80">{cat.name}</span>
+                        <span className="text-[10px] font-bold text-[var(--muted-foreground)]">
                           {cat.toolCount} UNITS
                         </span>
                       </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--color-accent-500)] transition-all duration-1000 ease-out"
                           style={{ width: `${(cat.toolCount / maxCount) * 100}%` }}
@@ -479,7 +479,7 @@ export default function DashboardPage() {
                 })
               ) : (
                 <div className="flex items-center justify-center py-6">
-                  <Loader2 className="h-5 w-5 animate-spin text-white/20" />
+                  <Loader2 className="h-5 w-5 animate-spin text-[var(--muted-foreground)]/30" />
                 </div>
               )}
             </div>

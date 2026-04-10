@@ -42,7 +42,7 @@ export function Header({ onMenuToggle, pageTitle }: HeaderProps) {
     .slice(0, 2);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-[var(--border)] bg-[var(--background)]/80 px-4 backdrop-blur-xl sm:px-6">
+    <header className="glass-panel sticky top-0 z-30 flex h-16 items-center gap-4 border-t-0 border-x-0 rounded-none px-4 sm:px-6">
       {/* Mobile menu button */}
       <button
         onClick={onMenuToggle}
@@ -93,7 +93,7 @@ export function Header({ onMenuToggle, pageTitle }: HeaderProps) {
 
             {/* Dropdown menu */}
             {dropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-56 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-xl shadow-black/10">
+              <div className="glass-panel absolute top-full right-0 mt-2 w-56 overflow-hidden rounded-xl">
                 {/* User info */}
                 <div className="border-b border-[var(--border)] px-4 py-3">
                   <p className="truncate text-sm font-medium text-[var(--foreground)]">

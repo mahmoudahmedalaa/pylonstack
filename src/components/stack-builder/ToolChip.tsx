@@ -11,6 +11,9 @@ export interface ToolChipData {
   confidence?: number;
   description?: string;
   costIndicator?: string;
+  pricing?: string;
+  reasoning?: string;
+  alternatives?: string[];
 }
 
 interface ToolChipProps {

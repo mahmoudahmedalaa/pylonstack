@@ -1,0 +1,42 @@
+name: AI CI Checks
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  evals:
+    name: LLM Evaluations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run AI Evaluations
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Fallback if secret isn't provided (PRs from forks etc)
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "⚠️ GEMINI_API_KEY not found in secrets, bypassing LLM judge to deterministic checks."
+            touch .env.local
+            echo "GEMINI_API_KEY=" > .env.local
+          else
+            echo "GEMINI_API_KEY=$GEMINI_API_KEY" > .env.local
+          fi
+          pnpm test:eval

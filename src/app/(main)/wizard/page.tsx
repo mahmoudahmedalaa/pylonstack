@@ -52,6 +52,7 @@ import {
 import { useWizardStore } from '@/stores/wizard-store';
 import { GeneratingOverlay } from '@/components/wizard/GeneratingOverlay';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Step illustrations ────────────────────────────
 const STEP_ILLUSTRATIONS: Record<number, string> = {
@@ -118,11 +119,10 @@ function OptionCard({
   return (
     <button
       onClick={onClick}
-      className={`group relative flex flex-col items-start rounded-xl border-2 p-5 text-left transition-all duration-200 ${
-        isSelected
-          ? 'border-[var(--primary)] bg-[var(--primary)]/5 shadow-[0_0_0_1px_var(--primary),var(--shadow-glow)]'
-          : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]/30 hover:bg-[var(--elevated)]'
-      }`}
+      className={`group relative flex flex-col items-start rounded-xl border-2 p-5 text-left transition-all duration-200 ${isSelected
+        ? 'border-[var(--primary)] bg-[var(--primary)]/5 shadow-[0_0_0_1px_var(--primary),var(--shadow-glow)]'
+        : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]/30 hover:bg-[var(--elevated)]'
+        }`}
     >
       {/* Selection indicator */}
       <div className={`absolute top-3 right-3 flex items-center gap-1.5`}>
@@ -162,11 +162,10 @@ function OptionCard({
 
         {/* Check circle */}
         <div
-          className={`flex h-5 w-5 items-center justify-center rounded-full transition-all duration-200 ${
-            isSelected
-              ? 'bg-[var(--primary)] text-white'
-              : 'border border-[var(--border)] bg-transparent'
-          }`}
+          className={`flex h-5 w-5 items-center justify-center rounded-full transition-all duration-200 ${isSelected
+            ? 'bg-[var(--primary)] text-white'
+            : 'border border-[var(--border)] bg-transparent'
+            }`}
         >
           {isSelected && <Check className="h-3 w-3" />}
         </div>
@@ -174,20 +173,18 @@ function OptionCard({
 
       {/* Icon */}
       <div
-        className={`flex h-11 w-11 items-center justify-center rounded-lg transition-colors ${
-          isSelected
-            ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
-            : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'
-        }`}
+        className={`flex h-11 w-11 items-center justify-center rounded-lg transition-colors ${isSelected
+          ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
+          : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'
+          }`}
       >
         <Icon className="h-5 w-5" />
       </div>
 
       {/* Content */}
       <h3
-        className={`mt-3 text-sm font-medium ${
-          isSelected ? 'text-[var(--foreground)]' : 'text-[var(--foreground)]'
-        }`}
+        className={`mt-3 text-sm font-medium ${isSelected ? 'text-[var(--foreground)]' : 'text-[var(--foreground)]'
+          }`}
       >
         {title}
       </h3>
@@ -215,31 +212,28 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
         <div key={step.number} className="flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
             <div
-              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors ${
-                step.number < currentStep
-                  ? 'bg-[var(--color-accent-500)] text-white'
-                  : step.number === currentStep
-                    ? 'bg-[var(--primary)] text-white'
-                    : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
-              }`}
+              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors ${step.number < currentStep
+                ? 'bg-[var(--color-accent-500)] text-white'
+                : step.number === currentStep
+                  ? 'bg-[var(--primary)] text-white'
+                  : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
+                }`}
             >
               {step.number < currentStep ? <Check className="h-3.5 w-3.5" /> : step.number}
             </div>
             <span
-              className={`hidden text-xs sm:inline ${
-                step.number === currentStep
-                  ? 'font-medium text-[var(--foreground)]'
-                  : 'text-[var(--muted-foreground)]'
-              }`}
+              className={`hidden text-xs sm:inline ${step.number === currentStep
+                ? 'font-medium text-[var(--foreground)]'
+                : 'text-[var(--muted-foreground)]'
+                }`}
             >
               {step.label}
             </span>
           </div>
           {idx < STEPS.length - 1 && (
             <div
-              className={`h-px w-6 sm:w-8 ${
-                step.number < currentStep ? 'bg-[var(--color-accent-500)]' : 'bg-[var(--border)]'
-              }`}
+              className={`h-px w-6 sm:w-8 ${step.number < currentStep ? 'bg-[var(--color-accent-500)]' : 'bg-[var(--border)]'
+                }`}
             />
           )}
         </div>
@@ -334,6 +328,8 @@ export default function WizardPage() {
         // use recommendationId because it is passed from the store
         router.push(`/results/${result.recommendationId}`);
       }, 800);
+    } else {
+      setIsGenerating(false);
     }
   };
 
@@ -436,196 +432,206 @@ export default function WizardPage() {
           </div>
 
           {/* ── Step Content ── */}
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 sm:p-8">
-            {currentStep <= 6 && config && stepData ? (
-              <>
-                <div className="mb-6 flex items-start justify-between gap-6">
-                  <div>
-                    <span className="text-xs font-medium text-[var(--primary)]">
-                      Step {currentStep} of {STEPS.length}
-                    </span>
-                    <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-                      {config.title}
-                    </h2>
-                    <p className="mt-1 text-sm text-[var(--muted-foreground)]">{config.subtitle}</p>
-                    {config.multiSelect && currentStep === 4 && (
-                      <p className="mt-1 text-xs text-[var(--primary)]">Select up to 2</p>
-                    )}
-                  </div>
-                  <Image
-                    src={STEP_ILLUSTRATIONS[currentStep]}
-                    alt=""
-                    width={80}
-                    height={80}
-                    className="hidden shrink-0 opacity-60 sm:block"
-                  />
-                </div>
-
-                {/* ── Custom Field for Step 1 ── */}
-                {currentStep === 1 && (
-                  <div className="mb-6 space-y-6">
-                    <div className="space-y-3">
-                      <label
-                        htmlFor="project-name"
-                        className="block text-sm font-medium text-[var(--foreground)]"
-                      >
-                        Project Name *
-                      </label>
-                      <Textarea
-                        id="project-name"
-                        placeholder="E.g., Pylon, OrbitTracker, etc."
-                        value={answers.projectName || ''}
-                        onChange={(e) => setProjectName(e.target.value)}
-                        className="h-12 resize-none"
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <label
-                        htmlFor="app-desc"
-                        className="block text-sm font-medium text-[var(--foreground)]"
-                      >
-                        App Idea Description *
-                      </label>
-                      <Textarea
-                        id="app-desc"
-                        placeholder="E.g., A mobile app for tracking satellite orbits in real-time, needs to handle high-frequency data."
-                        value={answers.description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="h-24 resize-none"
-                      />
-                      <p className="text-xs text-[var(--muted-foreground)]">
-                        Be specific! Our AI uses this deep context to recommend specialized
-                        backend/infrastructure tools.
-                      </p>
-                    </div>
-
-                    <div className="mt-8">
-                      <label className="mb-3 block text-sm font-medium text-[var(--foreground)]">
-                        Base Project Template *
-                      </label>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Option Grid ── */}
-                <div className={`grid gap-3 ${stepData.cols}`}>
-                  {stepData.options.map((option) => (
-                    <OptionCard
-                      key={option.id}
-                      title={option.title}
-                      description={option.description}
-                      icon={option.icon}
-                      isSelected={stepData.isSelected(option.id)}
-                      onClick={() => stepData.onSelect(option.id)}
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              /* ── Step 7: Review ── */
-              <div>
-                <div className="mb-6 flex items-start justify-between gap-6">
-                  <div>
-                    <span className="text-xs font-medium text-[var(--primary)]">
-                      Step 7 of {STEPS.length}
-                    </span>
-                    <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-                      Review your answers
-                    </h2>
-                    <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                      Confirm your selections below, then generate your personalized tech stack
-                      recommendation.
-                    </p>
-                  </div>
-                  <Image
-                    src={STEP_ILLUSTRATIONS[6]}
-                    alt=""
-                    width={80}
-                    height={80}
-                    className="hidden shrink-0 opacity-60 sm:block"
-                  />
-                </div>
-
-                {error && (
-                  <div className="mb-4 space-y-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
-                    <p>{error}</p>
-                    {error.includes('log in') && (
-                      <p>
-                        <Link
-                          href="/login"
-                          className="font-semibold underline transition-colors hover:text-red-300"
-                        >
-                          Click here to log in
-                        </Link>
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  {[
-                    {
-                      label: 'Project Name',
-                      value: answers.projectName || '—',
-                      step: 1,
-                    },
-                    {
-                      label: 'App Description',
-                      value: answers.description || '—',
-                      step: 1,
-                    },
-                    {
-                      label: 'Base Template',
-                      value: getLabel(PROJECT_TYPES, answers.projectType),
-                      step: 1,
-                    },
-                    { label: 'Team Size', value: getLabel(TEAM_SIZES, answers.teamSize), step: 2 },
-                    {
-                      label: 'Requirements',
-                      value: getLabel(REQUIREMENTS, answers.requirements),
-                      step: 3,
-                    },
-                    {
-                      label: 'Priorities',
-                      value: getLabel(PRIORITIES, answers.priorities),
-                      step: 4,
-                    },
-                    {
-                      label: 'Preferences',
-                      value: getLabel(PREFERENCES, answers.preferences) || 'None',
-                      step: 5,
-                    },
-                    {
-                      label: 'Analytics',
-                      value: getLabel(ANALYTICS, answers.analytics) || 'None',
-                      step: 6,
-                    },
-                  ].map((row) => (
-                    <div
-                      key={row.label}
-                      className="flex items-start justify-between rounded-lg border border-[var(--border)] bg-[var(--elevated)] p-4"
-                    >
+          <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 sm:p-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
+                {currentStep <= 6 && config && stepData ? (
+                  <>
+                    <div className="mb-6 flex items-start justify-between gap-6">
                       <div>
-                        <p className="text-xs font-medium text-[var(--muted-foreground)]">
-                          {row.label}
-                        </p>
-                        <p className="mt-0.5 text-sm font-medium text-[var(--foreground)]">
-                          {row.value}
+                        <span className="text-xs font-medium text-[var(--primary)]">
+                          Step {currentStep} of {STEPS.length}
+                        </span>
+                        <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
+                          {config.title}
+                        </h2>
+                        <p className="mt-1 text-sm text-[var(--muted-foreground)]">{config.subtitle}</p>
+                        {config.multiSelect && currentStep === 4 && (
+                          <p className="mt-1 text-xs text-[var(--primary)]">Select up to 2</p>
+                        )}
+                      </div>
+                      <Image
+                        src={STEP_ILLUSTRATIONS[currentStep]}
+                        alt=""
+                        width={80}
+                        height={80}
+                        className="hidden shrink-0 opacity-60 sm:block"
+                      />
+                    </div>
+
+                    {/* ── Custom Field for Step 1 ── */}
+                    {currentStep === 1 && (
+                      <div className="mb-6 space-y-6">
+                        <div className="space-y-3">
+                          <label
+                            htmlFor="project-name"
+                            className="block text-sm font-medium text-[var(--foreground)]"
+                          >
+                            Project Name *
+                          </label>
+                          <Textarea
+                            id="project-name"
+                            placeholder="E.g., Pylon, OrbitTracker, etc."
+                            value={answers.projectName || ''}
+                            onChange={(e) => setProjectName(e.target.value)}
+                            className="h-12 resize-none"
+                          />
+                        </div>
+
+                        <div className="space-y-3">
+                          <label
+                            htmlFor="app-desc"
+                            className="block text-sm font-medium text-[var(--foreground)]"
+                          >
+                            App Idea Description *
+                          </label>
+                          <Textarea
+                            id="app-desc"
+                            placeholder="E.g., A mobile app for tracking satellite orbits in real-time, needs to handle high-frequency data."
+                            value={answers.description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="h-24 resize-none"
+                          />
+                          <p className="text-xs text-[var(--muted-foreground)]">
+                            Be specific! Our AI uses this deep context to recommend specialized
+                            backend/infrastructure tools.
+                          </p>
+                        </div>
+
+                        <div className="mt-8">
+                          <label className="mb-3 block text-sm font-medium text-[var(--foreground)]">
+                            Base Project Template *
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── Option Grid ── */}
+                    <div className={`grid gap-3 ${stepData.cols}`}>
+                      {stepData.options.map((option) => (
+                        <OptionCard
+                          key={option.id}
+                          title={option.title}
+                          description={option.description}
+                          icon={option.icon}
+                          isSelected={stepData.isSelected(option.id)}
+                          onClick={() => stepData.onSelect(option.id)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  /* ── Step 7: Review ── */
+                  <div>
+                    <div className="mb-6 flex items-start justify-between gap-6">
+                      <div>
+                        <span className="text-xs font-medium text-[var(--primary)]">
+                          Step 7 of {STEPS.length}
+                        </span>
+                        <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
+                          Review your answers
+                        </h2>
+                        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                          Confirm your selections below, then generate your personalized tech stack
+                          recommendation.
                         </p>
                       </div>
-                      <button
-                        onClick={() => setStep(row.step)}
-                        className="text-xs font-medium text-[var(--primary)] hover:underline"
-                        disabled={isSubmitting}
-                      >
-                        Edit
-                      </button>
+                      <Image
+                        src={STEP_ILLUSTRATIONS[6]}
+                        alt=""
+                        width={80}
+                        height={80}
+                        className="hidden shrink-0 opacity-60 sm:block"
+                      />
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
+                    {error && (
+                      <div className="mb-4 space-y-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+                        <p>{error}</p>
+                        {error.includes('log in') && (
+                          <p>
+                            <Link
+                              href="/login"
+                              className="font-semibold underline transition-colors hover:text-red-300"
+                            >
+                              Click here to log in
+                            </Link>
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
+                      {[
+                        {
+                          label: 'Project Name',
+                          value: answers.projectName || '—',
+                          step: 1,
+                        },
+                        {
+                          label: 'App Description',
+                          value: answers.description || '—',
+                          step: 1,
+                        },
+                        {
+                          label: 'Base Template',
+                          value: getLabel(PROJECT_TYPES, answers.projectType),
+                          step: 1,
+                        },
+                        { label: 'Team Size', value: getLabel(TEAM_SIZES, answers.teamSize), step: 2 },
+                        {
+                          label: 'Requirements',
+                          value: getLabel(REQUIREMENTS, answers.requirements),
+                          step: 3,
+                        },
+                        {
+                          label: 'Priorities',
+                          value: getLabel(PRIORITIES, answers.priorities),
+                          step: 4,
+                        },
+                        {
+                          label: 'Preferences',
+                          value: getLabel(PREFERENCES, answers.preferences) || 'None',
+                          step: 5,
+                        },
+                        {
+                          label: 'Analytics',
+                          value: getLabel(ANALYTICS, answers.analytics) || 'None',
+                          step: 6,
+                        },
+                      ].map((row) => (
+                        <div
+                          key={row.label}
+                          className="flex items-start justify-between rounded-lg border border-[var(--border)] bg-[var(--elevated)] p-4"
+                        >
+                          <div>
+                            <p className="text-xs font-medium text-[var(--muted-foreground)]">
+                              {row.label}
+                            </p>
+                            <p className="mt-0.5 text-sm font-medium text-[var(--foreground)]">
+                              {row.value}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => setStep(row.step)}
+                            className="text-xs font-medium text-[var(--primary)] hover:underline"
+                            disabled={isSubmitting}
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* ── Navigation ── */}

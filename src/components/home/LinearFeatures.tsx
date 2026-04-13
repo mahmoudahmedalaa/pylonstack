@@ -125,7 +125,7 @@ export function LinearFeatures() {
                     vectorEffect="non-scaling-stroke"
                   />
                 </svg>
-                <div className="absolute right-0 bottom-12 rounded-lg border border-white/10 bg-[#10b981]/10 px-4 py-2 font-mono text-xl font-bold tracking-tight text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.3)] backdrop-blur-xl">
+                <div className="absolute right-10 bottom-8 rounded-lg border border-white/10 bg-[#10b981]/10 px-4 py-2 font-mono text-xl font-bold tracking-tight text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.3)] backdrop-blur-xl">
                   -$42k
                 </div>
               </div>

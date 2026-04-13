@@ -66,6 +66,7 @@
     "husky": "^9.1.7",
     "jsdom": "^29.0.1",
     "lint-staged": "^16.4.0",
+    "playwright": "^1.59.1",
     "posthog-js": "^1.363.2",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",

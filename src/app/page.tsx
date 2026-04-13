@@ -1,199 +1,71 @@
 'use client';
 import { useState } from 'react';
-import { Button } from '@/components/ui';
-import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import {
-  ArrowRight,
   Layers,
-  BrainCircuit,
   Menu,
   X,
-  Search,
-  Code2,
   Database,
-  Sparkles,
-  Quote
+  BrainCircuit,
+  Search,
+  AppWindow,
+  Smartphone,
+  Webhook,
+  Zap,
+  CreditCard,
 } from 'lucide-react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { HeroMockup } from '@/components/home/HeroMockup';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CinematicHero } from '@/components/home/CinematicHero';
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Optimized Grid Background
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function GridBackground() {
   return (
-    <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none flex justify-center">
-      <div
-        className="absolute inset-0 opacity-[0.04] dark:opacity-[0.05]"
-        style={{
-          backgroundImage: 'radial-gradient(circle at center, currentColor 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-40 dark:opacity-20 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--primary)]/60 via-[var(--primary)]/10 to-transparent blur-[120px] rounded-full mix-blend-screen" />
+    <div className="pointer-events-none absolute inset-0 -z-10 flex justify-center overflow-hidden bg-[#000000]">
+      <div className="pointer-events-none absolute top-[-20%] left-1/2 h-[800px] w-[1000px] -translate-x-1/2 opacity-[0.15]">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-b from-indigo-500/20 to-transparent mix-blend-screen blur-[120px]" />
       </div>
     </div>
   );
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Logo Cloud (Social Proof)
+   Logo Cloud (Social Proof) - Silhouettes
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function LogoCloud() {
-  const logos = ['Vercel', 'Supabase', 'Stripe', 'Linear', 'Acme Corp', 'GlobalTech'];
+  const logos = [
+    'Vercel',
+    'Supabase',
+    'Stripe',
+    'Linear',
+    'Acme Corp',
+    'GlobalTech',
+    'Clerk',
+    'Redis',
+    'Neon',
+    'Tailwind',
+  ];
   return (
-    <section className="py-10 border-y border-[var(--border)] bg-[var(--card)]/20 backdrop-blur-md relative z-20 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)] via-transparent to-[var(--background)] pointer-events-none" />
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
-        <p className="text-center text-sm font-semibold tracking-wide text-[var(--muted-foreground)] uppercase mb-6">
+    <section className="relative z-20 border-y border-white/5 bg-black py-20">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-32 bg-gradient-to-r from-black to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-32 bg-gradient-to-l from-black to-transparent" />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+        <p className="mb-10 text-center text-[10px] font-bold tracking-[0.2em] text-neutral-400 uppercase">
           Trusted by engineers at innovative companies
         </p>
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1 }}
-          className="flex flex-wrap justify-center gap-10 md:gap-20 items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-700"
-        >
-          {logos.map((logo) => (
-            <div key={logo} className="text-xl font-bold font-display uppercase tracking-widest text-[var(--foreground)] opacity-80 hover:opacity-100 transition-opacity">
-              {logo}
-            </div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Bento Grid Section
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function BentoGrid() {
-  return (
-    <section id="features" className="relative px-6 py-32 bg-[var(--background)] overflow-hidden">
-      <div className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] bg-[var(--color-accent-500)]/5 blur-[120px] rounded-full pointer-events-none mix-blend-screen" />
-      <div className="mx-auto max-w-7xl relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-16 md:text-center"
-        >
-          <h2 className="mb-6 text-4xl sm:text-5xl font-bold tracking-tight text-[var(--foreground)]">
-            A deterministic approach to architecture.
-          </h2>
-          <p className="mx-auto max-w-2xl text-xl text-[var(--muted-foreground)] leading-relaxed">
-            Curated catalog data, real-time pricing models, and structural roadmaps. <br className="hidden sm:block" />
-            No halluncinations, just engineering facts.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
-          {/* Track Any Stack */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="group relative overflow-hidden rounded-3xl border-2 border-[var(--border)] bg-[var(--card)]/40 backdrop-blur-2xl md:col-span-2 shadow-sm transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] hover:border-[var(--primary)]/50 hover:-translate-y-1 flex flex-col md:flex-row"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent dark:from-white/5 pointer-events-none" />
-            <div className="relative p-10 md:p-12 flex flex-col flex-1 justify-center z-10">
-              <Code2 className="h-8 w-8 text-[var(--foreground)] mb-8 opacity-80 group-hover:scale-110 transition-transform duration-500" />
-              <h3 className="text-3xl font-bold mb-4 text-[var(--foreground)]">Universal Compatibility</h3>
-              <p className="text-[var(--muted-foreground)] text-lg leading-relaxed max-w-md">
-                Map frontends, microservices, messaging queues, and databases. We normalize over 230+ technologies into deterministic configuration layers you can track.
-              </p>
-            </div>
-            <div className="w-full md:w-[45%] border-t-2 md:border-t-0 md:border-l-2 border-[var(--border)] bg-[var(--background)]/60 p-10 flex flex-col justify-center gap-4 relative z-10 backdrop-blur-3xl">
-              <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] px-5 py-4 shadow-sm hover:scale-[1.03] transition-transform cursor-default">
-                <span className="text-base font-semibold">Authentication</span>
-                <span className="text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-md">Clerk</span>
+        <div className="overflow-hidden">
+          <div className="marquee-track group flex items-center">
+            {[...logos, ...logos].map((logo, i) => (
+              <div
+                key={`${logo}-${i}`}
+                className="font-display mx-12 shrink-0 text-3xl font-bold tracking-widest text-white uppercase transition-opacity duration-300 md:text-3xl"
+              >
+                {logo}
               </div>
-              <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] px-5 py-4 shadow-sm hover:scale-[1.03] transition-transform cursor-default">
-                <span className="text-base font-semibold">Database Layer</span>
-                <span className="text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-md">Supabase</span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] px-5 py-4 shadow-sm hover:scale-[1.03] transition-transform cursor-default">
-                <span className="text-base font-semibold">Hosting Platform</span>
-                <span className="text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 px-3 py-1.5 rounded-md">Vercel</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* AI Feature -> Deterministic Engine */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="group relative overflow-hidden rounded-3xl border-2 border-[var(--border)] bg-[var(--card)]/40 backdrop-blur-2xl shadow-sm transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] hover:border-[var(--primary)]/50 hover:-translate-y-1 flex flex-col"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent pointer-events-none group-hover:from-[var(--primary)]/10 transition-colors" />
-            <div className="p-10 h-full flex flex-col relative z-10">
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[var(--muted)] to-[var(--background)] flex items-center justify-center mb-8 border border-[var(--border)] group-hover:scale-110 transition-transform duration-500 shadow-sm">
-                <BrainCircuit className="h-7 w-7 text-[var(--foreground)] opacity-80" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-[var(--foreground)]">Orchestration Engine</h3>
-              <p className="text-[var(--muted-foreground)] text-lg leading-relaxed flex-1">
-                Input your user scale and compliance requirements. Our engine computes the exact stack configuration optimized for your constraints.
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Pricing Intelligence */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="group relative overflow-hidden rounded-3xl border-2 border-[var(--border)] bg-[var(--card)]/40 backdrop-blur-2xl shadow-sm transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] hover:border-[var(--primary)]/50 hover:-translate-y-1 flex flex-col"
-          >
-            <div className="absolute inset-0 bg-gradient-to-bl from-amber-500/5 to-transparent pointer-events-none group-hover:from-amber-500/15 transition-colors duration-500" />
-            <div className="p-10 h-full flex flex-col relative z-10">
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[var(--muted)] to-[var(--background)] flex items-center justify-center mb-8 border border-[var(--border)] group-hover:scale-110 transition-transform duration-500 shadow-sm">
-                <Search className="h-7 w-7 text-[var(--foreground)] opacity-80" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-[var(--foreground)]">Cost Intelligence</h3>
-              <p className="text-[var(--muted-foreground)] text-lg leading-relaxed mt-auto">
-                Real-time tracking of variable pricing models. See exactly how costs scale mathematically over 10K, 100K, or 1M MAUs.
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Unified Catalog */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="group relative overflow-hidden rounded-3xl border-2 border-[var(--border)] bg-[var(--card)]/40 backdrop-blur-2xl md:col-span-2 shadow-sm transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] hover:border-[var(--primary)]/50 hover:-translate-y-1 flex flex-col md:flex-row gap-8 items-center"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-transparent pointer-events-none group-hover:from-sky-500/15 transition-colors duration-500" />
-            <div className="relative p-10 flex-1 w-full z-10">
-              <Database className="h-8 w-8 text-[var(--foreground)] mb-8 opacity-80 group-hover:scale-110 transition-transform duration-500" />
-              <h3 className="text-3xl font-bold mb-4 text-[var(--foreground)]">The Unified Catalog</h3>
-              <p className="text-[var(--muted-foreground)] text-lg leading-relaxed max-w-md">
-                Browse our structured database of over 230+ engineering tools, languages, and frameworks. One vetted source of truth for modern software.
-              </p>
-            </div>
-            <div className="pr-10 pb-10 pl-10 md:pl-0 md:p-10 flex-1 w-full flex flex-wrap gap-3 opacity-90 z-10">
-              {[
-                'Next.js', 'PostgreSQL', 'Redis', 'Tailwind',
-                'Framer Motion', 'Supabase', 'Vercel', 'AWS',
-                'Stripe', 'Clerk', 'React'
-              ].map((tag) => (
-                <div key={tag} className="flex items-center rounded-lg border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--muted)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] shadow-sm transition-colors cursor-default">
-                  {tag}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -201,77 +73,517 @@ function BentoGrid() {
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   How It Works
+   Features Section - Asymmetric Scroll-Spy (Stark White)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const FEATURES = [
+  {
+    id: 'compatibility',
+    icon: <Database className="h-5 w-5 text-black" />,
+    title: 'Universal Compatibility',
+    desc: 'Map frontends, microservices, databases, and APIs. We normalize over 230+ technologies into unified configuration layers you can easily track',
+    leftTitle: 'A deterministic approach to architecture',
+    leftDesc:
+      'Curated catalog data, real-time pricing models, and structural roadmaps. Absolute clarity from day one',
+    visual: (
+      <div className="relative flex h-full w-full flex-col items-center justify-center gap-0 pt-12">
+        {/* Layer 3 - Next.js (Top) */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="z-30 flex w-[95%] translate-y-[-40px] transform items-center justify-between rounded-3xl border border-neutral-200/60 bg-white/95 p-5 shadow-[0_15px_40px_-10px_rgb(0,0,0,0.15)] backdrop-blur-md sm:w-[85%]"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-black text-white shadow-inner">
+              <AppWindow className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-[14px] font-bold">Frontend Framework</h4>
+              <p className="text-[10px] font-bold tracking-widest text-neutral-400 uppercase">
+                NEXT.JS
+              </p>
+            </div>
+          </div>
+          <div className="mr-2 flex gap-2">
+            <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+            <div className="h-2.5 w-2.5 rounded-full bg-neutral-200" />
+          </div>
+        </motion.div>
+        {/* Layer 2 - Database (Middle) */}
+        <motion.div
+          initial={{ y: 40, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.6 }}
+          className="z-20 flex w-[95%] translate-y-[-20px] transform items-center justify-between rounded-3xl border border-neutral-200/60 bg-neutral-50/95 p-5 shadow-[0_15px_40px_-5px_rgb(0,0,0,0.08)] backdrop-blur-md sm:w-[90%]"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] border border-neutral-100 bg-white text-blue-600 shadow-sm">
+              <Database className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-[14px] font-bold">Database Matrix</h4>
+              <p className="text-[10px] font-bold tracking-widest text-neutral-400 uppercase">
+                SUPABASE
+              </p>
+            </div>
+          </div>
+          <div className="mr-2 flex gap-2">
+            <div className="h-2.5 w-2.5 rounded-full bg-neutral-200" />
+            <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+          </div>
+        </motion.div>
+        {/* Layer 1 - Auth (Bottom) */}
+        <motion.div
+          initial={{ y: 60, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="z-10 flex w-[95%] translate-y-[0px] transform items-center justify-between rounded-3xl border border-neutral-200/60 bg-neutral-100/95 p-5 shadow-sm backdrop-blur-md sm:w-[95%]"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-neutral-800 text-white shadow-inner">
+              <Webhook className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-[14px] font-bold">Authentication Guard</h4>
+              <p className="text-[10px] font-bold tracking-widest text-neutral-400 uppercase">
+                CLERK
+              </p>
+            </div>
+          </div>
+          <div className="mr-2 flex gap-2">
+            <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+            <div className="h-2.5 w-2.5 rounded-full bg-neutral-200" />
+          </div>
+        </motion.div>
+      </div>
+    ),
+  },
+  {
+    id: 'orchestration',
+    icon: <BrainCircuit className="h-5 w-5 text-black" />,
+    title: 'Orchestration Engine',
+    desc: 'Input your user scale and compliance requirements. Our engine computes the exact stack configuration optimized for your constraints',
+    leftTitle: 'Calculate risk before you write code',
+    leftDesc:
+      'Identify integration bottlenecks instantly. The orchestration engine understands the dependencies between 230+ services',
+    visual: (
+      <div className="pointer-events-none relative flex h-full w-full flex-col items-center justify-center bg-transparent p-6">
+        {/* Animated Architectural Mesh Connecting Lines */}
+        <svg className="absolute inset-0 h-full w-full" overflow="visible">
+          {/* Lines from Left Sources to Center Brain */}
+          <motion.path
+            d="M 70 60 Q 150 140, 200 140"
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+            initial={{ strokeDashoffset: -100 }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+          />
+          <motion.path
+            d="M 70 140 L 200 140"
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+            initial={{ strokeDashoffset: -100 }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+          />
+          <motion.path
+            d="M 70 220 Q 150 140, 200 140"
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+            initial={{ strokeDashoffset: -100 }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+          />
+
+          {/* Lines from Center Brain to Right Outputs */}
+          <motion.path
+            d="M 280 140 L 320 140 M 320 140 Q 350 140, 390 60"
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+            initial={{ strokeDashoffset: 100 }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+          />
+          <motion.path
+            d="M 280 140 L 390 140"
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+            initial={{ strokeDashoffset: 100 }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+          />
+          <motion.path
+            d="M 280 140 L 320 140 M 320 140 Q 350 140, 390 220"
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+            initial={{ strokeDashoffset: 100 }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+          />
+        </svg>
+
+        {/* Custom Absolute Positioned Orchestration Diagram */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-black">
+          <div className="pointer-events-auto relative h-[350px] w-[500px] shrink-0 scale-[0.6] sm:scale-[0.8] lg:scale-95">
+            {/* SVG Connection Lines */}
+            <svg
+              className="absolute inset-0 z-0 h-full w-full overflow-visible"
+              viewBox="0 0 500 350"
+            >
+              {/* Left to Center paths */}
+              <motion.path
+                d="M 120 75 Q 160 75, 250 175"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+                initial={{ strokeDashoffset: -100 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+              />
+              <motion.path
+                d="M 120 175 L 250 175"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+                initial={{ strokeDashoffset: -100 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+              />
+              <motion.path
+                d="M 120 275 Q 160 275, 250 175"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+                initial={{ strokeDashoffset: -100 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+              />
+
+              {/* Center to Right paths */}
+              <motion.path
+                d="M 250 175 Q 340 275, 380 275"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+                initial={{ strokeDashoffset: 100 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+              />
+              <motion.path
+                d="M 250 175 L 380 175"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+                initial={{ strokeDashoffset: 100 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+              />
+              <motion.path
+                d="M 250 175 Q 340 75, 380 75"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+                initial={{ strokeDashoffset: 100 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+              />
+            </svg>
+
+            {/* Left Nodes (Sources) */}
+            <div className="pointer-events-none absolute top-[49px] left-[20px] z-10 flex w-[100px] flex-col items-end gap-10">
+              <motion.div
+                whileHover={{ scale: 1.1, x: 5 }}
+                className="group pointer-events-auto flex h-[52px] w-fit cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-black/10 bg-white px-4 shadow-lg transition-all hover:border-black/30 hover:shadow-xl"
+              >
+                <AppWindow className="h-5 w-5 text-cyan-500 drop-shadow-sm transition-colors" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-neutral-500 group-hover:text-black">
+                  FRONTEND
+                </span>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.1, x: 5 }}
+                className="group pointer-events-auto flex h-[52px] w-fit cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-black/10 bg-white px-4 shadow-lg transition-all hover:border-black/30 hover:shadow-xl"
+              >
+                <Smartphone className="h-5 w-5 text-pink-500 drop-shadow-sm transition-colors" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-neutral-500 group-hover:text-black">
+                  MOBILE
+                </span>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.1, x: 5 }}
+                className="group pointer-events-auto flex h-[52px] w-fit cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-black/10 bg-white px-4 shadow-lg transition-all hover:border-black/30 hover:shadow-xl"
+              >
+                <Webhook className="h-5 w-5 text-emerald-500 drop-shadow-sm transition-colors" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-neutral-500 group-hover:text-black">
+                  INTERNAL
+                </span>
+              </motion.div>
+            </div>
+
+            {/* Central Orchestrator Core */}
+            <div className="pointer-events-none absolute top-[110px] left-[185px] z-20">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="group pointer-events-auto relative flex h-[130px] w-[130px] cursor-pointer items-center justify-center rounded-[2.5rem] border border-black/5 bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)]"
+              >
+                <div className="absolute inset-0 animate-[pulse_2s_ease-in-out_infinite] rounded-[2.5rem] bg-indigo-50/50 transition-colors group-hover:bg-indigo-100/50" />
+                <BrainCircuit className="relative z-10 h-16 w-16 text-indigo-600" />
+              </motion.div>
+            </div>
+
+            {/* Right Nodes (Sinks/Infra) */}
+            <div className="pointer-events-none absolute top-[49px] right-[20px] z-10 flex w-[100px] flex-col items-start gap-10">
+              <motion.div
+                whileHover={{ scale: 1.1, x: -5 }}
+                className="group pointer-events-auto flex h-[52px] w-fit cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-black/10 bg-white px-4 shadow-lg transition-all hover:border-black/30 hover:shadow-xl"
+              >
+                <Database className="h-5 w-5 text-blue-500 drop-shadow-sm transition-colors" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-neutral-500 group-hover:text-black">
+                  POSTGRES
+                </span>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.1, x: -5 }}
+                className="group pointer-events-auto flex h-[52px] w-fit cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-black/10 bg-white px-4 shadow-lg transition-all hover:border-black/30 hover:shadow-xl"
+              >
+                <Zap className="h-5 w-5 text-orange-500 drop-shadow-sm transition-colors" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-neutral-500 group-hover:text-black">
+                  REDIS
+                </span>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.1, x: -5 }}
+                className="group pointer-events-auto flex h-[52px] w-fit cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-black/10 bg-white px-4 shadow-lg transition-all hover:border-black/30 hover:shadow-xl"
+              >
+                <CreditCard className="h-5 w-5 text-purple-500 drop-shadow-sm transition-colors" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-neutral-500 group-hover:text-black">
+                  STRIPE
+                </span>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'cost-intelligence',
+    icon: <Search className="h-5 w-5 text-black" />,
+    title: 'Cost Intelligence',
+    desc: 'Real-time tracking of variable pricing models. See exactly how costs scale mathematically over 10K, 100K, or 1M MAUs',
+    leftTitle: 'Absolute financial predictability',
+    leftDesc:
+      'Infrastructure pricing is notoriously opaque. We map the unit economics of every layer so you never get surprised by a bill',
+    visual: (
+      <div className="relative h-full w-full overflow-hidden bg-transparent">
+        {/* Sleek Floating Savings Callout */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="absolute top-0 left-0 z-20 flex flex-col items-start bg-transparent"
+        >
+          <span className="mb-1 text-[12px] font-bold tracking-widest text-neutral-400 uppercase drop-shadow-sm">
+            Cost Offset
+          </span>
+          <span className="text-4xl font-bold tracking-tighter text-indigo-500 drop-shadow-md">
+            -$42k
+          </span>
+        </motion.div>
+
+        {/* Automated Stroke Area Chart overlaying background lines */}
+        <div className="pointer-events-none absolute inset-x-0 top-[50%] bottom-6 z-0 flex flex-col justify-between opacity-20">
+          <div className="w-full border-b border-black" />
+          <div className="w-full border-b border-black" />
+          <div className="w-full border-b border-black" />
+        </div>
+
+        <div className="absolute inset-x-0 bottom-6 z-10 flex h-[70%] w-full items-end">
+          <svg
+            viewBox="0 0 100 50"
+            preserveAspectRatio="none"
+            className="h-full w-full drop-shadow-sm"
+          >
+            <defs>
+              <linearGradient id="gradientArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <motion.path
+              d="M 0 50 L 0 45 C 30 45, 50 15, 95 10 L 95 50 Z"
+              fill="url(#gradientArea)"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.5, ease: 'easeOut' }}
+            />
+            <motion.path
+              d="M 0 45 C 30 45, 50 15, 95 10"
+              fill="none"
+              stroke="#6366f1"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+            />
+            {/* Terminal Point - shifted left off absolute edge so it doesn't get clipped */}
+            <motion.circle
+              cx="95"
+              cy="10"
+              r="2.5"
+              fill="#fff"
+              stroke="#6366f1"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ delay: 2, duration: 0.5 }}
+            />
+          </svg>
+        </div>
+      </div>
+    ),
+  },
+];
+
+function FeaturesSection() {
+  const [activeFeature, setActiveFeature] = useState(FEATURES[0].id);
+
+  const activeFeatureData = FEATURES.find((f) => f.id === activeFeature) || FEATURES[0];
+
+  return (
+    <section id="features" className="relative bg-white px-0 pt-32 pb-32 text-black lg:px-6">
+      <div className="relative z-10 mx-auto max-w-[1400px]">
+        <div className="relative grid grid-cols-1 items-start gap-16 px-6 lg:grid-cols-2 lg:gap-32 lg:px-12">
+          {/* Left Sticky Header */}
+          <div className="flex flex-col self-start lg:sticky lg:top-48 lg:pr-12">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeFeature}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <h2 className="mb-8 text-5xl leading-[1.1] font-bold tracking-tighter text-black sm:text-7xl">
+                  {activeFeatureData.leftTitle}
+                </h2>
+                <p className="max-w-md text-xl leading-relaxed font-medium text-neutral-500">
+                  {activeFeatureData.leftDesc}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Right Scrolling Cards */}
+          <div className="flex flex-col gap-32 pb-32">
+            {FEATURES.map((feature) => (
+              <motion.div
+                key={feature.id}
+                onViewportEnter={() => setActiveFeature(feature.id)}
+                viewport={{ margin: '-50% 0px -50% 0px' }}
+                className="group relative"
+              >
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white shadow-sm">
+                  {feature.icon}
+                </div>
+                <h3 className="mb-4 text-4xl font-bold tracking-tight text-black">
+                  {feature.title}
+                </h3>
+                <p className="mb-8 max-w-[480px] text-xl leading-relaxed font-medium text-neutral-500">
+                  {feature.desc}
+                </p>
+                <div className="relative flex h-[430px] w-full flex-col justify-center bg-transparent px-2">
+                  {feature.visual}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   How It Works - Massive Typography (Black)
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function HowItWorks() {
   const steps = [
     {
       id: '01',
       title: 'Define Constraints',
-      description: 'Specify your maximum monthly budget, team size, and regulatory requirements (like HIPAA or SOC2).',
-      icon: <BrainCircuit className="h-10 w-10 text-[var(--primary)]" />
+      desc: 'Specify maximum budget, team size, and regulatory requirements',
     },
     {
       id: '02',
       title: 'Compute Architecture',
-      description: 'Our engine queries over 230 tools and formulates a deterministic software stack tailored to your constraints.',
-      icon: <Layers className="h-10 w-10 text-emerald-500" />
+      desc: 'Our engine queries 230 tools to formulate a perfect software stack',
     },
     {
       id: '03',
       title: 'Extract Blueprint',
-      description: 'Export an actionable implementation roadmap with real-time API cost forecasting for the chosen stack.',
-      icon: <Code2 className="h-10 w-10 text-blue-500" />
-    }
+      desc: 'Export an actionable implementation roadmap with real-time APIs costs',
+    },
   ];
 
   return (
-    <section id="how-it-works" className="py-32 border-t border-[var(--border)] bg-[var(--background)] relative overflow-hidden">
-      <div className="absolute top-[20%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none mix-blend-screen" />
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-3xl text-center mb-24"
-        >
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-[var(--foreground)]">
-            A structured deployment workflow
+    <section id="how-it-works" className="as border-t border-white/5 bg-black py-32">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mb-32 text-center">
+          <h2 className="mb-8 text-6xl font-bold tracking-tighter text-white sm:text-8xl">
+            A structured workflow
           </h2>
-          <p className="mt-6 text-xl text-[var(--muted-foreground)]">
-            Eliminate choice-paralysis. Follow an objective framework to plan infrastructure.
+          <p className="mx-auto max-w-3xl text-2xl font-light text-neutral-400 sm:text-3xl">
+            Eliminate choice-paralysis. Follow an objective framework to plan infrastructure
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid md:grid-cols-3 gap-12 md:gap-16 relative">
-          {steps.map((step, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: idx * 0.15 }}
-              className="relative z-10 flex flex-col items-center text-center group"
-            >
-              {/* Connector line fragment to the next step */}
-              {idx < 2 && (
-                <div
-                  className={`hidden md:block absolute top-[48px] left-[calc(50%+48px)] w-[calc(100%+4rem-96px)] h-[2px] bg-gradient-to-r rounded-full pointer-events-none ${idx === 0
-                    ? 'from-[var(--primary)]/40 to-emerald-500/40'
-                    : 'from-emerald-500/40 to-blue-500/40'
-                    }`}
-                />
-              )}
+        <div className="relative mx-auto mt-24 max-w-5xl">
+          {/* Timeline Line */}
+          <div className="absolute top-8 left-[15%] hidden h-[2px] w-[70%] bg-white/20 lg:block" />
 
-              <div className="relative z-10 h-24 w-24 rounded-[2rem] border-2 border-[var(--border)] bg-[var(--card)]/60 backdrop-blur-md flex items-center justify-center mb-8 shadow-sm text-[var(--foreground)] group-hover:-translate-y-2 group-hover:border-[var(--primary)]/50 group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300">
-                {step.icon}
-              </div>
-              <div className="text-sm font-bold text-[var(--muted-foreground)] tracking-widest mb-3">STEP {step.id}</div>
-              <h3 className="text-2xl font-bold mb-4 text-[var(--foreground)]">{step.title}</h3>
-              <p className="text-[var(--muted-foreground)] text-lg leading-relaxed">{step.description}</p>
-            </motion.div>
-          ))}
+          <div className="relative z-10 grid gap-16 lg:grid-cols-3">
+            {steps.map((step, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: idx * 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col items-center text-center"
+              >
+                {/* Step Circle */}
+                <div className="z-10 mb-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black text-2xl font-bold text-white ring-8 ring-black">
+                  {parseInt(step.id)}
+                </div>
+                <h3 className="mb-6 text-3xl font-bold tracking-tight text-white">{step.title}</h3>
+                <p className="max-w-[300px] text-lg leading-relaxed font-light text-neutral-400">
+                  {step.desc}
+                </p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -279,44 +591,65 @@ function HowItWorks() {
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Testimonials
+   Testimonials - Stark White & Micro-interactions
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function Testimonials() {
   const reviews = [
-    { body: "TechStackEngine eliminated 3 weeks of research overhead. The deterministic architecture generated for our fintech compliance layer was extremely precise.", author: "Alex R.", role: "CTO" },
-    { body: "We were evaluating standard enterprise DBs until we modeled a much lighter infrastructure pattern that cut projected operating costs by 80%.", author: "Sam K.", role: "Lead Engineer" },
-    { body: "It's rare to see infrastructure planning treated with this level of UX. The mathematical pricing breakdown alone creates massive ROI.", author: "Jessica M.", role: "VP Engineering" },
+    {
+      body: 'TechStackEngine eliminated 3 weeks of research overhead. The architecture generated for our fintech compliance layer was extremely precise.',
+      author: 'Alex R.',
+      role: 'CTO',
+    },
+    {
+      body: 'We were evaluating standard enterprise DBs until we modeled a much lighter infrastructure pattern that cut projected operating costs by 80%.',
+      author: 'Samir K.',
+      role: 'Lead Engineer',
+    },
+    {
+      body: "It's rare to see infrastructure planning treated with this level of UX. The mathematical pricing breakdown alone creates massive ROI.",
+      author: 'Jessica M.',
+      role: 'VP Engineering',
+    },
   ];
   return (
-    <section className="py-32 bg-[var(--card)]/10 border-y border-[var(--border)] backdrop-blur-3xl relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)] via-transparent to-[var(--background)] pointer-events-none" />
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-20 text-center"
-        >
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-[var(--foreground)]">Trusted by technical leaders</h2>
-        </motion.div>
-        <div className="grid md:grid-cols-3 gap-8">
-          {reviews.map((review, idx) => (
+    <section className="relative border-t border-black/5 bg-white py-32">
+      <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+        <h2 className="mb-24 text-center text-6xl font-bold tracking-tighter text-black sm:text-8xl">
+          Trusted by leaders
+        </h2>
+        <div className="grid gap-16 md:grid-cols-3 lg:gap-24">
+          {reviews.map((r, i) => (
             <motion.div
-              key={idx}
+              key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: idx * 0.15 }}
-              className="rounded-3xl border-2 border-[var(--border)] bg-[var(--card)]/40 backdrop-blur-2xl p-10 shadow-lg flex flex-col hover:border-[var(--primary)]/50 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 relative group"
+              transition={{ duration: 0.6, delay: i * 0.1 }}
+              className="group flex flex-col pr-4"
             >
-              <div className="absolute -top-4 -left-4 text-8xl text-[var(--border)]/40 font-serif group-hover:text-[var(--primary)]/20 transition-colors pointer-events-none">"</div>
-              <p className="text-[var(--foreground)] text-lg mb-10 leading-relaxed flex-1 relative z-10">{review.body}</p>
-              <div className="flex items-center gap-4 border-t-2 border-[var(--border)]/50 pt-8 mt-auto group-hover:border-[var(--primary)]/20 transition-colors">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--color-accent-500)] flex items-center justify-center text-lg font-bold text-white shadow-md">{review.author.charAt(0)}</div>
+              <div className="mb-8 -translate-x-3 transform text-indigo-500">
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="opacity-20 transition-opacity duration-500 group-hover:opacity-100"
+                >
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                </svg>
+              </div>
+              <p className="mb-16 flex-1 text-3xl leading-[1.3] font-semibold tracking-tight text-black">
+                {r.body}
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/5 bg-neutral-100 text-sm font-bold text-neutral-400">
+                  {r.author.charAt(0)}
+                </div>
                 <div>
-                  <div className="font-bold text-lg text-[var(--foreground)]">{review.author}</div>
-                  <div className="text-sm font-medium text-[var(--muted-foreground)]">{review.role}</div>
+                  <div className="text-sm font-bold text-black">{r.author}</div>
+                  <div className="mt-0.5 text-[11px] font-bold tracking-widest text-neutral-500 uppercase">
+                    {r.role}
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -328,79 +661,26 @@ function Testimonials() {
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   FAQ
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function FAQ() {
-  const faqs = [
-    { q: "Is it free to generate a stack?", a: "Tracking your projects and exploring the catalog is completely free. We also include a complimentary basic AI stack generation on the free tier. Upgrading to a premium tier gives you unlimited AI architecting and advanced premium blueprints." },
-    { q: "What do I get after generating a stack?", a: "You receive a comprehensive architecture blueprint containing your recommended tools with integration rationale, a phased implementation roadmap from MVP to scale, real-time API cost projections broken down by growth stage, and compliance mappings for standards like SOC2 and HIPAA. Think of it as a senior engineer's infrastructure playbook." },
-    { q: "How accurate is the AI?", a: "Our AI targets 96% configuration accuracy and continuously autonomously learns from thousands of new architectures to get smarter every week. It bypasses the hallucinations of typical LLMs by exclusively leveraging an evolving RAG pipeline that strictly pulls from our official database." }
-  ];
-
-  return (
-    <section className="py-32 relative border-b border-[var(--border)] bg-[var(--background)]">
-      <div className="mx-auto max-w-4xl px-6 lg:px-8 relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-4xl sm:text-5xl font-bold tracking-tight text-center mb-16 text-[var(--foreground)]"
-        >
-          Frequently Asked Questions
-        </motion.h2>
-        <div className="space-y-6">
-          {faqs.map((faq, idx) => (
-            <motion.details
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="group rounded-3xl border-2 border-[var(--border)] bg-[var(--card)]/40 backdrop-blur-xl p-8 [&_summary::-webkit-details-marker]:hidden hover:border-[var(--primary)]/30 transition-colors shadow-sm cursor-pointer"
-            >
-              <summary className="flex items-center justify-between gap-4 font-bold text-[var(--foreground)]">
-                <h3 className="text-2xl">{faq.q}</h3>
-                <span className="shrink-0 rounded-full bg-[var(--muted)]/50 p-2 text-[var(--foreground)] group-open:-rotate-180 transition-transform duration-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </span>
-              </summary>
-              <p className="mt-6 text-xl text-[var(--muted-foreground)] leading-relaxed animate-in fade-in slide-in-from-top-4 duration-500">{faq.a}</p>
-            </motion.details>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Final CTA
+   Final CTA - Pure Minimalism
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function FinalCTA() {
   return (
-    <section className="relative py-40 px-6 overflow-hidden bg-[var(--background)]">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[var(--primary)]/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen" />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="mx-auto max-w-5xl text-center relative z-10"
-      >
-        <h2 className="text-5xl sm:text-7xl font-bold mb-8 text-[var(--foreground)] tracking-tight">Start mapping your architecture</h2>
-        <p className="text-xl sm:text-2xl text-[var(--muted-foreground)] mb-12 max-w-2xl mx-auto leading-relaxed">
-          Get clear pricing breakdowns, scalability insights, and absolute clarity on the tools you need.
+    <section className="relative border-t border-white/5 bg-black py-32">
+      <div className="mx-auto max-w-4xl px-6 text-center">
+        <h2 className="mb-8 text-5xl leading-[1.1] font-bold tracking-tighter text-white md:text-7xl">
+          Ready to map?
+        </h2>
+        <p className="mx-auto mb-12 max-w-2xl text-lg font-light text-neutral-400 sm:text-xl">
+          Get clear pricing breakdowns, scalability insights, and absolute clarity on the tools you
+          need.
         </p>
-        <Button asChild size="lg" className="h-16 px-12 text-xl font-bold shadow-[0_0_40px_rgba(var(--primary-rgb),0.3)] hover:shadow-[0_0_60px_rgba(var(--primary-rgb),0.5)] transition-shadow">
-          <Link href="/create">
-            Create Free Project
-            <ArrowRight className="ml-3 h-6 w-6" />
-          </Link>
-        </Button>
-      </motion.div>
+        <Link
+          href="/create"
+          className="inline-flex h-16 items-center justify-center rounded-full bg-white px-12 text-lg font-bold text-black transition-transform hover:scale-105 hover:bg-neutral-200 active:scale-95"
+        >
+          Build Your Stack
+        </Link>
+      </div>
     </section>
   );
 }
@@ -412,145 +692,144 @@ export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[var(--background)] selection:bg-[var(--primary)]/30 selection:text-[var(--foreground)]">
+    <div className="min-h-screen bg-black pb-16 selection:bg-indigo-500/30 selection:text-white">
       {/* ────────────────────────────────────────────────
-          Navbar
+          Minimalist Navbar
          ──────────────────────────────────────────────── */}
-      <nav className="fixed top-0 z-50 w-full border-b border-[var(--border)]/50 bg-[var(--background)]/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--color-accent-500)] shadow-lg shadow-[var(--primary)]/20">
-              <Layers className="h-4 w-4 text-white" />
+      <nav className="fixed top-0 z-50 w-full border-b border-white/5 bg-black/80 backdrop-blur-3xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <Link href="/" className="group flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
+              <Layers className="h-4 w-4 text-black transition-transform group-hover:scale-110" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-[var(--foreground)]">Pylon</span>
+            <span className="text-xl font-bold tracking-tight text-white">Pylon</span>
           </Link>
 
-          <div className="hidden items-center gap-6 md:flex">
-            <Link href="#features" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">Features</Link>
-            <Link href="#how-it-works" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">How It Works</Link>
-          </div>
-
-          <div className="hidden items-center gap-3 md:flex">
-            <ThemeToggle />
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button asChild variant="primary" size="sm" className="shadow-[var(--primary)]/20 shadow-lg">
-              <Link href="/create">Get Started</Link>
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2 md:hidden">
-            <ThemeToggle />
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="rounded-lg p-2 text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+          <div className="hidden items-center gap-10 md:flex">
+            <Link
+              href="#features"
+              className="text-sm font-bold tracking-widest text-white/80 uppercase transition-all hover:scale-105 hover:text-white"
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              Features
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="text-sm font-bold tracking-widest text-white/80 uppercase transition-all hover:scale-105 hover:text-white"
+            >
+              About
+            </Link>
+          </div>
+
+          <div className="hidden items-center gap-6 md:flex">
+            <Link
+              href="/login"
+              className="text-base font-bold text-white/70 transition-colors hover:text-white"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/create"
+              className="flex h-12 items-center justify-center rounded-full bg-white px-8 text-base font-bold text-black transition-transform hover:scale-105 hover:bg-neutral-200"
+            >
+              Get Started
+            </Link>
+          </div>
+
+          <div className="md:hidden">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-white">
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="border-t border-[var(--border)] bg-[var(--background)] md:hidden">
-            <div className="flex flex-col p-4 space-y-4">
-              <Link href="#features" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Features</Link>
-              <Link href="#how-it-works" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">How It Works</Link>
-              <div className="flex flex-col gap-2 pt-4 border-t border-[var(--border)]">
-                <Button asChild variant="ghost" className="justify-center">
-                  <Link href="/login">Sign In</Link>
-                </Button>
-                <Button asChild variant="primary" className="justify-center">
-                  <Link href="/create">Get Started</Link>
-                </Button>
-              </div>
-            </div>
+          <div className="flex flex-col gap-6 border-t border-white/10 bg-black px-6 py-6 md:hidden">
+            <Link
+              href="#features"
+              className="text-lg font-semibold text-neutral-400 hover:text-white"
+            >
+              Features
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="text-lg font-semibold text-neutral-400 hover:text-white"
+            >
+              About
+            </Link>
+            <Link href="/login" className="text-lg font-semibold text-neutral-400 hover:text-white">
+              Sign In
+            </Link>
+            <Link href="/create" className="text-lg font-bold text-white">
+              Get Started
+            </Link>
           </div>
         )}
       </nav>
 
-      {/* ────────────────────────────────────────────────
-          Hero Section
-         ──────────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
-        <GridBackground />
+      {/* Hero Section */}
+      <GridBackground />
+      <CinematicHero />
 
-        <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
-          <div className="mx-auto max-w-3xl text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] shadow-sm px-3 py-1.5 text-xs font-medium text-[var(--foreground)]"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Trusted by 500+ engineering teams
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl font-semibold tracking-tight text-[var(--foreground)] sm:text-6xl mb-6"
-            >
-              Plan your architecture with deterministic precision
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="mx-auto max-w-2xl text-lg text-[var(--muted-foreground)] leading-relaxed mb-10"
-            >
-              The definitive platform for engineering teams to evaluate over 230+ verified software tools. Map infrastructure, forecast constraints, and construct enterprise-grade stacks without the research overhead.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="flex justify-center flex-col sm:flex-row gap-3"
-            >
-              <Button asChild size="lg" className="h-12 px-6 shadow-sm">
-                <Link href="/create">
-                  Start Architecting
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 px-6">
-                <Link href="/catalog">
-                  Browse Catalog
-                </Link>
-              </Button>
-            </motion.div>
-          </div>
-
-          {/* Interactive Hero App Mockup */}
-          <div className="mt-16 w-full relative z-20">
-            <HeroMockup />
-          </div>
-        </div>
-      </section>
-
-      {/* ────────────────────────────────────────────────
-          New Sections
-         ──────────────────────────────────────────────── */}
+      {/* Sections */}
       <LogoCloud />
-      <BentoGrid />
+      <FeaturesSection />
       <HowItWorks />
       <Testimonials />
-      <FAQ />
       <FinalCTA />
 
       {/* ────────────────────────────────────────────────
-          Minimal Footer
+          Minimalist Single-Row Footer
          ──────────────────────────────────────────────── */}
-      <footer className="border-t border-[var(--border)] bg-[var(--background)] py-12">
-        <div className="mx-auto max-w-7xl px-6 text-center text-sm text-[var(--muted-foreground)]">
-          <div className="flex justify-center gap-4 mb-6">
-            <Layers className="h-6 w-6 text-[var(--primary)]" />
+      <footer className="border-t border-white/5 bg-black pt-16 pb-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 md:flex-row">
+          <div className="flex items-center gap-3">
+            <div className="flex h-6 w-6 items-center justify-center rounded bg-white">
+              <Layers className="h-3 w-3 text-black" />
+            </div>
+            <span className="text-base font-bold tracking-tight text-white">Pylon</span>
           </div>
-          <p>© {new Date().getFullYear()} Pylon. All rights reserved.</p>
+
+          <div className="flex items-center gap-6">
+            <Link
+              href="/catalog"
+              className="text-sm font-semibold text-neutral-500 transition-colors hover:text-white"
+            >
+              Catalog
+            </Link>
+            <Link
+              href="/create"
+              className="text-sm font-semibold text-neutral-500 transition-colors hover:text-white"
+            >
+              Stack Engine
+            </Link>
+            <Link
+              href="/dashboard"
+              className="text-sm font-semibold text-neutral-500 transition-colors hover:text-white"
+            >
+              Dashboard
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <a
+              href="#"
+              className="text-sm font-semibold text-neutral-500 transition-colors hover:text-white"
+            >
+              Twitter
+            </a>
+            <a
+              href="#"
+              className="text-sm font-semibold text-neutral-500 transition-colors hover:text-white"
+            >
+              GitHub
+            </a>
+            <a
+              href="#"
+              className="text-sm font-semibold text-neutral-500 transition-colors hover:text-white"
+            >
+              LinkedIn
+            </a>
+          </div>
         </div>
       </footer>
     </div>

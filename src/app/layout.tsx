@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono, Outfit } from 'next/font/google';
+import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from 'next/font/google';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { AuthProvider } from '@/hooks/useAuth';
@@ -11,8 +11,8 @@ const inter = Inter({
   display: 'swap',
 });
 
-const outfit = Outfit({
-  variable: '--font-outfit',
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: '--font-jakarta',
   subsets: ['latin'],
   display: 'swap',
 });
@@ -65,7 +65,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable} premium-gradient min-h-screen font-sans antialiased`}
+        className={`${inter.variable} ${plusJakarta.variable} ${jetbrainsMono.variable} font-jakarta min-h-screen bg-black antialiased`}
       >
         <div className="noise" aria-hidden="true" />
         <ThemeProvider>

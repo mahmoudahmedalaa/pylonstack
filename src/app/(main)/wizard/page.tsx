@@ -51,6 +51,7 @@ import {
 } from '@/data/wizard-constants';
 import { useWizardStore } from '@/stores/wizard-store';
 import { GeneratingOverlay } from '@/components/wizard/GeneratingOverlay';
+import { WizardStackPreview } from '@/components/wizard/WizardStackPreview';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -119,10 +120,11 @@ function OptionCard({
   return (
     <button
       onClick={onClick}
-      className={`group relative flex flex-col items-start rounded-xl border-2 p-5 text-left transition-all duration-200 ${isSelected
-        ? 'border-[var(--primary)] bg-[var(--primary)]/5 shadow-[0_0_0_1px_var(--primary),var(--shadow-glow)]'
-        : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]/30 hover:bg-[var(--elevated)]'
-        }`}
+      className={`group relative flex flex-col items-start rounded-xl border-2 p-5 text-left transition-all duration-200 ${
+        isSelected
+          ? 'border-[var(--primary)] bg-[var(--primary)]/5 shadow-[0_0_0_1px_var(--primary),var(--shadow-glow)]'
+          : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]/30 hover:bg-[var(--elevated)]'
+      }`}
     >
       {/* Selection indicator */}
       <div className={`absolute top-3 right-3 flex items-center gap-1.5`}>
@@ -162,10 +164,11 @@ function OptionCard({
 
         {/* Check circle */}
         <div
-          className={`flex h-5 w-5 items-center justify-center rounded-full transition-all duration-200 ${isSelected
-            ? 'bg-[var(--primary)] text-white'
-            : 'border border-[var(--border)] bg-transparent'
-            }`}
+          className={`flex h-5 w-5 items-center justify-center rounded-full transition-all duration-200 ${
+            isSelected
+              ? 'bg-[var(--primary)] text-white'
+              : 'border border-[var(--border)] bg-transparent'
+          }`}
         >
           {isSelected && <Check className="h-3 w-3" />}
         </div>
@@ -173,18 +176,20 @@ function OptionCard({
 
       {/* Icon */}
       <div
-        className={`flex h-11 w-11 items-center justify-center rounded-lg transition-colors ${isSelected
-          ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
-          : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'
-          }`}
+        className={`flex h-11 w-11 items-center justify-center rounded-lg transition-colors ${
+          isSelected
+            ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
+            : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'
+        }`}
       >
         <Icon className="h-5 w-5" />
       </div>
 
       {/* Content */}
       <h3
-        className={`mt-3 text-sm font-medium ${isSelected ? 'text-[var(--foreground)]' : 'text-[var(--foreground)]'
-          }`}
+        className={`mt-3 text-sm font-medium ${
+          isSelected ? 'text-[var(--foreground)]' : 'text-[var(--foreground)]'
+        }`}
       >
         {title}
       </h3>
@@ -212,28 +217,31 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
         <div key={step.number} className="flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
             <div
-              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors ${step.number < currentStep
-                ? 'bg-[var(--color-accent-500)] text-white'
-                : step.number === currentStep
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
-                }`}
+              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors ${
+                step.number < currentStep
+                  ? 'bg-[var(--color-accent-500)] text-white'
+                  : step.number === currentStep
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
+              }`}
             >
               {step.number < currentStep ? <Check className="h-3.5 w-3.5" /> : step.number}
             </div>
             <span
-              className={`hidden text-xs sm:inline ${step.number === currentStep
-                ? 'font-medium text-[var(--foreground)]'
-                : 'text-[var(--muted-foreground)]'
-                }`}
+              className={`hidden text-xs sm:inline ${
+                step.number === currentStep
+                  ? 'font-medium text-[var(--foreground)]'
+                  : 'text-[var(--muted-foreground)]'
+              }`}
             >
               {step.label}
             </span>
           </div>
           {idx < STEPS.length - 1 && (
             <div
-              className={`h-px w-6 sm:w-8 ${step.number < currentStep ? 'bg-[var(--color-accent-500)]' : 'bg-[var(--border)]'
-                }`}
+              className={`h-px w-6 sm:w-8 ${
+                step.number < currentStep ? 'bg-[var(--color-accent-500)]' : 'bg-[var(--border)]'
+              }`}
             />
           )}
         </div>
@@ -451,7 +459,9 @@ export default function WizardPage() {
                         <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
                           {config.title}
                         </h2>
-                        <p className="mt-1 text-sm text-[var(--muted-foreground)]">{config.subtitle}</p>
+                        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                          {config.subtitle}
+                        </p>
                         {config.multiSelect && currentStep === 4 && (
                           <p className="mt-1 text-xs text-[var(--primary)]">Select up to 2</p>
                         )}
@@ -584,7 +594,11 @@ export default function WizardPage() {
                           value: getLabel(PROJECT_TYPES, answers.projectType),
                           step: 1,
                         },
-                        { label: 'Team Size', value: getLabel(TEAM_SIZES, answers.teamSize), step: 2 },
+                        {
+                          label: 'Team Size',
+                          value: getLabel(TEAM_SIZES, answers.teamSize),
+                          step: 2,
+                        },
                         {
                           label: 'Requirements',
                           value: getLabel(REQUIREMENTS, answers.requirements),
@@ -674,12 +688,24 @@ export default function WizardPage() {
           </p>
         </div>
 
-        {/* ── Right column: Sticky Stack Builder Preview ── */}
+        {/* ── Right column: Sticky Live Stack Preview ── */}
         <aside className="hidden w-80 shrink-0 lg:block">
           <div className="sticky top-24">
             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 backdrop-blur-xl">
-              <StackBuilder layers={stackLayers} mode="preview" totalCategories={8} showProgress />
+              <WizardStackPreview />
             </div>
+
+            {/* Existing StackBuilder mini-view below */}
+            {stackLayers.length > 0 && (
+              <div className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 backdrop-blur-xl">
+                <StackBuilder
+                  layers={stackLayers}
+                  mode="preview"
+                  totalCategories={8}
+                  showProgress
+                />
+              </div>
+            )}
 
             {/* Tip below the stack builder */}
             {stackLayers.length > 0 && (

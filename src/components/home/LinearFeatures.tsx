@@ -38,7 +38,7 @@ export function LinearFeatures() {
               <div className="group relative mt-auto flex h-56 w-full cursor-pointer items-center justify-center">
                 <div className="relative h-[240px] w-full max-w-[350px]">
                   {/* Layer 1 */}
-                  <div className="absolute top-10 right-0 left-0 z-10 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#111]/80 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-transform duration-500 group-hover:-translate-y-12">
+                  <div className="absolute top-10 right-0 left-0 z-10 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#111]/80 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-transform duration-500 group-hover:-translate-y-6">
                     <div className="flex items-center gap-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20">
                         <AppWindow className="h-5 w-5 text-indigo-400" />
@@ -49,7 +49,7 @@ export function LinearFeatures() {
                   </div>
 
                   {/* Layer 2 */}
-                  <div className="absolute top-24 right-4 left-4 z-20 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#18181b]/90 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-transform duration-500 group-hover:-translate-y-6">
+                  <div className="absolute top-24 right-4 left-4 z-20 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#18181b]/90 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-transform duration-500 group-hover:-translate-y-3">
                     <div className="flex items-center gap-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/20">
                         <Layers className="h-5 w-5 text-pink-400" />

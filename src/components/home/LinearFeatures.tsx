@@ -9,7 +9,7 @@ export function LinearFeatures() {
     <section id="features" className="relative bg-black py-40">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
         <div className="mb-24 text-center">
-          <h2 className="mb-6 text-5xl font-semibold tracking-tighter text-white md:text-7xl">
+          <h2 className="mb-6 text-6xl font-semibold tracking-tighter text-white md:text-8xl">
             Built for engineering leaders
           </h2>
           <p className="mx-auto max-w-3xl text-xl leading-relaxed text-neutral-400 sm:text-2xl">
@@ -26,7 +26,7 @@ export function LinearFeatures() {
               <div className="mb-5 text-sm font-bold tracking-widest text-indigo-400 uppercase">
                 Universal Compatibility
               </div>
-              <h3 className="mb-4 text-4xl font-bold tracking-tight text-white">
+              <h3 className="mb-4 text-5xl font-bold tracking-tight text-white">
                 230+ normalized tools.
               </h3>
               <p className="max-w-lg text-xl leading-relaxed text-neutral-400">
@@ -95,7 +95,7 @@ export function LinearFeatures() {
               <div className="mb-5 text-sm font-bold tracking-widest text-emerald-400 uppercase">
                 Cost Intelligence
               </div>
-              <h3 className="mb-4 text-4xl font-bold tracking-tight text-white">Predict costs.</h3>
+              <h3 className="mb-4 text-5xl font-bold tracking-tight text-white">Predict costs.</h3>
               <p className="text-xl leading-relaxed text-neutral-400">
                 Visualize scaling costs precisely before committing.
               </p>
@@ -154,7 +154,7 @@ export function LinearFeatures() {
                 <div className="mb-5 text-sm font-bold tracking-widest text-fuchsia-400 uppercase">
                   Orchestration Engine
                 </div>
-                <h3 className="mb-4 text-4xl font-bold tracking-tight text-white">
+                <h3 className="mb-4 text-5xl font-bold tracking-tight text-white">
                   Mathematical precision.
                 </h3>
                 <p className="text-xl leading-relaxed text-neutral-400">

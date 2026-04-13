@@ -12,7 +12,6 @@ export function LinearHero() {
     offset: ['start start', 'end start'],
   });
 
-  // Fade out even later so it survives scrolling longer
   const opacity = useTransform(scrollYProgress, [0, 0.85], [1, 0]);
   const y = useTransform(scrollYProgress, [0, 0.85], [0, 100]);
   const scale = useTransform(scrollYProgress, [0, 0.85], [1, 0.95]);
@@ -26,9 +25,8 @@ export function LinearHero() {
         style={{ opacity, y }}
         className="relative z-10 mx-auto flex max-w-[1200px] flex-col items-center px-6 text-center"
       >
-        {/* Subtle pill badge */}
         <div className="group mb-12 inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-white/5 py-2 pr-4 pl-5 text-sm font-medium text-neutral-300 transition-colors hover:bg-white/10">
-          <span className="text-white">Introducing orchestration engine</span>
+          <span className="tracking-wide text-white">The definitive infrastructure planner</span>
           <ChevronRight className="h-4 w-4 text-neutral-500 transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
         </div>
 
@@ -61,17 +59,14 @@ export function LinearHero() {
         </div>
       </motion.div>
 
-      {/* Grid Pattern Background */}
       <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden [mask-image:radial-gradient(ellipse_at_top,black,transparent_80%)]">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:48px_48px]" />
       </div>
 
-      {/* Floating Center Glow */}
       <div className="pointer-events-none absolute top-[-10%] left-1/2 z-0 h-[600px] w-[800px] -translate-x-1/2 opacity-20 blur-[120px]">
         <div className="absolute inset-0 rounded-full bg-gradient-to-b from-indigo-500 to-purple-500" />
       </div>
 
-      {/* Massive application screenshot/mockup zooming in */}
       <motion.div style={{ scale, opacity }} className="relative z-10 mt-32 w-[95%] max-w-[1400px]">
         <AppScreenshotMockup />
       </motion.div>
@@ -98,89 +93,84 @@ function AppScreenshotMockup() {
 
   return (
     <div className="relative mx-auto w-full overflow-hidden rounded-2xl border border-white/15 bg-[#09090b] shadow-[0_40px_150px_rgba(0,0,0,0.9)] ring-1 ring-white/10">
-      {/* Top Navbar Header */}
-      <div className="flex h-14 w-full items-center justify-between border-b border-white/10 bg-[#000] px-6">
+      <div className="flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#000] px-8">
         <div className="flex items-center gap-3">
-          <div className="h-5 w-5 rounded-md bg-white/20" />
-          <div className="text-sm font-semibold tracking-wide text-white">Stack Wizard</div>
+          <div className="h-6 w-6 rounded-md bg-white/20" />
+          <div className="text-base font-semibold tracking-wide text-white">Stack Wizard</div>
         </div>
-        <div className="text-xs font-medium text-neutral-500">Interactive Preview Demo</div>
+        <div className="text-sm font-medium text-neutral-500">Interactive Preview Demo</div>
       </div>
 
-      {/* Main Layout Grid */}
       <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-3">
-        {/* Left Column (Forms) */}
         <div className="col-span-2 border-r border-white/10 p-8 lg:p-16">
-          <div className="mb-14 flex items-center gap-3 opacity-90">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]">
+          <div className="mb-14 flex items-center gap-4 opacity-90">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]">
               1
             </div>
-            <div className="text-xs font-semibold text-white">Project Type</div>
-            <div className="mx-3 h-[1px] w-10 bg-indigo-500/50" />
-            <div className="flex h-6 w-6 items-center justify-center rounded-full border border-white/20 text-[10px] font-medium text-white/50">
+            <div className="text-sm font-semibold text-white">Project Type</div>
+            <div className="mx-3 h-[1px] w-12 bg-indigo-500/50" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-xs font-medium text-white/50">
               2
             </div>
-            <div className="text-xs font-medium text-white/50">Team Size</div>
+            <div className="text-sm font-medium text-white/50">Team Size</div>
           </div>
 
           <div className="mb-12">
-            <div className="mb-3 text-xs font-bold tracking-widest text-indigo-400 uppercase">
+            <div className="mb-4 text-sm font-bold tracking-widest text-indigo-400 uppercase">
               Step 1 of 7
             </div>
-            <h2 className="mb-3 text-4xl font-bold tracking-tight text-white">
+            <h2 className="mb-4 text-5xl font-bold tracking-tight text-white">
               What are you building?
             </h2>
-            <p className="text-base text-neutral-400">
+            <p className="text-lg text-neutral-400">
               Click a project type to test the Live Preview architecture generation.
             </p>
           </div>
 
-          <div className="space-y-10">
-            <div className="grid grid-cols-2 gap-6">
-              {/* Web Application Button */}
+          <div className="mt-8 space-y-10">
+            <div className="grid grid-cols-2 gap-8">
               <div
                 onClick={() => setSelectedType('web')}
-                className={`cursor-pointer rounded-2xl border p-6 transition-all ${
+                className={`cursor-pointer rounded-2xl border p-8 transition-all ${
                   selectedType === 'web'
                     ? 'scale-[1.02] border-indigo-500/80 bg-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] ring-2 ring-indigo-500/50'
                     : 'border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]'
                 }`}
               >
                 <div
-                  className={`mb-5 flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
+                  className={`mb-6 flex h-12 w-12 items-center justify-center rounded-xl transition-colors ${
                     selectedType === 'web' ? 'bg-indigo-500/30' : 'bg-white/10'
                   }`}
                 >
                   <Code2
-                    className={`h-5 w-5 ${selectedType === 'web' ? 'text-indigo-300' : 'text-neutral-400'}`}
+                    className={`h-6 w-6 ${selectedType === 'web' ? 'text-indigo-300' : 'text-neutral-400'}`}
                   />
                 </div>
-                <div className="mb-2 text-base font-bold text-white">Web Application</div>
-                <div className="text-sm leading-relaxed text-neutral-400">
+                <div className="mb-3 text-xl font-bold text-white">Web Application</div>
+                <div className="text-base leading-relaxed text-neutral-400">
                   SPA, SSR, or full-stack web platforms.
                 </div>
               </div>
 
-              {/* Mobile Application Button */}
               <div
                 onClick={() => setSelectedType('mobile')}
-                className={`cursor-pointer rounded-2xl border p-6 transition-all ${
+                className={`cursor-pointer rounded-2xl border p-8 transition-all ${
                   selectedType === 'mobile'
                     ? 'scale-[1.02] border-indigo-500/80 bg-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] ring-2 ring-indigo-500/50'
                     : 'border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]'
                 }`}
               >
                 <div
-                  className={`mb-5 flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
+                  className={`mb-6 flex h-12 w-12 items-center justify-center rounded-xl transition-colors ${
                     selectedType === 'mobile' ? 'bg-indigo-500/30' : 'bg-white/10'
                   }`}
                 >
                   <Smartphone
-                    className={`h-5 w-5 ${selectedType === 'mobile' ? 'text-indigo-300' : 'text-neutral-400'}`}
+                    className={`h-6 w-6 ${selectedType === 'mobile' ? 'text-indigo-300' : 'text-neutral-400'}`}
                   />
                 </div>
-                <div className="mb-2 text-base font-bold text-white">Mobile Application</div>
-                <div className="text-sm leading-relaxed text-neutral-400">
+                <div className="mb-3 text-xl font-bold text-white">Mobile Application</div>
+                <div className="text-base leading-relaxed text-neutral-400">
                   Native iOS & Android experiences.
                 </div>
               </div>
@@ -188,31 +178,29 @@ function AppScreenshotMockup() {
           </div>
         </div>
 
-        {/* Right Column (Interactive Widget) */}
         <div className="relative col-span-1 hidden bg-[#050505] p-8 lg:block">
           {selectedType && (
             <div className="absolute top-0 right-0 flex w-full justify-end p-8">
-              <div className="flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
-                <RefreshCw className="h-3 w-3 animate-spin" /> Live Synced
+              <div className="flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-4 py-1.5 text-sm font-semibold text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+                <RefreshCw className="h-4 w-4 animate-spin" /> Live Synced
               </div>
             </div>
           )}
 
           <div className="relative mt-12 overflow-hidden rounded-2xl border border-white/15 bg-[#0a0a0a] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-            {/* Radial gradient background behind widget */}
             <div
               className={`pointer-events-none absolute top-0 left-1/2 h-[250px] w-[250px] -translate-x-1/2 blur-[60px] transition-colors duration-1000 ${
                 selectedType ? 'bg-indigo-500/30' : 'bg-indigo-500/15'
               }`}
             />
 
-            <div className="relative z-10 mb-6 flex items-center gap-4 border-b border-white/10 pb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-                <Layers className="h-5 w-5 text-indigo-400" />
+            <div className="relative z-10 mb-8 flex items-center gap-5 border-b border-white/10 pb-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                <Layers className="h-6 w-6 text-indigo-400" />
               </div>
               <div>
-                <div className="text-base font-bold text-white">Orchestration Graph</div>
-                <div className="mt-1 text-[11px] font-bold tracking-widest text-neutral-500 uppercase transition-all">
+                <div className="text-lg font-bold text-white">Orchestration Graph</div>
+                <div className="mt-1 text-[12px] font-bold tracking-widest text-neutral-500 uppercase transition-all">
                   {selectedType ? '3/9 Layers Defined' : '0/9 Layers Defined'}
                 </div>
               </div>
@@ -226,35 +214,35 @@ function AppScreenshotMockup() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.01] p-6 text-center"
+                    className="flex h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.01] p-6 text-center"
                   >
-                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
-                      <div className="h-5 w-5 rounded-full border-2 border-indigo-400/50" />
+                    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+                      <div className="h-6 w-6 rounded-full border-[3px] border-indigo-400/50" />
                     </div>
-                    <div className="mb-2 text-base font-semibold text-white/90">
+                    <div className="mb-2 text-lg font-semibold text-white/90">
                       Awaiting Configuration
                     </div>
-                    <div className="text-sm font-medium text-neutral-500">
+                    <div className="text-base font-medium text-neutral-500">
                       Select a project type to generate diagram
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div key={selectedType} className="flex flex-col gap-3">
+                  <motion.div key={selectedType} className="flex flex-col gap-4">
                     {activeStack.map((tech, idx) => (
                       <motion.div
                         key={tech.id}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.15, type: 'spring', bounce: 0.4 }}
-                        className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4 shadow-sm backdrop-blur-md"
+                        className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-5 shadow-sm backdrop-blur-md"
                       >
                         <div>
-                          <div className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
+                          <div className="text-xs font-bold tracking-widest text-neutral-500 uppercase">
                             {tech.layer}
                           </div>
-                          <div className="mt-1 text-sm font-bold text-white">{tech.name}</div>
+                          <div className="mt-1.5 text-base font-bold text-white">{tech.name}</div>
                         </div>
-                        <Database className="h-5 w-5 text-indigo-400 opacity-60" />
+                        <Database className="h-6 w-6 text-indigo-400 opacity-60" />
                       </motion.div>
                     ))}
                   </motion.div>

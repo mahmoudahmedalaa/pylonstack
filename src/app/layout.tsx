@@ -25,31 +25,34 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Pylon — Build Your Perfect Tech Stack',
+    default: 'Pylon — AI-Driven Cloud Architecture Planner',
     template: '%s | Pylon',
   },
   description:
-    'Stop researching. Start building. Pylon uses AI to recommend the perfect tech stack for your project, with drag-and-drop stack building and live cost tracking.',
+    'Generate precise tech stacks, calculate unit economics, and foresee integration risks in minutes. Define your constraints, and the Pylon Orchestration Engine builds your infrastructure roadmap.',
   keywords: [
     'tech stack',
     'developer tools',
-    'AI recommendations',
-    'stack builder',
-    'software architecture',
+    'AI architecture generator',
+    'infrastructure planning',
+    'software engineering',
+    'cloud infrastructure',
+    'Next.js',
+    'database pricing calculator',
   ],
   openGraph: {
     type: 'website',
     locale: 'en_US',
     siteName: 'Pylon',
-    title: 'Pylon — Build Your Perfect Tech Stack',
+    title: 'Pylon — Architect Your Stack with Engineering Precision',
     description:
-      'AI-powered tech stack recommendations and visual stack building for developers and teams.',
+      'Input technical constraints and our AI engine computes the optimal architecture tailored to your specific scale parameters and team size.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pylon — Build Your Perfect Tech Stack',
+    title: 'Pylon — Architect Your Stack with Engineering Precision',
     description:
-      'AI-powered tech stack recommendations and visual stack building for developers and teams.',
+      'Input technical constraints and our AI engine computes the optimal architecture tailored to your specific scale parameters and team size.',
   },
   robots: {
     index: true,

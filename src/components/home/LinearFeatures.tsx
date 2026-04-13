@@ -35,15 +35,10 @@ export function LinearFeatures() {
               </p>
 
               {/* Visual representation: Glass 3D stack */}
-              <div className="relative mt-auto flex h-56 w-full items-center justify-center">
+              <div className="group relative mt-auto flex h-56 w-full cursor-pointer items-center justify-center">
                 <div className="relative h-[240px] w-full max-w-[350px]">
                   {/* Layer 1 */}
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.8 }}
-                    className="absolute top-10 right-0 left-0 z-10 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#111]/80 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl"
-                  >
+                  <div className="absolute top-10 right-0 left-0 z-10 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#111]/80 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-transform duration-500 group-hover:-translate-y-12">
                     <div className="flex items-center gap-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20">
                         <AppWindow className="h-5 w-5 text-indigo-400" />
@@ -51,15 +46,10 @@ export function LinearFeatures() {
                       <span className="text-lg font-bold text-white">Frontend</span>
                     </div>
                     <div className="h-3 w-3 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" />
-                  </motion.div>
+                  </div>
 
                   {/* Layer 2 */}
-                  <motion.div
-                    initial={{ y: 0, opacity: 0 }}
-                    whileInView={{ y: -40, opacity: 1 }}
-                    transition={{ duration: 0.8, delay: 0.1 }}
-                    className="absolute top-24 right-4 left-4 z-20 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#18181b]/90 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl"
-                  >
+                  <div className="absolute top-24 right-4 left-4 z-20 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#18181b]/90 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-transform duration-500 group-hover:-translate-y-6">
                     <div className="flex items-center gap-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/20">
                         <Layers className="h-5 w-5 text-pink-400" />
@@ -67,15 +57,10 @@ export function LinearFeatures() {
                       <span className="text-lg font-bold text-white">Auth</span>
                     </div>
                     <div className="h-3 w-3 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" />
-                  </motion.div>
+                  </div>
 
                   {/* Layer 3 */}
-                  <motion.div
-                    initial={{ y: 0, opacity: 0 }}
-                    whileInView={{ y: -80, opacity: 1 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                    className="absolute top-40 right-8 left-8 z-30 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#27272a]/95 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl"
-                  >
+                  <div className="absolute top-40 right-8 left-8 z-30 flex h-20 items-center justify-between rounded-xl border border-white/10 bg-[#27272a]/95 px-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-transform duration-500">
                     <div className="flex items-center gap-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/20">
                         <Database className="h-5 w-5 text-cyan-400" />
@@ -83,7 +68,7 @@ export function LinearFeatures() {
                       <span className="text-lg font-bold text-white">Database</span>
                     </div>
                     <div className="h-3 w-3 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" />
-                  </motion.div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -140,7 +125,7 @@ export function LinearFeatures() {
                     vectorEffect="non-scaling-stroke"
                   />
                 </svg>
-                <div className="absolute -top-12 right-0 rounded-lg border border-white/20 bg-white/10 px-4 py-2 font-mono text-xl font-bold tracking-tight text-emerald-400 backdrop-blur-md">
+                <div className="absolute right-0 bottom-12 rounded-lg border border-white/10 bg-[#10b981]/10 px-4 py-2 font-mono text-xl font-bold tracking-tight text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.3)] backdrop-blur-xl">
                   -$42k
                 </div>
               </div>
@@ -175,9 +160,9 @@ export function LinearFeatures() {
                       ],
                     }}
                     transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                    className="absolute top-1/2 left-1/2 z-20 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2rem] border border-white/20 bg-black shadow-2xl"
+                    className="absolute top-1/2 left-1/2 z-20 flex h-40 w-40 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2.5rem] border border-white/20 bg-black shadow-2xl"
                   >
-                    <Cpu className="h-14 w-14 text-fuchsia-500" strokeWidth={1} />
+                    <Cpu className="h-16 w-16 text-fuchsia-500" strokeWidth={1} />
                   </motion.div>
 
                   {/* Satellite Nodes */}

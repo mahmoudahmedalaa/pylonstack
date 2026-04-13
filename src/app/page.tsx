@@ -129,19 +129,19 @@ export default function HomePage() {
           <div className="hidden items-center gap-10 md:flex">
             <Link
               href="#features"
-              className="text-sm font-semibold tracking-wide text-neutral-400 transition-colors hover:text-white"
+              className="text-base font-medium tracking-wide text-neutral-400 transition-colors hover:text-white"
             >
               Features
             </Link>
             <Link
               href="#testimonials"
-              className="text-sm font-semibold tracking-wide text-neutral-400 transition-colors hover:text-white"
+              className="text-base font-medium tracking-wide text-neutral-400 transition-colors hover:text-white"
             >
               Testimonials
             </Link>
             <Link
               href="/catalog"
-              className="text-sm font-semibold tracking-wide text-neutral-400 transition-colors hover:text-white"
+              className="text-base font-medium tracking-wide text-neutral-400 transition-colors hover:text-white"
             >
               Catalog
             </Link>
@@ -150,13 +150,13 @@ export default function HomePage() {
           <div className="hidden items-center gap-6 md:flex">
             <Link
               href="/login"
-              className="text-sm font-bold text-neutral-400 transition-colors hover:text-white"
+              className="text-base font-bold text-neutral-400 transition-colors hover:text-white"
             >
               Log in
             </Link>
             <Link
               href="/create"
-              className="flex h-10 items-center justify-center rounded-full bg-white px-5 text-sm font-bold text-black transition-transform hover:scale-105 active:scale-95"
+              className="flex h-10 items-center justify-center rounded-full bg-white px-6 text-base font-bold text-black transition-transform hover:scale-105 active:scale-95"
             >
               Get Started
             </Link>
@@ -201,34 +201,34 @@ export default function HomePage() {
          ──────────────────────────────────────────────── */}
       <footer className="relative overflow-hidden border-t border-white/5 bg-black">
         {/* Massive Brand Watermark */}
-        <div className="relative flex w-full justify-center pt-24 pb-12">
-          <span className="pointer-events-none text-[26vw] leading-[0.75] font-bold tracking-tighter text-[#111] select-none">
+        <div className="relative flex w-full justify-center pt-32 pb-20">
+          <span className="pointer-events-none text-[26vw] leading-[0.75] font-bold tracking-tighter text-[#18181b] select-none">
             PYLON
           </span>
         </div>
 
         {/* Actual Layout Footer Layer */}
-        <div className="relative z-10 border-t border-white/5 bg-black py-8">
-          <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-6">
-            <div className="text-sm tracking-wide text-neutral-600">
+        <div className="relative z-10 border-t border-white/5 bg-[#050505] py-10">
+          <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center justify-between gap-6 px-6 md:flex-row md:gap-0">
+            <div className="text-sm font-semibold tracking-wide text-neutral-500">
               © 2026 Pylon Inc. All rights reserved.
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-8">
               <a
                 href="#"
-                className="text-sm tracking-wide text-neutral-600 transition-colors hover:text-white"
+                className="text-sm font-semibold tracking-wide text-neutral-500 transition-colors hover:text-white"
               >
                 Twitter
               </a>
               <a
                 href="#"
-                className="text-sm tracking-wide text-neutral-600 transition-colors hover:text-white"
+                className="text-sm font-semibold tracking-wide text-neutral-500 transition-colors hover:text-white"
               >
                 GitHub
               </a>
               <a
                 href="#"
-                className="text-sm tracking-wide text-neutral-600 transition-colors hover:text-white"
+                className="text-sm font-semibold tracking-wide text-neutral-500 transition-colors hover:text-white"
               >
                 LinkedIn
               </a>

@@ -40,7 +40,7 @@ export function LinearPricing() {
               Annually
               {isAnnual && (
                 <span className="rounded-full border border-indigo-500/30 bg-indigo-500/20 px-2 py-0.5 text-[10px] leading-tight font-black tracking-widest text-indigo-700 uppercase drop-shadow-sm">
-                  Save $120/yr
+                  Save 20%
                 </span>
               )}
             </button>
@@ -129,30 +129,28 @@ export function LinearPricing() {
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/20">
                   <Check className="h-3 w-3 text-indigo-400" />
                 </div>
-                <span className="text-base font-bold text-white">Export to Terraform & Pulumi</span>
+                <span className="text-base font-bold text-white">Unlimited Flow Architectures</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/20">
                   <Check className="h-3 w-3 text-indigo-400" />
                 </div>
                 <span className="text-base font-bold text-white">
-                  Unlimited Diagram Generations
+                  Advanced Cost Intel Projections
                 </span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/20">
                   <Check className="h-3 w-3 text-indigo-400" />
                 </div>
-                <span className="text-base font-bold text-white">
-                  Automated CI/CD Pipeline Injection
-                </span>
+                <span className="text-base font-bold text-white">Invite Team Members</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/20">
                   <Check className="h-3 w-3 text-indigo-400" />
                 </div>
                 <span className="text-base font-bold text-white">
-                  Cloud Vendor Comparative Modeling
+                  Priority Orchestration Support
                 </span>
               </div>
             </div>

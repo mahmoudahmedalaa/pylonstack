@@ -37,7 +37,7 @@ export function LiveIntegrations() {
   }, []);
 
   return (
-    <section className="relative overflow-hidden border-b border-white/5 bg-black py-32">
+    <section className="relative overflow-hidden border-b border-white/5 bg-black pt-16 pb-24">
       {/* Background radial gradient */}
       <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-40">
         <div className="h-[40vh] w-full bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.1),transparent_50%)]" />

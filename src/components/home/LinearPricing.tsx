@@ -143,7 +143,9 @@ export function LinearPricing() {
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/20">
                   <Check className="h-3 w-3 text-indigo-400" />
                 </div>
-                <span className="text-base font-bold text-white">Invite Team Members</span>
+                <span className="text-base font-bold text-white">
+                  Unlimited PDF & Image Exports
+                </span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/20">

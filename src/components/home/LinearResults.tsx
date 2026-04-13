@@ -30,7 +30,7 @@ export function LinearResults() {
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
         <div className="mb-24 md:w-3/5">
           <h2 className="mb-6 text-5xl font-semibold tracking-tighter text-white md:text-7xl">
-            Higher standards are emerging.
+            Higher standards are emerging
           </h2>
           <p className="text-xl leading-relaxed text-neutral-400">
             What changes when architecture planning runs itself? Engineering teams using Pylon

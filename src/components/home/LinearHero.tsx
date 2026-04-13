@@ -146,7 +146,18 @@ function AppScreenshotMockup() {
                     className={`h-6 w-6 ${selectedType === 'web' ? 'text-indigo-300' : 'text-neutral-400'}`}
                   />
                 </div>
-                <div className="mb-3 text-xl font-bold text-white">Web Application</div>
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-xl font-bold text-white">Web Application</span>
+                  {selectedType !== 'web' && (
+                    <motion.span
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      className="text-[10px] font-bold tracking-widest text-indigo-400 uppercase"
+                    >
+                      Click to configure →
+                    </motion.span>
+                  )}
+                </div>
                 <div className="text-base leading-relaxed text-neutral-400">
                   SPA, SSR, or full-stack web platforms.
                 </div>
@@ -169,7 +180,18 @@ function AppScreenshotMockup() {
                     className={`h-6 w-6 ${selectedType === 'mobile' ? 'text-indigo-300' : 'text-neutral-400'}`}
                   />
                 </div>
-                <div className="mb-3 text-xl font-bold text-white">Mobile Application</div>
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-xl font-bold text-white">Mobile Application</span>
+                  {selectedType !== 'mobile' && (
+                    <motion.span
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      className="text-[10px] font-bold tracking-widest text-indigo-400 uppercase"
+                    >
+                      Click to configure →
+                    </motion.span>
+                  )}
+                </div>
                 <div className="text-base leading-relaxed text-neutral-400">
                   Native iOS & Android experiences.
                 </div>

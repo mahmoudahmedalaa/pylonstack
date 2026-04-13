@@ -95,7 +95,7 @@ export function LinearFeatures() {
               <div className="mb-5 text-sm font-bold tracking-widest text-emerald-400 uppercase">
                 Cost Intelligence
               </div>
-              <h3 className="mb-4 text-5xl font-bold tracking-tight text-white">Predict costs.</h3>
+              <h3 className="mb-4 text-5xl font-bold tracking-tight text-white">Predict costs</h3>
               <p className="text-xl leading-relaxed text-neutral-400">
                 Visualize scaling costs precisely before committing.
               </p>
@@ -140,7 +140,7 @@ export function LinearFeatures() {
                     vectorEffect="non-scaling-stroke"
                   />
                 </svg>
-                <div className="absolute -top-6 right-0 rounded-lg border border-white/20 bg-white/10 px-4 py-2 font-mono text-xl font-bold tracking-tight text-emerald-400 backdrop-blur-md">
+                <div className="absolute -top-12 right-0 rounded-lg border border-white/20 bg-white/10 px-4 py-2 font-mono text-xl font-bold tracking-tight text-emerald-400 backdrop-blur-md">
                   -$42k
                 </div>
               </div>
@@ -155,7 +155,7 @@ export function LinearFeatures() {
                   Orchestration Engine
                 </div>
                 <h3 className="mb-4 text-5xl font-bold tracking-tight text-white">
-                  Mathematical precision.
+                  Mathematical precision
                 </h3>
                 <p className="text-xl leading-relaxed text-neutral-400">
                   Input technical constraints. Our AI engine computes the optimal architecture
@@ -175,9 +175,9 @@ export function LinearFeatures() {
                       ],
                     }}
                     transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                    className="absolute top-1/2 left-1/2 z-20 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2rem] border border-white/20 bg-black shadow-2xl"
+                    className="absolute top-1/2 left-1/2 z-20 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2rem] border border-white/20 bg-black shadow-2xl"
                   >
-                    <Cpu className="h-12 w-12 text-fuchsia-500" strokeWidth={1.5} />
+                    <Cpu className="h-14 w-14 text-fuchsia-500" strokeWidth={1} />
                   </motion.div>
 
                   {/* Satellite Nodes */}
@@ -203,7 +203,7 @@ export function LinearFeatures() {
                       strokeDasharray="6 6"
                       initial={{ strokeDashoffset: 30 }}
                       animate={{ strokeDashoffset: 0 }}
-                      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
                     />
                     <motion.path
                       d="M 80 210 L 225 125"
@@ -212,7 +212,7 @@ export function LinearFeatures() {
                       strokeDasharray="6 6"
                       initial={{ strokeDashoffset: 30 }}
                       animate={{ strokeDashoffset: 0 }}
-                      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
                     />
                     <motion.path
                       d="M 410 80 L 225 125"
@@ -221,7 +221,7 @@ export function LinearFeatures() {
                       strokeDasharray="6 6"
                       initial={{ strokeDashoffset: -30 }}
                       animate={{ strokeDashoffset: 0 }}
-                      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
                     />
                     <motion.path
                       d="M 370 210 L 225 125"
@@ -230,7 +230,7 @@ export function LinearFeatures() {
                       strokeDasharray="6 6"
                       initial={{ strokeDashoffset: -30 }}
                       animate={{ strokeDashoffset: 0 }}
-                      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
                     />
                   </svg>
                 </div>

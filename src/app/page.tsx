@@ -199,38 +199,41 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────
           Obsidian-Style Massive Text Footer
          ──────────────────────────────────────────────── */}
-      <footer className="relative overflow-hidden border-t border-white/5 bg-black pt-24 pb-0">
-        <div className="relative z-10 mx-auto mb-20 flex w-full max-w-[1400px] items-center justify-between px-6">
-          <div className="text-sm tracking-wide text-neutral-600">
-            © 2026 Pylon Inc. All rights reserved.
-          </div>
-          <div className="flex items-center gap-6">
-            <a
-              href="#"
-              className="text-sm tracking-wide text-neutral-600 transition-colors hover:text-white"
-            >
-              Twitter
-            </a>
-            <a
-              href="#"
-              className="text-sm tracking-wide text-neutral-600 transition-colors hover:text-white"
-            >
-              GitHub
-            </a>
-            <a
-              href="#"
-              className="text-sm tracking-wide text-neutral-600 transition-colors hover:text-white"
-            >
-              LinkedIn
-            </a>
-          </div>
-        </div>
-
+      <footer className="relative overflow-hidden border-t border-white/5 bg-black">
         {/* Massive Brand Watermark */}
-        <div className="relative flex w-full translate-y-12 transform justify-center">
+        <div className="relative flex w-full justify-center pt-24 pb-12">
           <span className="pointer-events-none text-[26vw] leading-[0.75] font-bold tracking-tighter text-[#111] select-none">
             PYLON
           </span>
+        </div>
+
+        {/* Actual Layout Footer Layer */}
+        <div className="relative z-10 border-t border-white/5 bg-black py-8">
+          <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-6">
+            <div className="text-sm tracking-wide text-neutral-600">
+              © 2026 Pylon Inc. All rights reserved.
+            </div>
+            <div className="flex items-center gap-6">
+              <a
+                href="#"
+                className="text-sm tracking-wide text-neutral-600 transition-colors hover:text-white"
+              >
+                Twitter
+              </a>
+              <a
+                href="#"
+                className="text-sm tracking-wide text-neutral-600 transition-colors hover:text-white"
+              >
+                GitHub
+              </a>
+              <a
+                href="#"
+                className="text-sm tracking-wide text-neutral-600 transition-colors hover:text-white"
+              >
+                LinkedIn
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

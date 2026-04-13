@@ -75,7 +75,7 @@ export function LinearHero() {
 }
 
 function AppScreenshotMockup() {
-  const [selectedType, setSelectedType] = useState<'web' | 'mobile' | null>(null);
+  const [selectedType, setSelectedType] = useState<'web' | 'mobile' | null>('web');
 
   const webStack = [
     { id: 'next', name: 'Next.js', layer: 'Frontend Framework', color: 'indigo' },

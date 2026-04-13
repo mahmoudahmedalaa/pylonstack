@@ -2,7 +2,7 @@
 
 import { GlowCard } from '@/components/ui/glow-card';
 import { motion } from 'framer-motion';
-import { Database, Zap, Layers, AppWindow, BrainCircuit, Search } from 'lucide-react';
+import { Database, Zap, Layers, AppWindow, Cpu, Search } from 'lucide-react';
 
 export function LinearFeatures() {
   return (
@@ -140,7 +140,7 @@ export function LinearFeatures() {
                     vectorEffect="non-scaling-stroke"
                   />
                 </svg>
-                <div className="absolute top-0 right-0 rounded-lg border border-white/20 bg-white/10 px-4 py-2 font-mono text-xl font-bold tracking-tight text-emerald-400 backdrop-blur-md">
+                <div className="absolute -top-6 right-0 rounded-lg border border-white/20 bg-white/10 px-4 py-2 font-mono text-xl font-bold tracking-tight text-emerald-400 backdrop-blur-md">
                   -$42k
                 </div>
               </div>
@@ -174,10 +174,10 @@ export function LinearFeatures() {
                         '0 0 0 rgba(217,70,239,0)',
                       ],
                     }}
-                    transition={{ duration: 3, repeat: Infinity }}
+                    transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
                     className="absolute top-1/2 left-1/2 z-20 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2rem] border border-white/20 bg-black shadow-2xl"
                   >
-                    <BrainCircuit className="h-12 w-12 text-fuchsia-500" />
+                    <Cpu className="h-12 w-12 text-fuchsia-500" strokeWidth={1.5} />
                   </motion.div>
 
                   {/* Satellite Nodes */}

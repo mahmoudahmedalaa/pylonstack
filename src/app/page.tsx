@@ -6,48 +6,10 @@ import { Layers, Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LinearHero } from '@/components/home/LinearHero';
 import { LinearFeatures } from '@/components/home/LinearFeatures';
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Logo Cloud (Social Proof) - Linear Style
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function LogoCloud() {
-  const logos = [
-    'Vercel',
-    'Supabase',
-    'Stripe',
-    'Linear',
-    'Acme Corp',
-    'GlobalTech',
-    'Clerk',
-    'Redis',
-    'Neon',
-    'Tailwind',
-  ];
-  return (
-    <section className="relative z-20 border-y border-white/5 bg-[#000] py-20">
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-48 bg-gradient-to-r from-black to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-48 bg-gradient-to-l from-black to-transparent" />
-
-      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
-        <p className="mb-10 text-center text-sm font-bold tracking-widest text-neutral-500 uppercase">
-          Trusted by engineers at innovative companies
-        </p>
-        <div className="overflow-hidden">
-          <div className="marquee-track group flex items-center">
-            {[...logos, ...logos].map((logo, i) => (
-              <div
-                key={i}
-                className="font-display mx-12 flex shrink-0 items-center justify-center text-3xl font-bold tracking-widest text-white/50 uppercase transition-opacity hover:text-white"
-              >
-                {logo}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+import { LiveIntegrations } from '@/components/home/LiveIntegrations';
+import { LinearHowItWorks } from '@/components/home/LinearHowItWorks';
+import { LinearResults } from '@/components/home/LinearResults';
+import { LinearPricing } from '@/components/home/LinearPricing';
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Testimonials - Dark Mode Conversion
@@ -226,16 +188,19 @@ export default function HomePage() {
       </nav>
 
       <LinearHero />
-      <LogoCloud />
+      <LiveIntegrations />
       <LinearFeatures />
+      <LinearHowItWorks />
+      <LinearResults />
       <Testimonials />
+      <LinearPricing />
       <FinalCTA />
 
       {/* ────────────────────────────────────────────────
-          Single-Liner Footer
+          Obsidian-Style Massive Text Footer
          ──────────────────────────────────────────────── */}
-      <footer className="border-t border-white/5 bg-black py-8">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6">
+      <footer className="relative overflow-hidden border-t border-white/5 bg-black pt-24 pb-0">
+        <div className="relative z-10 mx-auto mb-20 flex w-full max-w-[1400px] items-center justify-between px-6">
           <div className="text-sm tracking-wide text-neutral-600">
             © 2026 Pylon Inc. All rights reserved.
           </div>
@@ -259,6 +224,13 @@ export default function HomePage() {
               LinkedIn
             </a>
           </div>
+        </div>
+
+        {/* Massive Brand Watermark */}
+        <div className="relative flex w-full translate-y-12 transform justify-center">
+          <span className="pointer-events-none text-[26vw] leading-[0.75] font-bold tracking-tighter text-[#111] select-none">
+            PYLON
+          </span>
         </div>
       </footer>
     </div>

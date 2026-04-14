@@ -127,18 +127,18 @@ export default function HomePage() {
           </Link>
 
           <div className="hidden items-center gap-10 md:flex">
-            <Link
+            <a
               href="#features"
               className="text-base font-medium tracking-wide text-neutral-400 transition-colors hover:text-white"
             >
               Features
-            </Link>
-            <Link
+            </a>
+            <a
               href="#testimonials"
               className="text-base font-medium tracking-wide text-neutral-400 transition-colors hover:text-white"
             >
               Testimonials
-            </Link>
+            </a>
             <Link
               href="/catalog"
               className="text-base font-medium tracking-wide text-neutral-400 transition-colors hover:text-white"

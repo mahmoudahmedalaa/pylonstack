@@ -122,8 +122,8 @@ function OptionCard({
       onClick={onClick}
       className={`group relative flex flex-col items-start rounded-xl border-2 p-5 text-left transition-all duration-200 ${
         isSelected
-          ? 'border-[var(--primary)] bg-[var(--primary)]/5 shadow-[0_0_0_1px_var(--primary),var(--shadow-glow)]'
-          : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]/30 hover:bg-[var(--elevated)]'
+          ? 'border-white bg-white/5 shadow-[0_0_0_1px_rgba(255,255,255,0.15)]'
+          : 'border-white/10 bg-[#0a0a0a] hover:border-white/20 hover:bg-white/5'
       }`}
     >
       {/* Selection indicator */}

@@ -31,7 +31,7 @@ function ToolCard({ tool, onSelect }: { tool: Tool; onSelect: (tool: Tool) => vo
   return (
     <div
       onClick={() => onSelect(tool)}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-[color:var(--ring)]/30 hover:shadow-[var(--shadow-card)]"
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/5"
     >
       {/* Top: Logo + Name */}
       <div className="flex items-start gap-3">
@@ -127,10 +127,10 @@ function CategoryPill({
   return (
     <button
       onClick={onClick}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-150 ${
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold tracking-wide transition-all duration-150 ${
         isActive
-          ? 'bg-[var(--primary)] text-white shadow-sm'
-          : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]'
+          ? 'bg-white text-black shadow-sm'
+          : 'bg-white/5 text-neutral-500 hover:bg-white/10 hover:text-white'
       }`}
     >
       {category}
@@ -247,10 +247,8 @@ export default function CatalogPage() {
     <div className="space-y-6">
       {/* ── Header ── */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
-          Tech Catalog
-        </h1>
-        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+        <h1 className="text-4xl font-bold tracking-tight text-white">Tech Catalog</h1>
+        <p className="mt-1 text-sm text-neutral-500">
           Browse and discover {TOOLS.length}+ tools, frameworks, and services for your stack.
         </p>
       </div>
@@ -264,7 +262,7 @@ export default function CatalogPage() {
             placeholder={`Search ${TOOLS.length} tools...`}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] py-2.5 pr-4 pl-10 text-sm text-[var(--foreground)] transition-colors placeholder:text-[var(--muted-foreground)] focus:border-[var(--ring)] focus:ring-1 focus:ring-[var(--ring)] focus:outline-none"
+            className="w-full rounded-lg border border-white/10 bg-[#0a0a0a] py-2.5 pr-4 pl-10 text-sm text-white transition-colors placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
           />
           {searchQuery && (
             <button
@@ -497,7 +495,7 @@ function ListToolRow({ tool, onSelect }: { tool: Tool; onSelect: (tool: Tool) =>
   return (
     <div
       onClick={() => onSelect(tool)}
-      className="group flex cursor-pointer items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--card)] px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[color:var(--ring)]/30 hover:shadow-sm"
+      className="group flex cursor-pointer items-center gap-4 rounded-xl border border-white/10 bg-[#0a0a0a] px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-500/40 hover:shadow-sm"
     >
       <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--muted)]/50 p-2">
         <div className="absolute -top-3 -left-3 scale-75">

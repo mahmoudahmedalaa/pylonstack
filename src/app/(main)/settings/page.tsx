@@ -694,34 +694,30 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* ── Header ── */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Settings</h1>
-        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+        <h1 className="text-4xl font-bold tracking-tight text-white">Settings</h1>
+        <p className="mt-1 text-sm text-neutral-500">
           Manage your account, preferences, and integrations.
         </p>
       </div>
 
-      {/* ── Tabs ── */}
-      <div className="border-b border-[var(--border)]">
-        <nav className="-mb-px flex gap-4 overflow-x-auto sm:gap-6">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex shrink-0 items-center gap-2 border-b-2 pt-1 pb-3 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'border-[var(--primary)] text-[var(--foreground)]'
-                    : 'border-transparent text-[var(--muted-foreground)] hover:border-[var(--border)] hover:text-[var(--foreground)]'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </nav>
+      {/* ── Tabs (pill-style) ── */}
+      <div className="flex w-fit gap-2 rounded-full border border-white/10 bg-white/5 p-1">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold tracking-wide transition-all ${
+                isActive ? 'bg-white text-black shadow-sm' : 'text-neutral-500 hover:text-white'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Tab Content ── */}

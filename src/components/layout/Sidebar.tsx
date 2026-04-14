@@ -13,10 +13,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Zap,
   LogOut,
 } from 'lucide-react';
-import { AnimatedGradientText } from '@/components/ui/animated-gradient-text';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
@@ -52,17 +50,15 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed top-0 left-0 z-40 flex h-screen flex-col border-r border-[var(--border)] bg-[var(--card)] shadow-sm transition-[width] duration-300 ease-in-out',
+        'fixed top-0 left-0 z-40 flex h-screen flex-col border-r border-white/5 bg-[#050505] shadow-sm transition-[width] duration-300 ease-in-out',
         collapsed ? 'w-[72px]' : 'w-[260px]',
       )}
     >
       {/* Logo Section */}
-      <div className="flex h-16 items-center gap-3 border-b border-[var(--border)] px-4">
-        <div className="group relative shrink-0">
-          <div className="from-primary-600 absolute -inset-1 rounded-lg bg-gradient-to-r to-indigo-600 opacity-20 blur transition duration-500 group-hover:opacity-40"></div>
-          <div className="bg-primary-500 relative flex h-9 w-9 items-center justify-center rounded-lg text-white shadow-lg">
-            <Zap className="h-5 w-5 fill-current" />
-          </div>
+      <div className="flex h-16 items-center gap-3 border-b border-white/5 px-4">
+        {/* P Monogram */}
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white">
+          <span className="text-lg leading-none font-black text-black">P</span>
         </div>
 
         <AnimatePresence mode="wait">
@@ -75,9 +71,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               className="flex-1 overflow-hidden"
             >
               <Link href="/dashboard">
-                <AnimatedGradientText className="text-xl font-bold tracking-tighter">
-                  Pylon
-                </AnimatedGradientText>
+                <span className="text-xl font-bold tracking-tighter text-white">Pylon</span>
               </Link>
             </motion.div>
           )}
@@ -86,7 +80,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Navigation */}
       <nav
-        className="scrollbar-hide flex-1 space-y-1.5 overflow-y-auto px-3 py-6"
+        className="scrollbar-hide flex-1 space-y-1 overflow-y-auto px-3 py-6"
         aria-label="Main navigation"
       >
         {navItems.map(({ label, href, icon: Icon }, index) => {
@@ -102,18 +96,16 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 href={href}
                 title={collapsed ? label : undefined}
                 className={cn(
-                  'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                  'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold tracking-wide transition-all duration-200',
                   isActive
-                    ? 'bg-primary-500/10 text-primary-600 shadow-[inset_0_1px_1px_rgba(0,0,0,0.05)]'
-                    : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]',
+                    ? 'bg-white/10 text-white'
+                    : 'text-neutral-500 hover:bg-white/5 hover:text-white',
                 )}
               >
                 <div
                   className={cn(
                     'flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200',
-                    isActive
-                      ? 'bg-primary-500/20 text-primary-600'
-                      : 'text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]',
+                    isActive ? 'text-white' : 'text-neutral-500 group-hover:text-white',
                   )}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
@@ -131,7 +123,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 {isActive && !collapsed && (
                   <motion.div
                     layoutId="active-nav"
-                    className="bg-primary-500 absolute right-2 h-1.5 w-1.5 rounded-full"
+                    className="absolute right-3 h-1.5 w-1.5 rounded-full bg-white"
                   />
                 )}
               </Link>
@@ -141,7 +133,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </nav>
 
       {/* User Section & Collapse Toggle */}
-      <div className="mt-auto border-t border-[var(--border)] bg-gradient-to-t from-[var(--muted)]/30 to-transparent">
+      <div className="mt-auto border-t border-white/5">
         {/* User Info */}
         {user && (
           <div
@@ -153,27 +145,27 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 fallback={initials}
                 size="sm"
                 src={user.user_metadata?.avatar_url}
-                className="shadow-sm ring-2 ring-white"
+                className="shadow-sm ring-2 ring-white/10"
               />
-              <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+              <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-[#050505] bg-emerald-500" />
             </div>
 
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] leading-tight font-semibold text-[var(--foreground)]">
+                <p className="truncate text-[13px] leading-tight font-bold text-white">
                   {displayName}
                 </p>
-                <p className="truncate text-[11px] text-[var(--muted-foreground)]">{user.email}</p>
+                <p className="truncate text-[11px] text-neutral-500">{user.email}</p>
               </div>
             )}
 
             {!collapsed && (
               <button
                 onClick={signOut}
-                className="shrink-0 rounded-lg p-2 text-[var(--muted-foreground)] transition-all hover:bg-red-500/10 hover:text-red-500"
+                className="shrink-0 rounded-lg p-2 text-neutral-500 transition-all hover:bg-red-500/10 hover:text-red-400"
                 title="Sign out"
               >
-                <LogOut className="h-4.5 w-4.5" />
+                <LogOut className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -183,7 +175,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <div className="px-3 pb-4">
           <button
             onClick={onToggle}
-            className="flex w-full items-center justify-center rounded-xl py-2 text-[var(--muted-foreground)] transition-all hover:bg-[var(--muted)] hover:text-[var(--foreground)] hover:shadow-sm"
+            className="flex w-full items-center justify-center rounded-xl py-2 text-neutral-500 transition-all hover:bg-white/5 hover:text-white"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? (
@@ -191,7 +183,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             ) : (
               <div className="flex items-center gap-2">
                 <ChevronLeft className="h-5 w-5" />
-                <span className="text-xs font-semibold tracking-wider uppercase opacity-60">
+                <span className="text-xs font-bold tracking-widest uppercase opacity-50">
                   Collapse
                 </span>
               </div>

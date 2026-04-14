@@ -24,26 +24,29 @@ export function LinearPricing() {
           </p>
 
           {/* Toggle Switch */}
-          <div className="mx-auto flex h-16 w-full max-w-[380px] items-center rounded-full border border-white/10 bg-[#0a0a0a] p-1 shadow-inner">
-            <button
-              onClick={() => setIsAnnual(false)}
-              className={`flex-1 rounded-full text-base font-bold tracking-wide transition-all duration-300 ${!isAnnual ? 'bg-white/10 text-white shadow-lg' : 'text-neutral-500 hover:text-white'}`}
-              style={{ height: 'calc(100% - 4px)' }}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setIsAnnual(true)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full text-base font-bold tracking-wide transition-all duration-300 ${isAnnual ? 'bg-white text-black shadow-lg' : 'text-neutral-500 hover:text-white'}`}
-              style={{ height: 'calc(100% - 4px)' }}
-            >
-              Annually
-              {isAnnual && (
-                <span className="rounded-full border border-indigo-500/30 bg-indigo-500/20 px-2 py-0.5 text-[10px] leading-tight font-black tracking-widest text-indigo-700 uppercase drop-shadow-sm">
-                  Save 20%
-                </span>
-              )}
-            </button>
+          <div className="mx-auto flex flex-col items-center gap-3">
+            <div className="flex h-16 w-full max-w-[380px] items-center rounded-full border border-white/10 bg-[#0a0a0a] p-1 shadow-inner">
+              <button
+                onClick={() => setIsAnnual(false)}
+                className={`flex-1 rounded-full text-base font-bold tracking-wide transition-all duration-300 ${!isAnnual ? 'bg-white/10 text-white shadow-lg' : 'text-neutral-500 hover:text-white'}`}
+                style={{ height: 'calc(100% - 4px)' }}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setIsAnnual(true)}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-full text-base font-bold tracking-wide transition-all duration-300 ${isAnnual ? 'bg-white text-black shadow-lg' : 'text-neutral-500 hover:text-white'}`}
+                style={{ height: 'calc(100% - 4px)' }}
+              >
+                Annually
+              </button>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-neutral-500">
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-black tracking-widest text-emerald-400 uppercase">
+                Save 20%
+              </span>
+              <span>when billed annually</span>
+            </div>
           </div>
         </div>
 

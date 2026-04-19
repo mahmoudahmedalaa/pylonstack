@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { streamAIRecommendation } from '@/lib/ai/ai-client';
@@ -282,32 +281,30 @@ export async function POST(request: NextRequest) {
         });
 
         // 5. Asynchronously update placeholder on finish
-        after(async () => {
-          try {
-            await supabaseAdmin
-              .from('ai_recommendations')
-              .update({
-                generation_time_ms: generationTimeMs,
-                raw_response: {
-                  inputContext: safeBody,
-                  summary: obj.summary || 'Generation still incomplete...',
-                  estimatedMonthlyCost: obj.estimatedMonthlyCost || 0,
-                  phases: mappedPhases,
-                  recommendations: mappedRecommendations,
-                  source: 'gemini',
-                  correctionAttempts: 0,
-                  validationPassed: true,
-                  generationTimeMs,
-                  qualityGrade: null,
-                  adminNotes: null,
-                } as Record<string, unknown>,
+        try {
+          await supabaseAdmin
+            .from('ai_recommendations')
+            .update({
+              generation_time_ms: generationTimeMs,
+              raw_response: {
+                inputContext: safeBody,
+                summary: obj.summary || 'Generation still incomplete...',
+                estimatedMonthlyCost: obj.estimatedMonthlyCost || 0,
+                phases: mappedPhases,
                 recommendations: mappedRecommendations,
-              })
-              .eq('id', recommendation.id);
-          } catch (err) {
-            console.error('[after hook] bg DB update failed:', err);
-          }
-        });
+                source: 'gemini',
+                correctionAttempts: 0,
+                validationPassed: true,
+                generationTimeMs,
+                qualityGrade: null,
+                adminNotes: null,
+              } as Record<string, unknown>,
+              recommendations: mappedRecommendations,
+            })
+            .eq('id', recommendation.id);
+        } catch (err) {
+          console.error('[onFinish hook] bg DB update failed:', err);
+        }
       });
 
       if (streamRes.type === 'fallback') {

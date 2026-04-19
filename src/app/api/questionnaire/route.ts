@@ -45,24 +45,58 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'At least one priority is needed' }, { status: 400 });
     }
 
-    // Authenticate user via Supabase session
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    // ── ENV diagnostics (logged server-side only) ──
+    const hasAnonKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const hasDbUrl = !!process.env.DATABASE_URL;
+    const anonKeyPrefix = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 10) || 'MISSING';
+    console.log(
+      `[questionnaire] ENV check — anonKey: ${hasAnonKey} (${anonKeyPrefix}…), dbUrl: ${hasDbUrl}`,
+    );
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Authenticate user via Supabase session
+    let user;
+    try {
+      const supabase = await createClient();
+      const { data, error: authError } = await supabase.auth.getUser();
+
+      if (authError) {
+        console.error('[questionnaire] Auth error:', authError.message, authError.status);
+        return NextResponse.json(
+          { error: `Auth failed: ${authError.message}` },
+          { status: authError.status || 401 },
+        );
+      }
+
+      if (!data.user) {
+        return NextResponse.json(
+          { error: 'Not authenticated — no user in session' },
+          { status: 401 },
+        );
+      }
+
+      user = data.user;
+    } catch (authCrash) {
+      const msg = authCrash instanceof Error ? authCrash.message : String(authCrash);
+      console.error('[questionnaire] Auth CRASHED:', msg);
+      return NextResponse.json({ error: `Auth system error: ${msg}` }, { status: 500 });
     }
 
     const userId = user.id;
 
-    const [profile] = await db
-      .select({ subscriptionTier: profiles.subscriptionTier })
-      .from(profiles)
-      .where(eq(profiles.id, userId))
-      .limit(1);
+    // Fetch profile with DB error isolation
+    let profile;
+    try {
+      const [result] = await db
+        .select({ subscriptionTier: profiles.subscriptionTier })
+        .from(profiles)
+        .where(eq(profiles.id, userId))
+        .limit(1);
+      profile = result;
+    } catch (dbError) {
+      const msg = dbError instanceof Error ? dbError.message : String(dbError);
+      console.error('[questionnaire] DB query FAILED:', msg);
+      return NextResponse.json({ error: `Database connection error: ${msg}` }, { status: 500 });
+    }
 
     const tier = profile?.subscriptionTier || 'free';
     const isSuperUser =

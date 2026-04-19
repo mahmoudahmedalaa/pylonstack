@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Layers, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Logo } from '@/components/ui/Logo';
 import { LinearHero } from '@/components/home/LinearHero';
 import { LinearFeatures } from '@/components/home/LinearFeatures';
 import { LiveIntegrations } from '@/components/home/LiveIntegrations';
@@ -120,9 +121,7 @@ export default function HomePage() {
       <nav className="fixed top-0 z-50 w-full border-b border-white/5 bg-black/60 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between px-6">
           <Link href="/" className="group flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white">
-              <Layers className="h-4 w-4 text-black transition-transform group-hover:scale-110" />
-            </div>
+            <Logo className="h-8 w-8 text-white transition-transform group-hover:scale-110" />
             <span className="text-xl font-bold tracking-tight text-white">Pylon</span>
           </Link>
 

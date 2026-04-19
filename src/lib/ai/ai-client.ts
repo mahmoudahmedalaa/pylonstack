@@ -250,7 +250,7 @@ export async function streamAIRecommendation(
 
 // ── Deterministic Fallback ──
 
-function getFallbackRecommendation(answers: WizardAnswers): AIRecommendationResult {
+export function getFallbackRecommendation(answers: WizardAnswers): AIRecommendationResult {
   const isWeb = answers.projectType === 'web_app';
   const isMobile = answers.projectType === 'mobile_app';
   const wantsTypescript = answers.preferences.includes('typescript');

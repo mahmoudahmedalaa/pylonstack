@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { waitUntil } from '@vercel/functions';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { streamAIRecommendation } from '@/lib/ai/ai-client';
+import { streamAIRecommendation, getFallbackRecommendation } from '@/lib/ai/ai-client';
 import { buildPromptFingerprint, isCacheValid } from '@/lib/cache/prompt-cache';
 
 import type { WizardAnswers } from '@/stores/wizard-store';
 
-export const maxDuration = 60; // Allow 60 seconds for AI Generation
+export const maxDuration = 60; // Allow 60 seconds for AI Generation (if Node)
+export const runtime = 'edge'; // Instantly bypass Vercel Hobby 10.0s limitation
 
 /**
  * POST /api/questionnaire
@@ -321,17 +322,55 @@ export async function POST(request: NextRequest) {
           } catch (err) {
             console.error('[onFinish hook] bg DB update failed:', err);
             try {
+              // Retrieve deterministic fallback so the user isn't stuck with an empty block
+              const aiResult = getFallbackRecommendation(safeBody);
+              const fallbackGenerationTimeMs = Date.now() - aiStartMs;
+
               await supabaseAdmin
                 .from('ai_recommendations')
                 .update({
+                  generation_time_ms: fallbackGenerationTimeMs,
                   raw_response: {
-                    status: 'error',
-                    message: err instanceof Error ? err.stack || err.message : String(err),
-                  },
+                    inputContext: safeBody,
+                    summary:
+                      'Connection dropped during generation. We applied safe robust defaults based on your exact requirements.',
+                    estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
+                    phases: aiResult.phases,
+                    recommendations: aiResult.recommendations,
+                    source: 'fallback_after_stream_abort',
+                    correctionAttempts: aiResult.correctionAttempts ?? 0,
+                    validationPassed: true,
+                    validationWarnings: [
+                      err instanceof Error ? err.stack || err.message : String(err),
+                    ],
+                    generationTimeMs: fallbackGenerationTimeMs,
+                  } as Record<string, unknown>,
+                  recommendations: (aiResult.recommendations || []).map((r: unknown) => {
+                    const rec = (r || {}) as {
+                      categoryName?: string;
+                      toolName?: string;
+                      confidence?: number;
+                      reasoning?: string;
+                      alternatives?: string[];
+                    };
+                    return {
+                      category_slug: (rec.categoryName || 'uncategorized')
+                        .toLowerCase()
+                        .replace(/\\s+/g, '-'),
+                      tool_slug: (rec.toolName || 'unknown-tool')
+                        .toLowerCase()
+                        .replace(/\\s+/g, '-'),
+                      confidence: rec.confidence || 80,
+                      reasoning: rec.reasoning || 'Recommended by AI Fallback',
+                      alternative_slug: (rec.alternatives?.[0] || 'none')
+                        .toLowerCase()
+                        .replace(/\\s+/g, '-'),
+                    };
+                  }),
                 })
                 .eq('id', recommendation.id);
             } catch (fallbackErr) {
-              console.error('Failed to save fallback error', fallbackErr);
+              console.error('Failed to save fallback error after abort', fallbackErr);
             }
           } finally {
             resolveOnFinish();

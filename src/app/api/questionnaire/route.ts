@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { after } from 'next/server';
+import { waitUntil } from '@vercel/functions';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { streamAIRecommendation } from '@/lib/ai/ai-client';
@@ -249,72 +249,87 @@ export async function POST(request: NextRequest) {
       const streamRes = await streamAIRecommendation(safeBody);
 
       if (streamRes.type === 'stream') {
-        // 5. Asynchronously update placeholder on finish using next/server after()
-        after(async () => {
-          try {
-            const generationTimeMs = Date.now() - aiStartMs;
-            // Await the fully assembled object from the stream
-            const object = await streamRes.result.object;
+        // 5. Asynchronously update placeholder on finish using @vercel/functions waitUntil
+        waitUntil(
+          (async () => {
+            try {
+              const generationTimeMs = Date.now() - aiStartMs;
+              // Await the fully assembled object from the stream
+              const object = await streamRes.result.object;
 
-            const obj = (object || {}) as {
-              summary?: string;
-              estimatedMonthlyCost?: number;
-              phases?: unknown[];
-              recommendations?: unknown[];
-            };
+              const obj = (object || {}) as {
+                summary?: string;
+                estimatedMonthlyCost?: number;
+                phases?: unknown[];
+                recommendations?: unknown[];
+              };
 
-            const mappedRecommendations = ((obj.recommendations || []) as unknown[]).map(
-              (r: unknown) => {
-                const rec = (r || {}) as {
-                  categoryName?: string;
-                  toolName?: string;
-                  confidence?: number;
-                  reasoning?: string;
-                  alternatives?: string[];
-                };
-                return {
-                  category_slug: (rec.categoryName || 'uncategorized')
-                    .toLowerCase()
-                    .replace(/\\s+/g, '-'),
-                  tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\\s+/g, '-'),
-                  confidence: rec.confidence || 80,
-                  reasoning: rec.reasoning || 'Recommended by AI',
-                  alternative_slug: (rec.alternatives?.[0] || 'none')
-                    .toLowerCase()
-                    .replace(/\\s+/g, '-'),
-                };
-              },
-            );
+              const mappedRecommendations = ((obj.recommendations || []) as unknown[]).map(
+                (r: unknown) => {
+                  const rec = (r || {}) as {
+                    categoryName?: string;
+                    toolName?: string;
+                    confidence?: number;
+                    reasoning?: string;
+                    alternatives?: string[];
+                  };
+                  return {
+                    category_slug: (rec.categoryName || 'uncategorized')
+                      .toLowerCase()
+                      .replace(/\\s+/g, '-'),
+                    tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\\s+/g, '-'),
+                    confidence: rec.confidence || 80,
+                    reasoning: rec.reasoning || 'Recommended by AI',
+                    alternative_slug: (rec.alternatives?.[0] || 'none')
+                      .toLowerCase()
+                      .replace(/\\s+/g, '-'),
+                  };
+                },
+              );
 
-            const mappedPhases = (obj.phases || []).map((p: unknown) => {
-              const phase = (p || {}) as Record<string, unknown>;
-              return { ...phase, tools: (phase.tools as unknown[]) || [] };
-            });
+              const mappedPhases = (obj.phases || []).map((p: unknown) => {
+                const phase = (p || {}) as Record<string, unknown>;
+                return { ...phase, tools: (phase.tools as unknown[]) || [] };
+              });
 
-            await supabaseAdmin
-              .from('ai_recommendations')
-              .update({
-                generation_time_ms: generationTimeMs,
-                raw_response: {
-                  inputContext: safeBody,
-                  summary: obj.summary || 'Generation still incomplete...',
-                  estimatedMonthlyCost: obj.estimatedMonthlyCost || 0,
-                  phases: mappedPhases,
+              await supabaseAdmin
+                .from('ai_recommendations')
+                .update({
+                  generation_time_ms: generationTimeMs,
+                  raw_response: {
+                    inputContext: safeBody,
+                    summary: obj.summary || 'Generation still incomplete...',
+                    estimatedMonthlyCost: obj.estimatedMonthlyCost || 0,
+                    phases: mappedPhases,
+                    recommendations: mappedRecommendations,
+                    source: 'gemini',
+                    correctionAttempts: 0,
+                    validationPassed: true,
+                    generationTimeMs,
+                    qualityGrade: null,
+                    adminNotes: null,
+                  } as Record<string, unknown>,
                   recommendations: mappedRecommendations,
-                  source: 'gemini',
-                  correctionAttempts: 0,
-                  validationPassed: true,
-                  generationTimeMs,
-                  qualityGrade: null,
-                  adminNotes: null,
-                } as Record<string, unknown>,
-                recommendations: mappedRecommendations,
-              })
-              .eq('id', recommendation.id);
-          } catch (err) {
-            console.error('[after hook] bg DB update failed:', err);
-          }
-        });
+                })
+                .eq('id', recommendation.id);
+            } catch (err) {
+              console.error('[after hook] bg DB update failed:', err);
+              try {
+                await supabaseAdmin
+                  .from('ai_recommendations')
+                  .update({
+                    raw_response: {
+                      status: 'error',
+                      message: err instanceof Error ? err.stack || err.message : String(err),
+                    },
+                  })
+                  .eq('id', recommendation.id);
+              } catch (fallbackErr) {
+                console.error('Failed to save fallback error', fallbackErr);
+              }
+            }
+          })(),
+        );
       }
 
       if (streamRes.type === 'fallback') {

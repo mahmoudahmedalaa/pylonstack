@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { getAIRecommendation } from '@/lib/ai/ai-client';
+import { streamAIRecommendation } from '@/lib/ai/ai-client';
 import { buildPromptFingerprint, isCacheValid } from '@/lib/cache/prompt-cache';
 
 import type { WizardAnswers } from '@/stores/wizard-store';
@@ -219,62 +219,126 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // 3. Get AI recommendation
+      // 3. Create Placeholder AI Recommendation
       const safeBody = {
         ...body,
         description: safeDescription,
         projectName: safeProjectName || projectName,
       };
-      const aiStartMs = Date.now();
-      const aiResult = await getAIRecommendation(safeBody);
-      const generationTimeMs = Date.now() - aiStartMs;
 
-      // 4. Save AI recommendation to DB
       const { data: recommendation, error: recError } = await supabaseAdmin
         .from('ai_recommendations')
         .insert({
           project_id: project.id,
           user_id: userId,
-          model_used: aiResult.source === 'gemini' ? 'gemini-2.5-flash' : 'fallback-rules',
+          model_used: 'gemini-2.5-flash',
           prompt_hash: Buffer.from(JSON.stringify(safeBody)).toString('base64').slice(0, 64),
-          generation_time_ms: generationTimeMs,
-          raw_response: {
-            inputContext: safeBody,
-            summary: aiResult.summary,
-            estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
-            phases: aiResult.phases,
-            recommendations: aiResult.recommendations,
-            source: aiResult.source,
-            correctionAttempts: aiResult.correctionAttempts ?? 0,
-            validationPassed: (aiResult.correctionAttempts ?? 0) < 3,
-            validationWarnings: aiResult.validationWarnings ?? [],
-            generationTimeMs,
-            qualityGrade: null,
-            adminNotes: null,
-          } as Record<string, unknown>,
-          recommendations: (aiResult.recommendations || []).map((r) => ({
-            category_slug: (r.categoryName || 'uncategorized').toLowerCase().replace(/\s+/g, '-'),
-            tool_slug: (r.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
-            confidence: r.confidence || 80,
-            reasoning: r.reasoning || 'Recommended by AI',
-            alternative_slug: (r.alternatives?.[0] || 'none').toLowerCase().replace(/\s+/g, '-'),
-          })),
+          raw_response: { status: 'generating' },
+          recommendations: [],
         })
         .select('id')
         .single();
 
-      if (recError) throw new Error(`Recommendation save failed: ${recError.message}`);
+      if (recError) throw new Error(`Recommendation placeholder save failed: ${recError.message}`);
 
-      return NextResponse.json({
-        projectId: project.id,
-        recommendationId: recommendation!.id,
-        recommendations: aiResult.recommendations,
-        phases: aiResult.phases,
-        summary: aiResult.summary,
-        estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
-        source: aiResult.source,
-        correctionAttempts: aiResult.correctionAttempts ?? 0,
-        servedFromCache: false,
+      // 4. Get AI recommendation (Streaming or Fallback)
+      const aiStartMs = Date.now();
+      const streamRes = await streamAIRecommendation(safeBody, async ({ object }) => {
+        const generationTimeMs = Date.now() - aiStartMs;
+        // 5. Asynchronously update placeholder on finish
+        await supabaseAdmin
+          .from('ai_recommendations')
+          .update({
+            generation_time_ms: generationTimeMs,
+            raw_response: {
+              inputContext: safeBody,
+              summary: object.summary,
+              estimatedMonthlyCost: object.estimatedMonthlyCost,
+              phases: object.phases,
+              recommendations: object.recommendations,
+              source: 'gemini',
+              correctionAttempts: 0,
+              validationPassed: true,
+              generationTimeMs,
+              qualityGrade: null,
+              adminNotes: null,
+            } as Record<string, unknown>,
+            recommendations: ((object.recommendations || []) as unknown[]).map((r: unknown) => {
+              const rec = r as {
+                categoryName?: string;
+                toolName?: string;
+                confidence?: number;
+                reasoning?: string;
+                alternatives?: string[];
+              };
+              return {
+                category_slug: (rec.categoryName || 'uncategorized')
+                  .toLowerCase()
+                  .replace(/\s+/g, '-'),
+                tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
+                confidence: rec.confidence || 80,
+                reasoning: rec.reasoning || 'Recommended by AI',
+                alternative_slug: (rec.alternatives?.[0] || 'none')
+                  .toLowerCase()
+                  .replace(/\s+/g, '-'),
+              };
+            }),
+          })
+          .eq('id', recommendation.id);
+      });
+
+      if (streamRes.type === 'fallback') {
+        const aiResult = streamRes.data;
+        const generationTimeMs = Date.now() - aiStartMs;
+
+        // Update placeholder with fallback right away
+        await supabaseAdmin
+          .from('ai_recommendations')
+          .update({
+            generation_time_ms: generationTimeMs,
+            raw_response: {
+              inputContext: safeBody,
+              summary: aiResult.summary,
+              estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
+              phases: aiResult.phases,
+              recommendations: aiResult.recommendations,
+              source: aiResult.source,
+              correctionAttempts: aiResult.correctionAttempts ?? 0,
+              validationPassed: (aiResult.correctionAttempts ?? 0) < 3,
+              validationWarnings: aiResult.validationWarnings ?? [],
+              generationTimeMs,
+              qualityGrade: null,
+              adminNotes: null,
+            } as Record<string, unknown>,
+            recommendations: (aiResult.recommendations || []).map((r) => ({
+              category_slug: (r.categoryName || 'uncategorized').toLowerCase().replace(/\s+/g, '-'),
+              tool_slug: (r.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
+              confidence: r.confidence || 80,
+              reasoning: r.reasoning || 'Recommended by AI',
+              alternative_slug: (r.alternatives?.[0] || 'none').toLowerCase().replace(/\s+/g, '-'),
+            })),
+          })
+          .eq('id', recommendation.id);
+
+        return NextResponse.json({
+          projectId: project.id,
+          recommendationId: recommendation.id,
+          recommendations: aiResult.recommendations,
+          phases: aiResult.phases,
+          summary: aiResult.summary,
+          estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
+          source: aiResult.source,
+          correctionAttempts: aiResult.correctionAttempts ?? 0,
+          servedFromCache: false,
+        });
+      }
+
+      // Return Stream!
+      return streamRes.result.toTextStreamResponse({
+        headers: {
+          'x-recommendation-id': recommendation.id,
+          'x-project-id': project.id,
+        },
       });
     } catch (innerError) {
       // Rollback orphaned project

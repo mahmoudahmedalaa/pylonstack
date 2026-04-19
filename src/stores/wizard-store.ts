@@ -168,9 +168,40 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
         throw new Error(body.error || `Request failed (${res.status})`);
       }
 
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+
+      if (contentType.includes('application/json')) {
+        // Handled via cache or definitive fallback
+        const data = await res.json();
+        set({ isSubmitting: false });
+        // Give Supabase a tiny bit of breathing room before SSR fetches
+        await new Promise((r) => setTimeout(r, 500));
+        return data as { projectId: string; recommendationId: string };
+      }
+
+      // Streaming Response (AI SDK Stream bypassing 15s timeout)
+      const recId = res.headers.get('x-recommendation-id');
+      const projId = res.headers.get('x-project-id');
+
+      if (!recId || !projId) {
+        throw new Error('Streaming response missing required headers');
+      }
+
+      // Drain stream completely to keep connection alive
+      if (res.body) {
+        const reader = res.body.getReader();
+        while (true) {
+          const { done } = await reader.read();
+          if (done) break;
+        }
+      }
+
+      // Buffer time to allow the server's `onFinish` DB update to complete
+      // before Next.js attempts to SSR the Results page from the DB
+      await new Promise((r) => setTimeout(r, 1200));
+
       set({ isSubmitting: false });
-      return data as { projectId: string; recommendationId: string };
+      return { projectId: projId, recommendationId: recId };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       set({ isSubmitting: false, error: message });

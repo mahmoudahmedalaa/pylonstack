@@ -5,10 +5,11 @@
  * Wraps the model call, structured output parsing, and error handling.
  */
 
-import { GoogleGenAI } from '@google/genai';
+import { google } from '@ai-sdk/google';
+import { streamObject, type StreamObjectResult } from 'ai';
+import { AIRecommendationSchema } from './schema';
 import type { WizardAnswers } from '@/stores/wizard-store';
 import { TOOLS, getToolTiers } from '@/data/tools-catalog';
-import { validateStack, buildCorrectionPrompt } from '@/lib/validation/rules';
 import { buildCompatibilityContext } from '@/lib/validation/compatibility-graph';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -16,8 +17,6 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 if (!GEMINI_API_KEY) {
   console.warn('⚠️  GEMINI_API_KEY is not set — AI recommendations will use fallback logic.');
 }
-
-const ai = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
 
 // ── Types ──
 
@@ -213,152 +212,40 @@ Include recommendations for at least these categories:
 Order by importance. Prefer production-proven tools. Consider the team size and priorities when choosing.${correctionNote ?? ''}`;
 }
 
-// ── Gemini Call ──
+// ── AI SDK Stream ──
 
-// ── Evaluator-Optimizer Loop ──
-
-// Reduced to 0 to prevent 504 Timeout on Vercel.
-// Vercel Hobby strictly kills functions at 60s. Retrying guarantees we hit this limit.
-const MAX_CORRECTION_ATTEMPTS = 0;
+export type AIStreamOrFallback =
+  | { type: 'stream'; result: StreamObjectResult<unknown, unknown, unknown> }
+  | { type: 'fallback'; data: AIRecommendationResult };
 
 /**
- * Parses and post-processes a raw AI JSON response into AIRecommendationResult.
- * Handles: stripping markdown fences, numeric coercion, phase cost recalculation.
+ * Returns a StreamObjectResult (which provides chunked JSON streaming via Zod)
+ * OR returns the deterministic fallback immediately if no API key or other constraint is met.
  */
-function parseAIResponse(text: string): AIRecommendationResult {
-  const jsonStr = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-  const parsed = JSON.parse(jsonStr) as {
-    summary: string;
-    estimatedMonthlyCost: number;
-    recommendations: ToolRecommendation[];
-    phases: ProjectPhase[];
-  };
-
-  if (!parsed || !Array.isArray(parsed.recommendations) || !Array.isArray(parsed.phases)) {
-    throw new Error('Missing required arrays in AI response');
+export async function streamAIRecommendation(
+  answers: WizardAnswers,
+  onFinish?: (options: { object: Record<string, unknown> | unknown }) => Promise<void>,
+): Promise<AIStreamOrFallback> {
+  if (!GEMINI_API_KEY) {
+    return { type: 'fallback', data: getFallbackRecommendation(answers) };
   }
 
-  // Coerce: force valid numeric costs
-  parsed.recommendations.forEach((rec) => {
-    if (!Array.isArray(rec.alternatives) || rec.alternatives.length === 0) {
-      rec.alternatives = ['Alternative A', 'Alternative B'];
-    }
-  });
+  const prompt = buildPrompt(answers);
 
-  parsed.phases.forEach((phase) => {
-    phase.tools.forEach((tool) => {
-      if (typeof tool.monthlyCost !== 'number') {
-        tool.monthlyCost = parseFloat(tool.monthlyCost as unknown as string) || 0;
-      }
+  try {
+    const stream = await streamObject({
+      model: google('gemini-2.5-flash'),
+      schema: AIRecommendationSchema,
+      prompt,
+      temperature: 0.3,
+      onFinish,
     });
-    // Always recalculate arithmetic sum — never trust the AI's math
-    phase.estimatedMonthlyCost = phase.tools.reduce((sum, t) => sum + (t.monthlyCost || 0), 0);
-  });
 
-  // Root cost = Phase 2 (Growth) cost
-  if (parsed.phases.length > 1) {
-    parsed.estimatedMonthlyCost = parsed.phases[1].estimatedMonthlyCost;
+    return { type: 'stream', result: stream };
+  } catch (error) {
+    console.error('[AI Client] Failed to initialize streamObject:', error);
+    return { type: 'fallback', data: getFallbackRecommendation(answers) };
   }
-
-  return { ...parsed, source: 'gemini' as const };
-}
-
-// Reduced to 45s to give Vercel time to save the fallback response and finish before the 60s hard-kill.
-const TIMEOUT_MS = 45000;
-
-export async function getAIRecommendation(answers: WizardAnswers): Promise<AIRecommendationResult> {
-  if (!ai) return getFallbackRecommendation(answers);
-
-  let correctionAttempts = 0;
-  let correctionNote: string | undefined;
-
-  for (let attempt = 0; attempt <= MAX_CORRECTION_ATTEMPTS; attempt++) {
-    try {
-      const prompt = buildPrompt(answers, correctionNote);
-
-      const generatePromise = ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          temperature: attempt === 0 ? 0.3 : 0.1, // Lower temperature on retries for more reliable output
-          maxOutputTokens: 8192,
-          responseMimeType: 'application/json',
-        },
-      });
-
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('AI Request timed out')), TIMEOUT_MS);
-      });
-
-      const response = await Promise.race([generatePromise, timeoutPromise]);
-
-      const text = response.text?.trim() ?? '';
-      const result = parseAIResponse(text);
-
-      // ── Run Evaluator ──────────────────────────────
-      const validation = validateStack(result);
-
-      if (validation.passed) {
-        // ✅ Clean pass — return with metadata
-        console.log(
-          `[AI Validator] Stack passed on attempt ${attempt + 1}${
-            correctionAttempts > 0 ? ` (after ${correctionAttempts} correction(s))` : ''
-          }`,
-        );
-        return {
-          ...result,
-          correctionAttempts,
-          validationWarnings: validation.warnings,
-        };
-      }
-
-      // ❌ Validation failed — log and prepare correction
-      console.warn(
-        `[AI Validator] Attempt ${attempt + 1} failed with ${validation.errors.length} error(s):`,
-        validation.errors,
-      );
-
-      if (attempt < MAX_CORRECTION_ATTEMPTS) {
-        correctionNote = buildCorrectionPrompt(validation.errors);
-        correctionAttempts++;
-      } else {
-        // Final attempt still failed — force-patch what we can and return
-        console.error(
-          '[AI Validator] Max correction attempts reached. Returning best-effort result.',
-        );
-        return {
-          ...result,
-          correctionAttempts,
-          validationWarnings: [
-            ...validation.errors.map((e) => `[Unresolved] ${e}`),
-            ...validation.warnings,
-          ],
-        };
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`[AI Client] Error on attempt ${attempt + 1}:`, errorMessage);
-
-      // If it's a fatal error (like unsupported location or auth), abort retries and use fallback
-      const lowerError = errorMessage.toLowerCase();
-      if (
-        lowerError.includes('location is not supported') ||
-        lowerError.includes('api key not valid') ||
-        lowerError.includes('unauthorized') ||
-        lowerError.includes('permission denied')
-      ) {
-        console.warn(`[AI Client] Fatal error encountered. Switching to fallback immediately.`);
-        return getFallbackRecommendation(answers);
-      }
-
-      if (attempt >= MAX_CORRECTION_ATTEMPTS) {
-        return getFallbackRecommendation(answers);
-      }
-    }
-  }
-
-  // Should never reach here, but TypeScript requires a return
-  return getFallbackRecommendation(answers);
 }
 
 // ── Deterministic Fallback ──

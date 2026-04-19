@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
-import { getAIRecommendation } from '../ai/ai-client';
+import { streamAIRecommendation } from '../ai/ai-client';
 import { GoogleGenAI } from '@google/genai';
 import type { WizardAnswers } from '@/stores/wizard-store';
 
@@ -9,7 +9,8 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const TEST_CASES: WizardAnswers[] = [
   {
     projectName: 'B2B SaaS Evaluator',
-    description: 'A platform for businesses to evaluate software tools. Needs auth, payments, and good admin analytics.',
+    description:
+      'A platform for businesses to evaluate software tools. Needs auth, payments, and good admin analytics.',
     projectType: 'saas',
     teamSize: 'startup',
     requirements: ['auth', 'payments', 'database'],
@@ -37,7 +38,7 @@ async function judgeRecommendation(
     phases?: Array<unknown>;
     recommendations?: Array<{ toolName: string }>;
     validationWarnings?: string[];
-  }
+  },
 ): Promise<{ score: number; reasoning: string }> {
   const prompt = `You are an expert CTO judge evaluating an AI-generated tech stack recommendation.
 Review the following INPUT requirements and OUTPUT recommendation.
@@ -81,15 +82,19 @@ Return ONLY a JSON object with this exact structure:
   } catch (err: unknown) {
     const error = err as { status?: number; message?: string };
     if (error.status === 400 || error.message?.includes('User location is not supported')) {
-      console.log('    ⏳ Region lock detected natively for LLM judging. Falling back to deterministic CI assertions...');
+      console.log(
+        '    ⏳ Region lock detected natively for LLM judging. Falling back to deterministic CI assertions...',
+      );
       // Fallback heuristics: if it returned zero warnings and >0 phases, it passes the minimum CI bar.
       const hasNoWarnings = !output.validationWarnings || output.validationWarnings.length === 0;
       const hasPhases = output.phases && output.phases.length > 0;
-      
+
       const pass = hasNoWarnings && hasPhases;
       return {
         score: pass ? 8 : 0, // 8 is passing grade
-        reasoning: pass ? 'Passed CI assertions (0 warnings, has phases)' : 'Failed basic CI assertions',
+        reasoning: pass
+          ? 'Passed CI assertions (0 warnings, has phases)'
+          : 'Failed basic CI assertions',
       };
     }
     return { score: 0, reasoning: `API Error: ${error.message || 'Unknown error'}` };
@@ -98,7 +103,7 @@ Return ONLY a JSON object with this exact structure:
 
 async function runEvals() {
   console.log('🚀 Starting LLM-as-a-Judge Eval Suite...');
-  
+
   if (!process.env.GEMINI_API_KEY) {
     console.error('❌ GEMINI_API_KEY is not set. Cannot run evals.');
     process.exit(1);
@@ -110,12 +115,13 @@ async function runEvals() {
   for (let i = 0; i < TEST_CASES.length; i++) {
     const testCase = TEST_CASES[i];
     console.log(`\n▶️ Running Eval Case ${i + 1}/${TEST_CASES.length}: ${testCase.projectName}`);
-    
+
     try {
       const startMs = Date.now();
-      const result = await getAIRecommendation(testCase);
+      const streamRes = await streamAIRecommendation(testCase);
+      const result = streamRes.type === 'fallback' ? streamRes.data : await streamRes.result.object;
       const generationTime = Date.now() - startMs;
-      
+
       console.log(`  - Generator finished in ${generationTime}ms`);
       if (result.validationWarnings && result.validationWarnings.length > 0) {
         console.log(`  - ⚠️ Validation Warnings: ${result.validationWarnings.join(', ')}`);
@@ -123,7 +129,7 @@ async function runEvals() {
 
       console.log(`  - Testing with Judge...`);
       const evaluation = await judgeRecommendation(testCase, result);
-      
+
       if (evaluation.score >= 8) {
         console.log(`  ✅ PASS (Score: ${evaluation.score}/10)`);
         console.log(`     Reasoning: ${evaluation.reasoning}`);
@@ -133,7 +139,6 @@ async function runEvals() {
         console.log(`     Reasoning: ${evaluation.reasoning}`);
         failed++;
       }
-      
     } catch (error) {
       console.log(`  ❌ CRITICAL ERROR generation failed:`, error);
       failed++;

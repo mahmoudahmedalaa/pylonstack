@@ -1,6 +1,4 @@
-import { db } from '@/lib/db';
-import { aiRecommendations, projects } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { notFound, redirect } from 'next/navigation';
 import { ResultsStackDisplay } from '@/components/results/ResultsStackDisplay';
 import { StackLayerData } from '@/components/stack-builder/StackLayer';
@@ -66,10 +64,22 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const p = await params;
-  const project = await db.query.projects.findFirst({
-    where: eq(projects.id, p.id),
-    columns: { name: true },
-  });
+
+  const { data: rec } = await supabaseAdmin
+    .from('ai_recommendations')
+    .select('project_id')
+    .eq('id', p.id)
+    .single();
+
+  if (!rec) {
+    return { title: 'Your Tech Stack | Pylon' };
+  }
+
+  const { data: project } = await supabaseAdmin
+    .from('projects')
+    .select('name')
+    .eq('id', rec.project_id)
+    .single();
 
   return {
     title: project ? `${project.name} Architecture | Pylon` : 'Your Tech Stack | Pylon',
@@ -166,15 +176,23 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
     return redirect('/dashboard');
   }
 
-  // Fetch AI recommendation
-  const [aiRec] = await db.select().from(aiRecommendations).where(eq(aiRecommendations.id, id));
+  // Fetch AI recommendation via Supabase REST API (bypasses broken pooler)
+  const { data: aiRec, error: recErr } = await supabaseAdmin
+    .from('ai_recommendations')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  if (!aiRec) return notFound();
+  if (recErr || !aiRec) return notFound();
 
   // Fetch related project
-  const [project] = await db.select().from(projects).where(eq(projects.id, aiRec.projectId));
+  const { data: project, error: projErr } = await supabaseAdmin
+    .from('projects')
+    .select('*')
+    .eq('id', aiRec.project_id)
+    .single();
 
-  if (!project) return notFound();
+  if (projErr || !project) return notFound();
   const projectId = project.id;
 
   let layers: StackLayerData[] = [];
@@ -182,34 +200,38 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
   let phases: ProjectPhase[] = [];
   let estimatedMonthlyCost = 0;
 
-  if (aiRec) {
-    // Attempt to extract the extra fields if they exist
-    const rawResp = aiRec.rawResponse as
-      | {
-          summary?: string;
-          phases?: ProjectPhase[];
-          estimatedMonthlyCost?: number;
-          recommendations?: { toolName?: string; alternatives?: string[] }[];
-        }
-      | null
-      | undefined;
+  // Attempt to extract the extra fields if they exist
+  const rawResp = aiRec.raw_response as
+    | {
+        summary?: string;
+        phases?: ProjectPhase[];
+        estimatedMonthlyCost?: number;
+        recommendations?: { toolName?: string; alternatives?: string[] }[];
+      }
+    | null
+    | undefined;
 
-    // Build alternatives lookup from rawResponse (which has full alternatives arrays)
-    const alternativesMap = new Map<string, string[]>();
-    if (rawResp?.recommendations) {
-      for (const rec of rawResp.recommendations) {
-        if (rec.toolName && rec.alternatives) {
-          alternativesMap.set(rec.toolName, rec.alternatives);
-        }
+  // Build alternatives lookup from rawResponse (which has full alternatives arrays)
+  const alternativesMap = new Map<string, string[]>();
+  if (rawResp?.recommendations) {
+    for (const rec of rawResp.recommendations) {
+      if (rec.toolName && rec.alternatives) {
+        alternativesMap.set(rec.toolName, rec.alternatives);
       }
     }
-
-    layers = buildLayersFromRecommendations(aiRec.recommendations, alternativesMap);
-
-    if (rawResp?.summary) summary = rawResp.summary;
-    if (rawResp?.phases) phases = rawResp.phases;
-    if (rawResp?.estimatedMonthlyCost) estimatedMonthlyCost = rawResp.estimatedMonthlyCost;
   }
+
+  const recs = (aiRec.recommendations || []) as {
+    category_slug: string;
+    tool_slug: string;
+    confidence: number;
+    reasoning: string;
+  }[];
+  layers = buildLayersFromRecommendations(recs, alternativesMap);
+
+  if (rawResp?.summary) summary = rawResp.summary;
+  if (rawResp?.phases) phases = rawResp.phases;
+  if (rawResp?.estimatedMonthlyCost) estimatedMonthlyCost = rawResp.estimatedMonthlyCost;
 
   // Calculate some metrics
   const totalTools = layers.reduce((acc, layer) => acc + layer.tools.length, 0);
@@ -270,7 +292,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
               projectName={project.name}
               projectDescription={project.description || ''}
               projectStatus={project.status || 'Draft'}
-              createdAt={project.createdAt?.toISOString() || new Date().toISOString()}
+              createdAt={project.created_at || new Date().toISOString()}
               layers={layers}
             />
           </div>

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { tools, categories, toolPricingTiers } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * GET /api/tools/:slug
@@ -14,28 +12,51 @@ export async function GET(
   try {
     const { slug } = await params;
 
-    const [tool] = await db.select().from(tools).where(eq(tools.slug, slug)).limit(1);
+    const { data: t, error } = await supabaseAdmin
+      .from('tools')
+      .select('*, categories(name, slug)')
+      .eq('slug', slug)
+      .single();
 
-    if (!tool) {
+    if (error || !t) {
       return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
     }
 
-    // Fetch category + pricing tiers in parallel
-    const [categoryRows, pricingRows] = await Promise.all([
-      db
-        .select({ name: categories.name, slug: categories.slug })
-        .from(categories)
-        .where(eq(categories.id, tool.categoryId))
-        .limit(1),
-      db.select().from(toolPricingTiers).where(eq(toolPricingTiers.toolId, tool.id)),
-    ]);
+    const { data: pricingTiers } = await supabaseAdmin
+      .from('tool_pricing_tiers')
+      .select('*')
+      .eq('tool_id', t.id);
 
-    return NextResponse.json({
-      ...tool,
-      category: categoryRows[0]?.name ?? 'Unknown',
-      categorySlug: categoryRows[0]?.slug ?? '',
-      pricingTiers: pricingRows,
-    });
+    // Transform columns back to camelCase to avoid breaking frontend
+    const tool = {
+      id: t.id,
+      name: t.name,
+      slug: t.slug,
+      tagline: t.tagline,
+      description: t.description,
+      logoUrl: t.logo_url,
+      websiteUrl: t.website_url,
+      githubStars: t.github_stars,
+      hasFreeTier: t.has_free_tier,
+      pricingModel: t.pricing_model,
+      keyFeatures: t.key_features,
+      learningCurve: t.learning_curve,
+      maturity: t.maturity,
+      categoryId: t.category_id,
+      metadata: t.metadata,
+      category: t.categories?.name ?? 'Unknown',
+      categorySlug: t.categories?.slug ?? '',
+      pricingTiers: (pricingTiers || []).map((pt: Record<string, unknown>) => ({
+        id: pt.id,
+        toolId: pt.tool_id,
+        tierName: pt.tier_name,
+        priceMonthly: pt.price_monthly,
+        priceAnnually: pt.price_annually,
+        features: pt.features,
+      })),
+    };
+
+    return NextResponse.json(tool);
   } catch (error) {
     console.error('[GET /api/tools/[slug]] Error:', error);
     return NextResponse.json({ error: 'Failed to fetch tool' }, { status: 500 });

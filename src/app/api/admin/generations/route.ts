@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/db';
-import { aiRecommendations } from '@/lib/db/schema';
-import { desc, sql } from 'drizzle-orm';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * GET /api/admin/generations
@@ -33,19 +31,32 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(50, parseInt(searchParams.get('limit') || '20'));
     const offset = (page - 1) * limit;
 
-    const rows = await db
-      .select()
-      .from(aiRecommendations)
-      .orderBy(desc(aiRecommendations.createdAt))
-      .limit(limit)
-      .offset(offset);
+    const {
+      data: rows,
+      count,
+      error,
+    } = await supabaseAdmin
+      .from('ai_recommendations')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    const [{ count }] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(aiRecommendations);
+    if (error) throw error;
+
+    // Map back to camelCase for the frontend component
+    const mappedRows = (rows || []).map((row: Record<string, unknown>) => ({
+      ...row,
+      projectId: row.project_id,
+      userId: row.user_id,
+      modelUsed: row.model_used,
+      promptHash: row.prompt_hash,
+      rawResponse: row.raw_response,
+      generationTimeMs: row.generation_time_ms,
+      createdAt: row.created_at,
+    }));
 
     return NextResponse.json({
-      data: rows,
+      data: mappedRows,
       pagination: {
         page,
         limit,

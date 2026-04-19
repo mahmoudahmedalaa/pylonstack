@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/db';
-import { aiRecommendations } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * PATCH /api/admin/generations/[id]/grade
@@ -39,28 +37,31 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // Fetch current record
-    const [existing] = await db
-      .select({ rawResponse: aiRecommendations.rawResponse })
-      .from(aiRecommendations)
-      .where(eq(aiRecommendations.id, id));
+    const { data: existing, error: existErr } = await supabaseAdmin
+      .from('ai_recommendations')
+      .select('raw_response')
+      .eq('id', id)
+      .single();
 
-    if (!existing) {
+    if (existErr || !existing) {
       return NextResponse.json({ error: 'Generation not found' }, { status: 404 });
     }
 
     // Merge grade into the JSONB rawResponse
     const updatedRaw = {
-      ...(existing.rawResponse as Record<string, unknown>),
+      ...(existing.raw_response as Record<string, unknown>),
       qualityGrade,
       adminNotes: adminNotes ?? null,
       gradedAt: new Date().toISOString(),
       gradedBy: user.email,
     };
 
-    await db
-      .update(aiRecommendations)
-      .set({ rawResponse: updatedRaw })
-      .where(eq(aiRecommendations.id, id));
+    const { error: updateErr } = await supabaseAdmin
+      .from('ai_recommendations')
+      .update({ raw_response: updatedRaw })
+      .eq('id', id);
+
+    if (updateErr) throw updateErr;
 
     return NextResponse.json({ success: true, id, qualityGrade });
   } catch (error) {

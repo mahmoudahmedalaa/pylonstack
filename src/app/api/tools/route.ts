@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { tools, categories } from '@/lib/db/schema';
-import { eq, ilike, or, and, sql, count } from 'drizzle-orm';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * GET /api/tools
@@ -23,100 +21,71 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // Build WHERE conditions
-    const conditions = [eq(tools.isActive, true)];
+    // We build the query with Supabase REST client
+    let query = supabaseAdmin
+      .from('tools')
+      .select('*, categories(name, slug)', { count: 'exact' })
+      .eq('is_active', true);
 
-    // Search filter
     if (q) {
-      const searchPattern = `%${q}%`;
-      conditions.push(
-        or(
-          ilike(tools.name, searchPattern),
-          ilike(tools.description, searchPattern),
-          ilike(tools.tagline, searchPattern),
-          sql`${tools.keyFeatures}::text ILIKE ${searchPattern}`,
-        )!,
-      );
+      // Supabase search: ilike on name, description, tagline
+      query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%,tagline.ilike.%${q}%`);
     }
 
-    // Category filter
+    if (pricing && ['free', 'freemium', 'paid', 'open_source', 'self_hosted'].includes(pricing)) {
+      query = query.eq('pricing_model', pricing);
+    }
+
     if (categorySlug) {
-      const [cat] = await db
-        .select({ id: categories.id })
-        .from(categories)
-        .where(eq(categories.slug, categorySlug))
-        .limit(1);
+      // First resolve category slug to ID because Supabase REST filtering through related tables isn't direct
+      const { data: cat } = await supabaseAdmin
+        .from('categories')
+        .select('id')
+        .eq('slug', categorySlug)
+        .single();
 
       if (cat) {
-        conditions.push(eq(tools.categoryId, cat.id));
+        query = query.eq('category_id', cat.id);
       }
     }
 
-    // Pricing filter
-    if (pricing && ['free', 'freemium', 'paid', 'open_source', 'self_hosted'].includes(pricing)) {
-      conditions.push(
-        eq(
-          tools.pricingModel,
-          pricing as 'free' | 'freemium' | 'paid' | 'open_source' | 'self_hosted',
-        ),
-      );
+    const {
+      data: rawData,
+      count,
+      error,
+    } = await query.order('name', { ascending: true }).range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('[GET /api/tools] DB error:', error);
+      return NextResponse.json({ error: 'Failed to fetch tools' }, { status: 500 });
     }
 
-    const whereClause = and(...conditions);
+    const total = count ?? 0;
 
-    // Run count + data queries in parallel
-    const [countResult, data] = await Promise.all([
-      db.select({ total: count() }).from(tools).where(whereClause),
-      db
-        .select({
-          id: tools.id,
-          name: tools.name,
-          slug: tools.slug,
-          tagline: tools.tagline,
-          description: tools.description,
-          logoUrl: tools.logoUrl,
-          websiteUrl: tools.websiteUrl,
-          githubStars: tools.githubStars,
-          hasFreeTier: tools.hasFreeTier,
-          pricingModel: tools.pricingModel,
-          keyFeatures: tools.keyFeatures,
-          learningCurve: tools.learningCurve,
-          maturity: tools.maturity,
-          categoryId: tools.categoryId,
-          metadata: tools.metadata,
-        })
-        .from(tools)
-        .where(whereClause)
-        .orderBy(tools.name)
-        .limit(limit)
-        .offset(offset),
-    ]);
-
-    const total = countResult[0]?.total ?? 0;
-
-    // Enrich with category name
-    const categoryIds = [...new Set(data.map((t) => t.categoryId))];
-    const categoryRows =
-      categoryIds.length > 0
-        ? await db
-            .select({ id: categories.id, name: categories.name, slug: categories.slug })
-            .from(categories)
-            .where(sql`${categories.id} IN ${categoryIds}`)
-        : [];
-
-    const categoryMap = new Map(categoryRows.map((c) => [c.id, c]));
-
-    const enriched = data.map((t) => {
-      const cat = categoryMap.get(t.categoryId);
-      return {
-        ...t,
-        category: cat?.name ?? 'Unknown',
-        categorySlug: cat?.slug ?? '',
-      };
-    });
+    // Transform back to camelCase to match the frontend expectations
+    const data = (rawData || []).map((t: Record<string, unknown>) => ({
+      id: t.id,
+      name: t.name,
+      slug: t.slug,
+      tagline: t.tagline,
+      description: t.description,
+      logoUrl: t.logo_url,
+      websiteUrl: t.website_url,
+      githubStars: t.github_stars,
+      hasFreeTier: t.has_free_tier,
+      pricingModel: t.pricing_model,
+      keyFeatures: t.key_features,
+      learningCurve: t.learning_curve,
+      maturity: t.maturity,
+      categoryId: t.category_id,
+      metadata: t.metadata,
+      category:
+        (t as { categories?: { name?: string; slug?: string } }).categories?.name ?? 'Unknown',
+      categorySlug: (t as { categories?: { name?: string; slug?: string } }).categories?.slug ?? '',
+    }));
 
     return NextResponse.json({
-      data: enriched,
+      data,
       pagination: {
         page,
         limit,

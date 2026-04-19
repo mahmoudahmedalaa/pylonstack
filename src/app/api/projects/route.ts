@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/db';
-import { projects } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * GET /api/projects
@@ -20,11 +18,16 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const rows = await db
-      .select()
-      .from(projects)
-      .where(eq(projects.userId, user.id))
-      .orderBy(desc(projects.createdAt));
+    const { data: rows, error } = await supabaseAdmin
+      .from('projects')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[GET /api/projects] DB error:', error);
+      return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
+    }
 
     return NextResponse.json({ data: rows });
   } catch (error) {
@@ -55,18 +58,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'name is required' }, { status: 400 });
     }
 
-    const [project] = await db
-      .insert(projects)
-      .values({
-        userId: user.id,
+    const { data: project, error } = await supabaseAdmin
+      .from('projects')
+      .insert({
+        user_id: user.id,
         name: body.name.trim(),
         description: body.description?.trim() || null,
-        projectType: body.projectType || null,
+        project_type: body.projectType || null,
         status: body.status || 'draft',
-        stackData: body.stackData || null,
-        totalMonthlyCost: body.totalMonthlyCost || '0',
+        stack_data: body.stackData || null,
+        total_monthly_cost: body.totalMonthlyCost || '0',
       })
-      .returning();
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[POST /api/projects] DB error:', error);
+      return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
+    }
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {

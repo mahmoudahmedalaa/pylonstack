@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/db';
-import { projects, projectTools, tools, categories, aiRecommendations } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * Helper: authenticate and verify project ownership
@@ -18,13 +16,14 @@ async function authenticateAndGetProject(projectId: string) {
     return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
   }
 
-  const [project] = await db
-    .select()
-    .from(projects)
-    .where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
-    .limit(1);
+  const { data: project, error } = await supabaseAdmin
+    .from('projects')
+    .select('*')
+    .eq('id', projectId)
+    .eq('user_id', user.id)
+    .single();
 
-  if (!project) {
+  if (error || !project) {
     return { error: NextResponse.json({ error: 'Project not found' }, { status: 404 }) };
   }
 
@@ -33,7 +32,7 @@ async function authenticateAndGetProject(projectId: string) {
 
 /**
  * GET /api/projects/:id
- * Returns a project with its tools and AI recommendation
+ * Returns a project with its AI recommendation
  */
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -44,30 +43,17 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     const { project } = auth;
 
-    // Fetch project tools + AI recommendation in parallel
-    const [toolRows, recommendationRows] = await Promise.all([
-      db
-        .select({
-          id: projectTools.id,
-          toolId: projectTools.toolId,
-          categoryId: projectTools.categoryId,
-          toolName: tools.name,
-          toolSlug: tools.slug,
-          toolLogo: tools.logoUrl,
-          categoryName: categories.name,
-          notes: projectTools.notes,
-        })
-        .from(projectTools)
-        .innerJoin(tools, eq(projectTools.toolId, tools.id))
-        .leftJoin(categories, eq(projectTools.categoryId, categories.id))
-        .where(eq(projectTools.projectId, id)),
-      db.select().from(aiRecommendations).where(eq(aiRecommendations.projectId, id)).limit(1),
-    ]);
+    // Fetch AI recommendation
+    const { data: recRows } = await supabaseAdmin
+      .from('ai_recommendations')
+      .select('*')
+      .eq('project_id', id)
+      .limit(1);
 
     return NextResponse.json({
       ...project,
-      tools: toolRows,
-      aiRecommendation: recommendationRows[0] ?? null,
+      tools: [],
+      aiRecommendation: recRows?.[0] ?? null,
     });
   } catch (error) {
     console.error('[GET /api/projects/[id]] Error:', error);
@@ -88,20 +74,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const body = await request.json();
 
-    const [updated] = await db
-      .update(projects)
-      .set({
-        ...(body.name !== undefined && { name: body.name.trim() }),
-        ...(body.description !== undefined && { description: body.description?.trim() || null }),
-        ...(body.status !== undefined && { status: body.status }),
-        ...(body.stackData !== undefined && { stackData: body.stackData }),
-        ...(body.totalMonthlyCost !== undefined && { totalMonthlyCost: body.totalMonthlyCost }),
-        updatedAt: new Date(),
-      })
-      .where(eq(projects.id, id))
-      .returning();
+    const updatePayload: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (body.name !== undefined) updatePayload.name = body.name.trim();
+    if (body.description !== undefined)
+      updatePayload.description = body.description?.trim() || null;
+    if (body.status !== undefined) updatePayload.status = body.status;
+    if (body.stackData !== undefined) updatePayload.stack_data = body.stackData;
+    if (body.totalMonthlyCost !== undefined)
+      updatePayload.total_monthly_cost = body.totalMonthlyCost;
 
-    if (!updated) {
+    const { data: updated, error } = await supabaseAdmin
+      .from('projects')
+      .update(updatePayload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !updated) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
@@ -126,13 +117,10 @@ export async function DELETE(
 
     if ('error' in auth) return auth.error;
 
-    const [deleted] = await db
-      .delete(projects)
-      .where(eq(projects.id, id))
-      .returning({ id: projects.id });
+    const { error } = await supabaseAdmin.from('projects').delete().eq('id', id);
 
-    if (!deleted) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    if (error) {
+      return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
     }
 
     return NextResponse.json({ deleted: true });

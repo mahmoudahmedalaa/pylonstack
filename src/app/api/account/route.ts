@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { db } from '@/lib/db';
-import { projects, profiles } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * DELETE /api/account
@@ -30,23 +27,16 @@ export async function DELETE() {
 
     // 2. Delete all projects owned by this user
     //    This cascade-deletes: project_tools, questionnaire_responses, ai_recommendations
-    await db.delete(projects).where(eq(projects.userId, userId));
+    await supabaseAdmin.from('projects').delete().eq('user_id', userId);
 
     // 3. Delete the profile row
-    await db.delete(profiles).where(eq(profiles.id, userId));
+    await supabaseAdmin.from('profiles').delete().eq('id', userId);
 
-    // 4. Delete the auth.users entry via admin API (service role key required)
-    const supabaseAdmin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
-
+    // 4. Delete the auth.users entry via admin API
     const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteAuthError) {
       console.error('[DELETE /api/account] Failed to delete auth user:', deleteAuthError.message);
-      // Data is already gone — log but don't fail the response
-      // The user won't be able to log in anyway since profile data is deleted
     }
 
     return NextResponse.json({ deleted: true });

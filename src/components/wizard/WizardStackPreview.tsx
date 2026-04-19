@@ -12,6 +12,10 @@ import {
   BarChart3,
   Brain,
   Smartphone,
+  Radio,
+  HardDrive,
+  Mail,
+  Search,
 } from 'lucide-react';
 import { useWizardStore, type WizardAnswers } from '@/stores/wizard-store';
 
@@ -77,11 +81,39 @@ const LAYER_DEFINITIONS: PreviewLayer[] = [
     trigger: (a) => !!a.teamSize,
   },
   {
+    id: 'storage',
+    category: 'File Storage',
+    icon: HardDrive,
+    color: '#10b981',
+    trigger: (a) => a.requirements.includes('storage'),
+  },
+  {
+    id: 'realtime',
+    category: 'Real-time',
+    icon: Radio,
+    color: '#ef4444',
+    trigger: (a) => a.requirements.includes('realtime'),
+  },
+  {
+    id: 'email',
+    category: 'Email & Notifications',
+    icon: Mail,
+    color: '#f59e0b',
+    trigger: (a) => a.requirements.includes('email'),
+  },
+  {
+    id: 'search',
+    category: 'Search',
+    icon: Search,
+    color: '#0ea5e9',
+    trigger: (a) => a.requirements.includes('search'),
+  },
+  {
     id: 'analytics',
     category: 'Analytics',
     icon: BarChart3,
     color: '#fb923c',
-    trigger: (a) => a.analytics.length > 0,
+    trigger: (a) => a.analytics.length > 0 || a.requirements.includes('analytics'),
   },
   {
     id: 'ai',

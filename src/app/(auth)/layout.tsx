@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Logo } from '@/components/ui/Logo';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,8 +16,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
 
         {/* Massive PYLON watermark */}
-        <div className="pointer-events-none absolute right-0 bottom-0 left-0 flex justify-center">
-          <span className="text-[22vw] leading-none font-bold tracking-tighter text-[#18181b] select-none">
+        <div className="pointer-events-none absolute right-0 bottom-0 left-0 flex justify-center overflow-hidden mix-blend-screen">
+          <span className="text-[18vw] leading-[0.8] font-black tracking-tighter text-[#18181b] select-none">
             PYLON
           </span>
         </div>
@@ -26,7 +27,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {/* Logo mark */}
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
-              <span className="text-xl leading-none font-black text-black">P</span>
+              <Logo className="h-6 w-6 text-black" animate={false} />
             </div>
             <span className="text-2xl font-bold tracking-tight text-white">Pylon</span>
           </div>
@@ -69,7 +70,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           className="mb-8 flex items-center gap-2.5 transition-opacity hover:opacity-80 lg:hidden"
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white">
-            <span className="text-lg leading-none font-black text-black">P</span>
+            <Logo className="h-5 w-5 text-black" animate={false} />
           </div>
           <span className="text-xl font-bold tracking-tight text-white">Pylon</span>
         </Link>

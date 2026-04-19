@@ -3,15 +3,16 @@ import { CheckCircle2, DollarSign, Clock } from 'lucide-react';
 import { TOOLS } from '@/data/tools-catalog';
 
 export function PhasedPlanCard({ phase }: { phase: ProjectPhase }) {
-  // Calculate subtotals
-  const paidTools = phase.tools.filter((t) => t.monthlyCost > 0);
-  const freeTools = phase.tools.filter(
-    (t) => t.monthlyCost === 0 && t.pricingModel !== 'Usage-Based',
+  // Calculate subtotals safely in case of partial stream JSON
+  const tools = phase?.tools || [];
+  const paidTools = tools.filter((t) => (t?.monthlyCost || 0) > 0);
+  const freeTools = tools.filter(
+    (t) => (t?.monthlyCost || 0) === 0 && t?.pricingModel !== 'Usage-Based',
   );
-  const usageTools = phase.tools.filter(
-    (t) => t.pricingModel === 'Usage-Based' && t.monthlyCost === 0,
+  const usageTools = tools.filter(
+    (t) => t?.pricingModel === 'Usage-Based' && (t?.monthlyCost || 0) === 0,
   );
-  const fixedSubtotal = paidTools.reduce((sum, t) => sum + t.monthlyCost, 0);
+  const fixedSubtotal = paidTools.reduce((sum, t) => sum + (t?.monthlyCost || 0), 0);
 
   return (
     <div className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--card)]">
@@ -43,7 +44,7 @@ export function PhasedPlanCard({ phase }: { phase: ProjectPhase }) {
 
       {/* Tools — flat rows */}
       <div className="flex flex-col divide-y divide-[var(--border)]">
-        {phase.tools.map((tool, idx) => {
+        {(phase?.tools || []).map((tool, idx) => {
           const catalogTool = TOOLS.find(
             (t) =>
               t.id === tool.toolName.toLowerCase().replace(/[^a-z0-9]/g, '-') ||
@@ -86,11 +87,11 @@ export function PhasedPlanCard({ phase }: { phase: ProjectPhase }) {
               </div>
 
               <div className="shrink-0 tabular-nums">
-                {tool.monthlyCost > 0 ? (
+                {(tool?.monthlyCost || 0) > 0 ? (
                   <span className="text-sm font-semibold text-[var(--foreground)]">
                     ${tool.monthlyCost}/mo
                   </span>
-                ) : tool.pricingModel === 'Usage-Based' ? (
+                ) : tool?.pricingModel === 'Usage-Based' ? (
                   <span className="text-sm font-medium text-amber-500">Usage</span>
                 ) : (
                   <span className="text-sm font-medium text-[var(--color-success-500)]">Free</span>

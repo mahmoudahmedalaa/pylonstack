@@ -119,7 +119,15 @@ async function runEvals() {
     try {
       const startMs = Date.now();
       const streamRes = await streamAIRecommendation(testCase);
-      const result = streamRes.type === 'fallback' ? streamRes.data : await streamRes.result.object;
+      const result = (
+        streamRes.type === 'fallback' ? streamRes.data : await streamRes.result.object
+      ) as {
+        summary?: string;
+        estimatedMonthlyCost?: number;
+        phases?: unknown[];
+        recommendations?: { toolName: string }[];
+        validationWarnings?: string[];
+      };
       const generationTime = Date.now() - startMs;
 
       console.log(`  - Generator finished in ${generationTime}ms`);

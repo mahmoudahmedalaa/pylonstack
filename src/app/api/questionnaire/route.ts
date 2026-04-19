@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { streamAIRecommendation } from '@/lib/ai/ai-client';
@@ -245,46 +246,68 @@ export async function POST(request: NextRequest) {
       const aiStartMs = Date.now();
       const streamRes = await streamAIRecommendation(safeBody, async ({ object }) => {
         const generationTimeMs = Date.now() - aiStartMs;
+        const obj = (object || {}) as {
+          summary?: string;
+          estimatedMonthlyCost?: number;
+          phases?: unknown[];
+          recommendations?: unknown[];
+        };
+
+        const mappedRecommendations = ((obj.recommendations || []) as unknown[]).map(
+          (r: unknown) => {
+            const rec = (r || {}) as {
+              categoryName?: string;
+              toolName?: string;
+              confidence?: number;
+              reasoning?: string;
+              alternatives?: string[];
+            };
+            return {
+              category_slug: (rec.categoryName || 'uncategorized')
+                .toLowerCase()
+                .replace(/\s+/g, '-'),
+              tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
+              confidence: rec.confidence || 80,
+              reasoning: rec.reasoning || 'Recommended by AI',
+              alternative_slug: (rec.alternatives?.[0] || 'none')
+                .toLowerCase()
+                .replace(/\s+/g, '-'),
+            };
+          },
+        );
+
+        const mappedPhases = (obj.phases || []).map((p: unknown) => {
+          const phase = (p || {}) as Record<string, unknown>;
+          return { ...phase, tools: (phase.tools as unknown[]) || [] };
+        });
+
         // 5. Asynchronously update placeholder on finish
-        await supabaseAdmin
-          .from('ai_recommendations')
-          .update({
-            generation_time_ms: generationTimeMs,
-            raw_response: {
-              inputContext: safeBody,
-              summary: object.summary,
-              estimatedMonthlyCost: object.estimatedMonthlyCost,
-              phases: object.phases,
-              recommendations: object.recommendations,
-              source: 'gemini',
-              correctionAttempts: 0,
-              validationPassed: true,
-              generationTimeMs,
-              qualityGrade: null,
-              adminNotes: null,
-            } as Record<string, unknown>,
-            recommendations: ((object.recommendations || []) as unknown[]).map((r: unknown) => {
-              const rec = r as {
-                categoryName?: string;
-                toolName?: string;
-                confidence?: number;
-                reasoning?: string;
-                alternatives?: string[];
-              };
-              return {
-                category_slug: (rec.categoryName || 'uncategorized')
-                  .toLowerCase()
-                  .replace(/\s+/g, '-'),
-                tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
-                confidence: rec.confidence || 80,
-                reasoning: rec.reasoning || 'Recommended by AI',
-                alternative_slug: (rec.alternatives?.[0] || 'none')
-                  .toLowerCase()
-                  .replace(/\s+/g, '-'),
-              };
-            }),
-          })
-          .eq('id', recommendation.id);
+        after(async () => {
+          try {
+            await supabaseAdmin
+              .from('ai_recommendations')
+              .update({
+                generation_time_ms: generationTimeMs,
+                raw_response: {
+                  inputContext: safeBody,
+                  summary: obj.summary || 'Generation still incomplete...',
+                  estimatedMonthlyCost: obj.estimatedMonthlyCost || 0,
+                  phases: mappedPhases,
+                  recommendations: mappedRecommendations,
+                  source: 'gemini',
+                  correctionAttempts: 0,
+                  validationPassed: true,
+                  generationTimeMs,
+                  qualityGrade: null,
+                  adminNotes: null,
+                } as Record<string, unknown>,
+                recommendations: mappedRecommendations,
+              })
+              .eq('id', recommendation.id);
+          } catch (err) {
+            console.error('[after hook] bg DB update failed:', err);
+          }
+        });
       });
 
       if (streamRes.type === 'fallback') {

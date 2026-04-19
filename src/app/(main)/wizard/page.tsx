@@ -47,6 +47,7 @@ import { GeneratingOverlay } from '@/components/wizard/GeneratingOverlay';
 import { WizardStackPreview } from '@/components/wizard/WizardStackPreview';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
 
 // ── Step illustrations ────────────────────────────
 const STEP_ILLUSTRATIONS: Record<number, string> = {
@@ -276,7 +277,9 @@ const STEP_CONFIG: Record<number, StepConfig> = {
 
 export default function WizardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isHydrating, setIsHydrating] = useState(false);
   const {
     currentStep,
     answers,
@@ -295,12 +298,34 @@ export default function WizardPage() {
     reset,
     clearError,
     submitWizard,
+    hydrateClone,
   } = useWizardStore();
 
-  // Reset store on mount so if users go to /wizard they start fresh
+  // Support cloning a previous stack's inputs
   useEffect(() => {
-    reset();
-  }, [reset]);
+    const cloneId = searchParams.get('clone');
+    if (!cloneId) {
+      reset();
+      return;
+    }
+
+    const loadCloneData = async () => {
+      setIsHydrating(true);
+      try {
+        const res = await fetch(`/api/projects/${cloneId}`);
+        if (!res.ok) throw new Error('Failed to fetch clone data');
+        const data = await res.json();
+        if (data.questionnaireResponses) {
+          hydrateClone(data.questionnaireResponses);
+        }
+      } catch (err) {
+        console.error('Cloning failed:', err);
+      } finally {
+        setIsHydrating(false);
+      }
+    };
+    loadCloneData();
+  }, [searchParams, reset, hydrateClone]);
 
   // Derive stack layers from current answers
   const stackLayers = useMemo(() => wizardAnswersToLayers(answers), [answers]);
@@ -377,7 +402,7 @@ export default function WizardPage() {
   return (
     <>
       <GeneratingOverlay
-        isGenerating={isGenerating}
+        isGenerating={isGenerating || isHydrating}
         error={error}
         onRetry={handleGenerate}
         onCancel={handleCancelGenerate}

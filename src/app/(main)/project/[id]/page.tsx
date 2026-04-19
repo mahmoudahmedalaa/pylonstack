@@ -21,6 +21,7 @@ import {
   Calendar,
   FileDown,
   Github,
+  Sparkles,
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -459,6 +460,16 @@ export default function ProjectDetailPage() {
             <Button variant="outline" size="sm" onClick={handleSyncGit}>
               <Github className="mr-1.5 h-4 w-4" /> Sync
             </Button>
+            {/* AI Regenerate Stack Button */}
+            {!isNew && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(`/wizard?clone=${projectId}`)}
+              >
+                <Sparkles className="mr-1.5 h-4 w-4 text-[var(--primary)]" /> Regenerate AI Stack
+              </Button>
+            )}
             <Button variant="outline" size="sm">
               <Settings className="mr-1.5 h-4 w-4" /> Configure
             </Button>

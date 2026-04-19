@@ -45,6 +45,7 @@ interface WizardStore {
   canAdvance: () => boolean;
   reset: () => void;
   clearError: () => void;
+  hydrateClone: (qr: Partial<WizardAnswers>) => void;
 
   submitWizard: () => Promise<{ projectId: string; recommendationId: string } | null>;
 }
@@ -146,10 +147,24 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
     }
   },
 
-  // ── Reset ──
+  // ── Reset & Hydrate ──
   reset: () =>
     set({ currentStep: 1, answers: { ...INITIAL_ANSWERS }, isSubmitting: false, error: null }),
   clearError: () => set({ error: null }),
+  hydrateClone: (qr) =>
+    set((s) => ({
+      answers: {
+        ...s.answers,
+        projectName: qr.projectName || s.answers.projectName,
+        description: qr.description || s.answers.description,
+        projectType: qr.projectType || s.answers.projectType,
+        teamSize: qr.teamSize || s.answers.teamSize,
+        requirements: qr.requirements || s.answers.requirements,
+        priorities: qr.priorities || s.answers.priorities,
+        preferences: qr.preferences || s.answers.preferences,
+        analytics: qr.analytics || s.answers.analytics,
+      },
+    })),
 
   // ── Submit ──
   submitWizard: async () => {

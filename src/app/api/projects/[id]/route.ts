@@ -50,10 +50,18 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       .eq('project_id', id)
       .limit(1);
 
+    // Fetch original user answers
+    const { data: qaRows } = await supabaseAdmin
+      .from('questionnaire_responses')
+      .select('responses')
+      .eq('project_id', id)
+      .limit(1);
+
     return NextResponse.json({
       ...project,
       tools: [],
       aiRecommendation: recRows?.[0] ?? null,
+      questionnaireResponses: qaRows?.[0]?.responses ?? null,
     });
   } catch (error) {
     console.error('[GET /api/projects/[id]] Error:', error);

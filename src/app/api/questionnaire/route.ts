@@ -140,7 +140,9 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         name: safeProjectName || projectName,
         project_type: body.projectType,
-        description: `Generated via Stack Wizard. Team: ${body.teamSize}, Priorities: ${body.priorities.join(', ')}`,
+        description: body.description
+          ? `${safeDescription.slice(0, 400)}...\n\n[Team: ${body.teamSize}, Priorities: ${body.priorities.join(', ')}]`
+          : `Generated via Stack Wizard. Team: ${body.teamSize}, Priorities: ${body.priorities.join(', ')}`,
       })
       .select('id')
       .single();

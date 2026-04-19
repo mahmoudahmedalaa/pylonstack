@@ -222,10 +222,7 @@ export type AIStreamOrFallback =
  * Returns a StreamObjectResult (which provides chunked JSON streaming via Zod)
  * OR returns the deterministic fallback immediately if no API key or other constraint is met.
  */
-export async function streamAIRecommendation(
-  answers: WizardAnswers,
-  onFinish?: (options: { object: Record<string, unknown> | unknown }) => Promise<void>,
-): Promise<AIStreamOrFallback> {
+export async function streamAIRecommendation(answers: WizardAnswers): Promise<AIStreamOrFallback> {
   if (!GEMINI_API_KEY) {
     return { type: 'fallback', data: getFallbackRecommendation(answers) };
   }
@@ -238,7 +235,6 @@ export async function streamAIRecommendation(
       schema: AIRecommendationSchema,
       prompt,
       temperature: 0.3,
-      onFinish,
     });
 
     return { type: 'stream', result: stream };

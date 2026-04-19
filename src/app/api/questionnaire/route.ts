@@ -246,46 +246,51 @@ export async function POST(request: NextRequest) {
 
       // 4. Get AI recommendation (Streaming or Fallback)
       const aiStartMs = Date.now();
-      const streamRes = await streamAIRecommendation(safeBody, async ({ object }) => {
-        const generationTimeMs = Date.now() - aiStartMs;
-        const obj = (object || {}) as {
-          summary?: string;
-          estimatedMonthlyCost?: number;
-          phases?: unknown[];
-          recommendations?: unknown[];
-        };
+      const streamRes = await streamAIRecommendation(safeBody);
 
-        const mappedRecommendations = ((obj.recommendations || []) as unknown[]).map(
-          (r: unknown) => {
-            const rec = (r || {}) as {
-              categoryName?: string;
-              toolName?: string;
-              confidence?: number;
-              reasoning?: string;
-              alternatives?: string[];
-            };
-            return {
-              category_slug: (rec.categoryName || 'uncategorized')
-                .toLowerCase()
-                .replace(/\s+/g, '-'),
-              tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
-              confidence: rec.confidence || 80,
-              reasoning: rec.reasoning || 'Recommended by AI',
-              alternative_slug: (rec.alternatives?.[0] || 'none')
-                .toLowerCase()
-                .replace(/\s+/g, '-'),
-            };
-          },
-        );
-
-        const mappedPhases = (obj.phases || []).map((p: unknown) => {
-          const phase = (p || {}) as Record<string, unknown>;
-          return { ...phase, tools: (phase.tools as unknown[]) || [] };
-        });
-
-        // 5. Asynchronously update placeholder on finish
+      if (streamRes.type === 'stream') {
+        // 5. Asynchronously update placeholder on finish using next/server after()
         after(async () => {
           try {
+            const generationTimeMs = Date.now() - aiStartMs;
+            // Await the fully assembled object from the stream
+            const object = await streamRes.result.object;
+
+            const obj = (object || {}) as {
+              summary?: string;
+              estimatedMonthlyCost?: number;
+              phases?: unknown[];
+              recommendations?: unknown[];
+            };
+
+            const mappedRecommendations = ((obj.recommendations || []) as unknown[]).map(
+              (r: unknown) => {
+                const rec = (r || {}) as {
+                  categoryName?: string;
+                  toolName?: string;
+                  confidence?: number;
+                  reasoning?: string;
+                  alternatives?: string[];
+                };
+                return {
+                  category_slug: (rec.categoryName || 'uncategorized')
+                    .toLowerCase()
+                    .replace(/\\s+/g, '-'),
+                  tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\\s+/g, '-'),
+                  confidence: rec.confidence || 80,
+                  reasoning: rec.reasoning || 'Recommended by AI',
+                  alternative_slug: (rec.alternatives?.[0] || 'none')
+                    .toLowerCase()
+                    .replace(/\\s+/g, '-'),
+                };
+              },
+            );
+
+            const mappedPhases = (obj.phases || []).map((p: unknown) => {
+              const phase = (p || {}) as Record<string, unknown>;
+              return { ...phase, tools: (phase.tools as unknown[]) || [] };
+            });
+
             await supabaseAdmin
               .from('ai_recommendations')
               .update({
@@ -307,10 +312,10 @@ export async function POST(request: NextRequest) {
               })
               .eq('id', recommendation.id);
           } catch (err) {
-            console.error('[onFinish hook] bg DB update failed:', err);
+            console.error('[after hook] bg DB update failed:', err);
           }
         });
-      });
+      }
 
       if (streamRes.type === 'fallback') {
         const aiResult = streamRes.data;

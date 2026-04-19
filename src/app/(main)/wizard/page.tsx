@@ -48,6 +48,7 @@ import { WizardStackPreview } from '@/components/wizard/WizardStackPreview';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 // ── Step illustrations ────────────────────────────
 const STEP_ILLUSTRATIONS: Record<number, string> = {
@@ -275,7 +276,7 @@ const STEP_CONFIG: Record<number, StepConfig> = {
 
 // ── Page: Wizard ────────────────────────────────
 
-export default function WizardPage() {
+function WizardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -685,5 +686,19 @@ export default function WizardPage() {
         </aside>
       </div>
     </>
+  );
+}
+
+export default function WizardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] w-full items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+        </div>
+      }
+    >
+      <WizardContent />
+    </Suspense>
   );
 }

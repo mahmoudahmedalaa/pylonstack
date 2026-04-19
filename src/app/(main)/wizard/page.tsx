@@ -403,11 +403,22 @@ function WizardContent() {
   return (
     <>
       <GeneratingOverlay
-        isGenerating={isGenerating || isHydrating}
+        isGenerating={isGenerating}
         error={error}
         onRetry={handleGenerate}
         onCancel={handleCancelGenerate}
       />
+
+      {isHydrating && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--background)]/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 shadow-xl">
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+            <p className="text-sm font-medium text-[var(--card-foreground)]">
+              Cloning Project Information...
+            </p>
+          </div>
+        </div>
+      )}
       <div className="mx-auto flex max-w-6xl gap-8">
         {/* ── Left column: Wizard content ── */}
         <div className="min-w-0 flex-1 space-y-8">

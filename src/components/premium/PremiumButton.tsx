@@ -40,15 +40,15 @@ export const PremiumButton = React.forwardRef<HTMLButtonElement, PremiumButtonPr
 
           // Variant styles
           variant === 'primary' && [
-            'bg-[var(--primary)] text-white',
-            'shadow-[var(--primary)]/15 shadow-md',
-            'hover:-translate-y-[1px] hover:shadow-[var(--primary)]/25 hover:shadow-lg hover:brightness-110',
+            'bg-white text-black',
+            'shadow-md shadow-white/10',
+            'hover:-translate-y-[1px] hover:shadow-lg hover:shadow-white/15 hover:brightness-95',
           ],
 
           variant === 'accent' && [
-            'bg-gradient-to-r from-[var(--primary)] to-[var(--color-accent-500)] text-white',
-            'shadow-[var(--primary)]/20 shadow-md',
-            'hover:-translate-y-[1px] hover:shadow-[var(--primary)]/30 hover:shadow-lg hover:brightness-110',
+            'bg-white text-black',
+            'shadow-md shadow-white/10',
+            'hover:-translate-y-[1px] hover:shadow-lg hover:shadow-white/15 hover:brightness-95',
           ],
 
           className,

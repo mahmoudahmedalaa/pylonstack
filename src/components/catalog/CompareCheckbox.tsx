@@ -20,7 +20,7 @@ export function CompareCheckbox({ tool }: { tool: Tool }) {
       title={reachedLimit ? 'Limit reached (3 tools max)' : 'Compare tool'}
       className={`absolute top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-md border text-xs transition-all ${
         isSelected
-          ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm'
+          ? 'border-white bg-white text-black shadow-sm'
           : reachedLimit
             ? 'cursor-not-allowed border-[var(--border)] bg-[var(--muted)]/30 opacity-50'
             : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/10'

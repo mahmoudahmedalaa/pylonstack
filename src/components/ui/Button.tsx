@@ -15,7 +15,7 @@ const variantStyles = {
   outline:
     'bg-transparent text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--muted)]',
   destructive: 'bg-[var(--destructive)] text-[var(--destructive-foreground)] hover:brightness-110',
-  accent: 'bg-[var(--accent)] text-[var(--accent-foreground)] hover:brightness-110',
+  accent: 'bg-white/10 text-white border border-white/20 hover:bg-white/15',
   link: 'bg-transparent text-[var(--primary)] underline-offset-4 hover:underline p-0 h-auto',
 } as const;
 

@@ -98,7 +98,8 @@ function getRelevantCategories(answers: WizardAnswers): Set<string> {
   // Requirement-driven additions
   if (requirements.includes('payments')) categories.add('Payments');
   if (requirements.includes('analytics') || answers.analytics?.length) categories.add('Analytics');
-  if (requirements.includes('email') || requirements.includes('notifications')) categories.add('Email');
+  if (requirements.includes('email') || requirements.includes('notifications'))
+    categories.add('Email');
   if (requirements.includes('cms') || requirements.includes('blog')) categories.add('CMS');
   if (requirements.includes('search')) categories.add('Search');
   if (requirements.includes('ai') || requirements.includes('ml')) categories.add('AI/ML');
@@ -114,13 +115,14 @@ function buildPrompt(answers: WizardAnswers, correctionNote?: string): string {
   // Relevance-filtered catalog: only inject tools relevant to this project type.
   // This stays bounded at ~50-80 tools regardless of how large the catalog grows.
   const relevantCategories = getRelevantCategories(answers);
-  const catalogSummary = TOOLS
-    .filter((t) => relevantCategories.has(t.category))
-    .reduce((acc: Record<string, string[]>, t) => {
+  const catalogSummary = TOOLS.filter((t) => relevantCategories.has(t.category)).reduce(
+    (acc: Record<string, string[]>, t) => {
       if (!acc[t.category]) acc[t.category] = [];
       acc[t.category].push(t.name);
       return acc;
-    }, {});
+    },
+    {},
+  );
   const catalogBlock = Object.entries(catalogSummary)
     .map(([cat, names]) => `${cat}: ${names.join(', ')}`)
     .join('\n');
@@ -163,7 +165,7 @@ Return a JSON object with this exact shape:
       "name": "Phase 2 - Growth",
       "description": "<building on MVP, scaling up>",
       "tools": [
-        { "toolName": "<tool name>", "reason": "<why upgrade now>", "tier": "pro", "monthlyCost": 40, "pricingModel": "Usage-Based" }
+        { "toolName": "<tool name>", "reason": "<A specific, custom justification. e.g., 'Since you need realtime sockets, Pro unlocks 1M concurrent connections.' DO NOT use generic text like 'upgrade for higher limits'>", "tier": "pro", "monthlyCost": 40, "pricingModel": "Usage-Based" }
       ],
       "estimatedMonthlyCost": <sum of tool costs in this phase>,
       "estimatedImplementationTimeDays": 30
@@ -172,7 +174,7 @@ Return a JSON object with this exact shape:
       "name": "Phase 3 - Scale",
       "description": "<enterprise limits and strict compliance>",
       "tools": [
-        { "toolName": "<tool name>", "reason": "<why scale up now>", "tier": "enterprise", "monthlyCost": 300, "pricingModel": "Per-Seat" }
+        { "toolName": "<tool name>", "reason": "<A specific, custom justification for scale.>", "tier": "enterprise", "monthlyCost": 300, "pricingModel": "Per-Seat" }
       ],
       "estimatedMonthlyCost": <sum of tool costs in this phase>,
       "estimatedImplementationTimeDays": 60
@@ -183,7 +185,7 @@ Return a JSON object with this exact shape:
       "categoryName": "<category like Frontend Framework, Backend, Database, Hosting, etc.>",
       "toolName": "<specific tool name>",
       "confidence": <0-100>,
-      "reasoning": "<1-2 sentences explaining why>",
+      "reasoning": "<1-2 sentences explaining why, referencing their exact requirements and priorities>",
       "alternatives": ["<alt1>", "<alt2>"]
     }
   ]
@@ -197,6 +199,7 @@ CRITICAL RULES:
 5. "estimatedMonthlyCost" at the root level must PERFECTLY MATCH the arithmetic sum of all tool costs in Phase 2 (Growth). Recalculate it explicitly.
 6. All JSON output MUST BE EXACTLY valid JSON. No markdown codeblock wrapping formatting is allowed.
 7. Phase 2 (Growth) MUST have at least one paid tool (monthlyCost > 0).
+8. The "reason" for tools and "reasoning" for recommendations MUST be highly bespoke and tailored to the exact requirements of the project. DO NOT use generic placeholders like "Upgrade for higher limits" or "Start with the free tier".
 
 Include recommendations for at least these categories:
 - Frontend Framework
@@ -258,7 +261,7 @@ function parseAIResponse(text: string): AIRecommendationResult {
   return { ...parsed, source: 'gemini' as const };
 }
 
-const TIMEOUT_MS = 15000; // 15 seconds max per attempt
+const TIMEOUT_MS = 60000; // 60 seconds max per attempt
 
 export async function getAIRecommendation(answers: WizardAnswers): Promise<AIRecommendationResult> {
   if (!ai) return getFallbackRecommendation(answers);
@@ -295,8 +298,9 @@ export async function getAIRecommendation(answers: WizardAnswers): Promise<AIRec
       if (validation.passed) {
         // ✅ Clean pass — return with metadata
         console.log(
-          `[AI Validator] Stack passed on attempt ${attempt + 1}${correctionAttempts > 0 ? ` (after ${correctionAttempts} correction(s))` : ''
-          }`
+          `[AI Validator] Stack passed on attempt ${attempt + 1}${
+            correctionAttempts > 0 ? ` (after ${correctionAttempts} correction(s))` : ''
+          }`,
         );
         return {
           ...result,
@@ -308,7 +312,7 @@ export async function getAIRecommendation(answers: WizardAnswers): Promise<AIRec
       // ❌ Validation failed — log and prepare correction
       console.warn(
         `[AI Validator] Attempt ${attempt + 1} failed with ${validation.errors.length} error(s):`,
-        validation.errors
+        validation.errors,
       );
 
       if (attempt < MAX_CORRECTION_ATTEMPTS) {
@@ -316,12 +320,14 @@ export async function getAIRecommendation(answers: WizardAnswers): Promise<AIRec
         correctionAttempts++;
       } else {
         // Final attempt still failed — force-patch what we can and return
-        console.error('[AI Validator] Max correction attempts reached. Returning best-effort result.');
+        console.error(
+          '[AI Validator] Max correction attempts reached. Returning best-effort result.',
+        );
         return {
           ...result,
           correctionAttempts,
           validationWarnings: [
-            ...validation.errors.map(e => `[Unresolved] ${e}`),
+            ...validation.errors.map((e) => `[Unresolved] ${e}`),
             ...validation.warnings,
           ],
         };

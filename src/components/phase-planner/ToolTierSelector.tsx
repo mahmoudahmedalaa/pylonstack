@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { Check, ChevronRight, DollarSign, Search, X } from 'lucide-react';
 import { Badge, Button } from '@/components/ui';
 import { TOOLS, getToolTiers } from '@/data/tools-catalog';
@@ -133,9 +134,11 @@ export function ToolTierSelector({
                       className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-[var(--muted)]/40"
                     >
                       {tool.logo ? (
-                        <img
+                        <Image
                           src={tool.logo}
                           alt={tool.name}
+                          width={28}
+                          height={28}
                           className="h-7 w-7 rounded-md object-contain"
                         />
                       ) : (
@@ -175,9 +178,11 @@ export function ToolTierSelector({
 
               <div className="mb-4 flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--background)] p-3">
                 {selectedTool?.logo ? (
-                  <img
+                  <Image
                     src={selectedTool.logo}
                     alt={selectedTool.name}
+                    width={32}
+                    height={32}
                     className="h-8 w-8 rounded-md object-contain"
                   />
                 ) : (

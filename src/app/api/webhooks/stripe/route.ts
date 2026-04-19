@@ -26,29 +26,27 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.metadata?.userId;
-    const subscriptionId = session.subscription;
+    // TODO: use session.subscription when Stripe is wired up
 
     if (userId) {
       await supabase
         .from('profiles')
         .update({
           stripe_customer_id: session.customer,
-          stripe_subscription_id: subscriptionId,
-          plan: 'pro',
+          subscription_tier: 'pro',
         })
         .eq('id', userId);
     }
   }
 
   if (event.type === 'customer.subscription.deleted') {
-    const subscription = event.data.object as Stripe.Subscription;
-
+    const customer = event.data.object as Stripe.Subscription;
     await supabase
       .from('profiles')
       .update({
-        plan: 'free',
+        subscription_tier: 'free',
       })
-      .eq('stripe_subscription_id', subscription.id);
+      .eq('stripe_customer_id', customer.customer);
   }
 
   return new NextResponse('OK', { status: 200 });

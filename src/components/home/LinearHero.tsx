@@ -2,7 +2,6 @@
 
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useRef, useState } from 'react';
-import Link from 'next/link';
 import { ChevronRight, Database, Code2, Layers, Smartphone, RefreshCw } from 'lucide-react';
 
 export function LinearHero() {
@@ -19,7 +18,7 @@ export function LinearHero() {
   return (
     <div
       ref={containerRef}
-      className="relative flex min-h-screen w-full flex-col items-center justify-start pt-[20vh] pb-24"
+      className="relative flex min-h-screen w-full flex-col items-center justify-start overflow-x-hidden pt-[20vh] pb-24"
     >
       <motion.div
         style={{ opacity, y }}
@@ -44,18 +43,18 @@ export function LinearHero() {
         </p>
 
         <div className="flex items-center gap-5">
-          <Link
+          <a
             href="/create"
             className="flex h-14 items-center justify-center rounded-full bg-white px-10 text-[16px] font-semibold text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             Get Started
-          </Link>
-          <Link
+          </a>
+          <a
             href="#features"
             className="flex h-14 items-center justify-center rounded-full border border-white/10 bg-transparent px-10 text-[16px] font-semibold text-white transition-colors hover:bg-white/5"
           >
             Explore
-          </Link>
+          </a>
         </div>
       </motion.div>
 

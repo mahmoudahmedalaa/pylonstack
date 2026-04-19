@@ -39,7 +39,7 @@ export function CompareFloatingButton() {
           onClick={() => setCompareOpen(true)}
           className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
             selectedTools.length >= 2
-              ? 'bg-[var(--primary)] text-white shadow-sm hover:bg-[var(--primary)]/90'
+              ? 'bg-white text-black shadow-sm hover:bg-white/90'
               : 'cursor-not-allowed bg-[var(--muted)] text-[var(--muted-foreground)]'
           }`}
         >

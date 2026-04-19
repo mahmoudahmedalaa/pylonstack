@@ -23,6 +23,7 @@ import type { ProjectPhase } from '@/lib/ai/ai-client';
 import { PhasedPlanCard } from '@/components/results/PhasedPlanCard';
 import { ExportResultsButtons } from '@/components/results/ExportResultsButtons';
 import { StickyCostBar } from '@/components/results/StickyCostBar';
+import { VibeCodingPromptCard } from '@/components/results/VibeCodingPromptCard';
 
 /** Direct slug → Lucide icon name mapping for AI-returned categories */
 const SLUG_TO_ICON: Record<string, string> = {
@@ -57,9 +58,24 @@ const SLUG_TO_ICON: Record<string, string> = {
   monitoring: 'Activity',
 };
 
-export const metadata = {
-  title: 'Your Generated Tech Stack - Pylon',
-};
+import type { Metadata } from 'next';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const p = await params;
+  const project = await db.query.projects.findFirst({
+    where: eq(projects.id, p.id),
+    columns: { name: true },
+  });
+
+  return {
+    title: project ? `${project.name} Architecture | Pylon` : 'Your Tech Stack | Pylon',
+    description: 'AI-generated cloud architecture roadmap and tooling analysis.',
+  };
+}
 
 // Map the DB recommendations to the format StackBuilder expects
 function buildLayersFromRecommendations(
@@ -342,6 +358,8 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
             )}
 
             <ResultsStackDisplay layers={layers} />
+
+            <VibeCodingPromptCard project={project} layers={layers} phases={phases} />
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-[var(--border)] py-20 text-center">

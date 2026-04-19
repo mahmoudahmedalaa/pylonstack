@@ -71,13 +71,7 @@ function StatCard({
 }) {
   return (
     <SpotlightCard
-      glowColor={
-        accent.includes('var')
-          ? accent.includes('primary')
-            ? 'rgba(99, 102, 241, 0.15)'
-            : 'rgba(16, 185, 129, 0.15)'
-          : accent
-      }
+      glowColor="rgba(255, 255, 255, 0.05)"
       className="flex flex-col justify-between p-5"
     >
       <div className="flex items-start justify-between">
@@ -214,13 +208,13 @@ function SkeletonRow() {
 
 function AIInsightCard({ handleNewProject }: { handleNewProject: (e: React.MouseEvent) => void }) {
   return (
-    <div className="group border-border bg-card relative overflow-hidden rounded-2xl border p-8 shadow-2xl backdrop-blur-xl transition-all hover:border-[var(--primary)]/50">
+    <div className="group border-border bg-card relative overflow-hidden rounded-2xl border p-8 shadow-2xl backdrop-blur-xl transition-all hover:border-white/20">
       <BorderBeam
         size={250}
         duration={12}
         delay={9}
-        colorFrom="var(--primary)"
-        colorTo="var(--accent)"
+        colorFrom="rgba(255,255,255,0.2)"
+        colorTo="rgba(255,255,255,0.05)"
       />
 
       <div className="relative z-10 flex flex-col items-start gap-6 md:flex-row">
@@ -258,7 +252,7 @@ function AIInsightCard({ handleNewProject }: { handleNewProject: (e: React.Mouse
               <Button
                 size="lg"
                 variant="outline"
-                className="border-border bg-secondary hover:bg-secondary px-8 backdrop-blur hover:border-[var(--primary)]/50"
+                className="border-border bg-secondary hover:bg-secondary px-8 backdrop-blur hover:border-white/20"
               >
                 Explore Components
               </Button>
@@ -337,7 +331,7 @@ export default function DashboardPage() {
           change={projectCount > 0 ? `${projectCount} deployed` : 'Launch one'}
           trend={projectCount > 0 ? 'up' : 'neutral'}
           icon={LayoutGrid}
-          accent="rgba(99,102,241,0.8)"
+          accent="var(--foreground)"
         />
         <StatCard
           label="Tools in Stack"
@@ -345,7 +339,7 @@ export default function DashboardPage() {
           change={`${categories?.length ?? 0} clusters`}
           trend="up"
           icon={Package}
-          accent="rgba(99,102,241,0.8)"
+          accent="var(--foreground)"
         />
         <StatCard
           label="Estimated Cost"
@@ -353,7 +347,7 @@ export default function DashboardPage() {
           change={projects && projects.length > 0 ? 'Optimized' : 'Start free'}
           trend="neutral"
           icon={DollarSign}
-          accent="rgba(16,185,129,0.8)"
+          accent="var(--foreground)"
         />
         <StatCard
           label="AI Insights"
@@ -361,7 +355,7 @@ export default function DashboardPage() {
           change={isPro ? 'Pro Active' : 'Upgrade'}
           trend={isPro ? 'up' : 'neutral'}
           icon={Lightbulb}
-          accent="rgba(99,102,241,0.8)"
+          accent="var(--foreground)"
         />
       </div>
 
@@ -472,7 +466,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="bg-secondary h-1.5 overflow-hidden rounded-full">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--color-accent-500)] transition-all duration-1000 ease-out"
+                          className="h-full rounded-full bg-white transition-all duration-1000 ease-out"
                           style={{ width: `${(cat.toolCount / maxCount) * 100}%` }}
                         />
                       </div>

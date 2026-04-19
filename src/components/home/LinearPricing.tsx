@@ -67,9 +67,12 @@ export function LinearPricing() {
               <span className="text-lg font-medium text-neutral-500">/ forever</span>
             </div>
 
-            <button className="mb-12 w-full rounded-full border border-white/10 bg-white/5 py-4 text-lg font-bold text-white transition-colors hover:bg-white/10">
+            <a
+              href="/create"
+              className="mb-12 block w-full rounded-full border border-white/10 bg-white/5 py-4 text-center text-lg font-bold text-white transition-colors hover:bg-white/10"
+            >
               Get Started for Free
-            </button>
+            </a>
 
             <div className="flex flex-col gap-5">
               <div className="flex items-center gap-4">
@@ -123,9 +126,12 @@ export function LinearPricing() {
               <span className="text-lg font-medium text-neutral-500">/ month per user</span>
             </div>
 
-            <button className="mb-12 w-full rounded-full bg-white py-4 text-lg font-bold text-black shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]">
+            <a
+              href="/create"
+              className="mb-12 block w-full rounded-full bg-white py-4 text-center text-lg font-bold text-black shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            >
               Upgrade to Pro
-            </button>
+            </a>
 
             <div className="flex flex-col gap-6">
               <div className="flex items-center gap-4">

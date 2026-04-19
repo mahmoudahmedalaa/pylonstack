@@ -165,9 +165,7 @@ function OptionCard({
         {/* Check circle */}
         <div
           className={`flex h-5 w-5 items-center justify-center rounded-full transition-all duration-200 ${
-            isSelected
-              ? 'bg-[var(--primary)] text-white'
-              : 'border border-[var(--border)] bg-transparent'
+            isSelected ? 'bg-white text-black' : 'border border-[var(--border)] bg-transparent'
           }`}
         >
           {isSelected && <Check className="h-3 w-3" />}
@@ -221,7 +219,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                 step.number < currentStep
                   ? 'bg-[var(--color-accent-500)] text-white'
                   : step.number === currentStep
-                    ? 'bg-[var(--primary)] text-white'
+                    ? 'bg-white text-black'
                     : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
               }`}
             >

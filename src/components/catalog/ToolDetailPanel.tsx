@@ -119,7 +119,7 @@ export function ToolDetailPanel({ tool, onClose }: ToolDetailPanelProps) {
 
           {/* Pricing Tiers */}
           <section className="mt-8">
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+            <h3 className="mb-3 text-xs font-semibold tracking-wider text-[var(--muted-foreground)] uppercase">
               Pricing Tiers
             </h3>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -134,14 +134,12 @@ export function ToolDetailPanel({ tool, onClose }: ToolDetailPanelProps) {
                 >
                   <span className="text-xs font-medium text-[var(--foreground)]">{tier.name}</span>
                   <span className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-                    {tier.price === null
-                      ? 'Custom'
-                      : tier.price === 0
-                        ? 'Free'
-                        : `$${tier.price}`}
+                    {tier.price === null ? 'Custom' : tier.price === 0 ? 'Free' : `$${tier.price}`}
                   </span>
                   {tier.price !== null && tier.price > 0 && tier.period && (
-                    <span className="text-[10px] text-[var(--muted-foreground)]">/{tier.period}</span>
+                    <span className="text-[10px] text-[var(--muted-foreground)]">
+                      /{tier.period}
+                    </span>
                   )}
                   {tier.limits && (
                     <span className="mt-1.5 text-[10px] leading-snug text-[var(--muted-foreground)]">
@@ -179,19 +177,17 @@ export function ToolDetailPanel({ tool, onClose }: ToolDetailPanelProps) {
           {/* Best For */}
           {tool.description && (
             <section className="mt-6">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+              <h3 className="mb-2 text-xs font-semibold tracking-wider text-[var(--muted-foreground)] uppercase">
                 Best For
               </h3>
-              <p className="text-sm leading-relaxed text-[var(--foreground)]">
-                {tool.description}
-              </p>
+              <p className="text-sm leading-relaxed text-[var(--foreground)]">{tool.description}</p>
             </section>
           )}
 
           {/* Tags */}
           {tool.tags.length > 0 && (
             <section className="mt-6">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+              <h3 className="mb-2 text-xs font-semibold tracking-wider text-[var(--muted-foreground)] uppercase">
                 Tags
               </h3>
               <div className="flex flex-wrap gap-1.5">
@@ -210,7 +206,7 @@ export function ToolDetailPanel({ tool, onClose }: ToolDetailPanelProps) {
 
           {/* Category */}
           <section className="mt-6">
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+            <h3 className="mb-2 text-xs font-semibold tracking-wider text-[var(--muted-foreground)] uppercase">
               Category
             </h3>
             <span className="inline-block rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1 text-xs font-medium text-[var(--foreground)]">
@@ -221,7 +217,7 @@ export function ToolDetailPanel({ tool, onClose }: ToolDetailPanelProps) {
           {/* Implementation Time */}
           {tool.pricingDetails?.estimatedImplementationTimeDays && (
             <section className="mt-6">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+              <h3 className="mb-2 text-xs font-semibold tracking-wider text-[var(--muted-foreground)] uppercase">
                 Estimated Setup Time
               </h3>
               <p className="text-sm text-[var(--foreground)]">
@@ -238,7 +234,7 @@ export function ToolDetailPanel({ tool, onClose }: ToolDetailPanelProps) {
             href={tool.website}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[var(--primary)]/90"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black shadow-sm transition-all hover:bg-white/90"
           >
             Visit Website
             <ExternalLink className="h-4 w-4" />

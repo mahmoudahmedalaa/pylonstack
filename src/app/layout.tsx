@@ -68,7 +68,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${plusJakarta.variable} ${jetbrainsMono.variable} font-jakarta min-h-screen bg-black antialiased`}
+        className={`${inter.variable} ${plusJakarta.variable} ${jetbrainsMono.variable} font-jakarta min-h-screen overflow-x-hidden bg-black antialiased`}
       >
         <div className="noise" aria-hidden="true" />
         <ThemeProvider>

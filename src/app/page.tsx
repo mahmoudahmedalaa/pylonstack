@@ -95,12 +95,12 @@ function FinalCTA() {
           Join elite engineering teams defining their technical architecture with clarity and
           mathematical precision.
         </p>
-        <Link
+        <a
           href="/create"
           className="inline-flex h-14 items-center justify-center rounded-full bg-white px-10 text-[15px] font-semibold text-black transition-transform hover:scale-105 active:scale-[0.98]"
         >
           Build Your Stack
-        </Link>
+        </a>
       </div>
     </section>
   );
@@ -139,27 +139,27 @@ export default function HomePage() {
             >
               Testimonials
             </a>
-            <Link
+            <a
               href="/catalog"
               className="text-base font-medium tracking-wide text-neutral-400 transition-colors hover:text-white"
             >
               Catalog
-            </Link>
+            </a>
           </div>
 
           <div className="hidden items-center gap-6 md:flex">
-            <Link
+            <a
               href="/login"
               className="text-base font-bold text-neutral-400 transition-colors hover:text-white"
             >
               Log in
-            </Link>
-            <Link
+            </a>
+            <a
               href="/create"
               className="flex h-10 items-center justify-center rounded-full bg-white px-6 text-base font-bold text-black transition-transform hover:scale-105 active:scale-95"
             >
               Get Started
-            </Link>
+            </a>
           </div>
 
           <div className="md:hidden">
@@ -171,18 +171,18 @@ export default function HomePage() {
 
         {mobileMenuOpen && (
           <div className="flex flex-col gap-6 border-t border-white/10 bg-black px-6 py-6 md:hidden">
-            <Link href="#features" className="text-lg font-medium text-neutral-400">
+            <a href="#features" className="text-lg font-medium text-neutral-400">
               Features
-            </Link>
-            <Link href="#testimonials" className="text-lg font-medium text-neutral-400">
+            </a>
+            <a href="#testimonials" className="text-lg font-medium text-neutral-400">
               Testimonials
-            </Link>
-            <Link href="/catalog" className="text-lg font-medium text-neutral-400">
+            </a>
+            <a href="/catalog" className="text-lg font-medium text-neutral-400">
               Catalog
-            </Link>
-            <Link href="/login" className="text-lg font-medium text-neutral-400">
+            </a>
+            <a href="/login" className="text-lg font-medium text-neutral-400">
               Log in
-            </Link>
+            </a>
           </div>
         )}
       </nav>

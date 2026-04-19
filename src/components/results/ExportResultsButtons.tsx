@@ -61,29 +61,28 @@ export function ExportResultsButtons({
   const handleExportPdf = async () => {
     setIsExportingPdf(true);
     try {
-      // Attempt to capture the closest main container or body
       const element = document.getElementById('results-content-area') || document.body;
-      
+
       // Short delay to ensure any layout shifts settle
       await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      // Use html2canvas with specific settings to improve reliability
-      const canvas = await html2canvas(element, { 
-        scale: 2, 
-        useCORS: true, 
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
         logging: false,
-        backgroundColor: '#ffffff', // Ensure a solid background
+        backgroundColor: '#ffffff',
         windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        windowHeight: element.scrollHeight,
       });
-      
-      const imgData = canvas.toDataURL('image/jpeg', 0.95); // Use JPEG for smaller file sizes
-      const pdf = new jsPDF({ 
-        orientation: 'portrait', 
-        unit: 'px', 
-        format: [canvas.width, canvas.height] 
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
       });
-      
+
       pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
       pdf.save(`${projectName.replace(/\s+/g, '-').toLowerCase() || 'stack'}-export.pdf`);
     } catch (err) {

@@ -31,7 +31,7 @@ function ToolCard({ tool, onSelect }: { tool: Tool; onSelect: (tool: Tool) => vo
   return (
     <div
       onClick={() => onSelect(tool)}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/5"
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-white/20 hover:shadow-lg hover:shadow-white/5"
     >
       {/* Top: Logo + Name */}
       <div className="flex items-start gap-3">
@@ -244,7 +244,7 @@ export default function CatalogPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-32">
       {/* ── Header ── */}
       <div>
         <h1 className="text-4xl font-bold tracking-tight text-white">Tech Catalog</h1>
@@ -302,7 +302,7 @@ export default function CatalogPage() {
               <SlidersHorizontal className="h-3.5 w-3.5" />
               Filters
               {activeFilterCount > 0 && (
-                <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--primary)] text-[10px] font-bold text-white">
+                <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-black">
                   {activeFilterCount}
                 </span>
               )}
@@ -345,7 +345,7 @@ export default function CatalogPage() {
                       }}
                       className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
                         pricingFilter === value
-                          ? 'bg-[var(--primary)] text-white'
+                          ? 'bg-white text-black'
                           : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:bg-[var(--muted)]'
                       }`}
                     >

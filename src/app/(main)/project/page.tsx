@@ -34,9 +34,15 @@ function timeAgo(dateStr: string): string {
 // ── Project Card ────────────────────────────────
 
 function ProjectCard({ project }: { project: ProjectRow }) {
-  const stackData = project.stackData as StackLayer[] | null;
+  const stackData = project.stackData as
+    | { layers?: StackLayer[]; phases?: StackLayer[] }
+    | StackLayer[];
+  const layersArray = Array.isArray(stackData)
+    ? stackData
+    : stackData?.layers || stackData?.phases || [];
   const toolCount =
-    stackData?.reduce((sum: number, layer: StackLayer) => sum + (layer.tools?.length || 0), 0) || 0;
+    layersArray?.reduce((sum: number, layer: StackLayer) => sum + (layer.tools?.length || 0), 0) ||
+    0;
 
   return (
     <Link href={`/project/${project.id}`} className="block">
@@ -45,7 +51,7 @@ function ProjectCard({ project }: { project: ProjectRow }) {
         <div
           className={`absolute top-0 left-0 h-1 w-full ${
             project.status === 'active'
-              ? 'bg-gradient-to-r from-[var(--color-accent-500)] to-[var(--color-accent-600)]'
+              ? 'bg-white/10'
               : project.status === 'draft'
                 ? 'bg-gradient-to-r from-orange-400 to-amber-500'
                 : 'bg-gradient-to-r from-slate-400 to-slate-500'
@@ -56,7 +62,7 @@ function ProjectCard({ project }: { project: ProjectRow }) {
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5 text-[var(--primary)] shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-white shadow-sm">
                 <Layers className="h-6 w-6" />
               </div>
               <div>
@@ -181,7 +187,7 @@ function EmptyState() {
     >
       <div className="relative">
         <div className="absolute -inset-4 animate-pulse rounded-full bg-[var(--primary)]/10 blur-xl" />
-        <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5">
+        <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10">
           <FolderOpen className="h-10 w-10 text-[var(--primary)]" />
         </div>
       </div>
@@ -195,7 +201,7 @@ function EmptyState() {
       <Link href="/create" className="mt-8">
         <Button
           size="lg"
-          className="rounded-full bg-[var(--primary)] px-8 text-white shadow-[var(--primary)]/20 shadow-lg transition-all hover:scale-105 hover:bg-[var(--primary-dark)] active:scale-95"
+          className="rounded-full bg-white px-8 text-black shadow-lg shadow-white/10 transition-all hover:scale-105 hover:brightness-95 active:scale-95"
         >
           <Sparkles className="mr-2 h-5 w-5 fill-current" />
           Generate New Stack

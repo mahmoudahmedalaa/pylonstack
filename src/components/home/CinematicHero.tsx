@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Link from 'next/link';
+import { Logo } from '@/components/ui/Logo';
 
 export function CinematicHero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,7 +57,7 @@ function AppScreenshotMockup() {
       <div className="flex h-14 w-full items-center justify-between border-b border-white/5 px-6">
         <div className="flex items-center gap-3">
           {/* Logo mock */}
-          <div className="h-5 w-5 rounded-md bg-white/20" />
+          <Logo className="h-5 w-5 text-white" />
           <div className="text-sm font-semibold tracking-wide text-white">Stack Wizard</div>
         </div>
         <div className="text-xs font-medium text-neutral-500">Answer a few questions</div>

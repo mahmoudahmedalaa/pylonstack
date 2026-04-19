@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Search, FolderKanban, PlusCircle, Settings, X, Zap } from 'lucide-react';
+import { LayoutDashboard, Search, FolderKanban, PlusCircle, Settings, X } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -65,9 +66,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
         {/* Header */}
         <div className="flex h-16 items-center justify-between border-b border-[var(--border)] px-4">
           <div className="flex items-center gap-3">
-            <div className="bg-primary-500 flex h-9 w-9 items-center justify-center rounded-lg text-white">
-              <Zap className="h-5 w-5" />
-            </div>
+            <Logo className="text-primary-500 h-8 w-8" />
             <span className="text-lg font-semibold tracking-tight text-[var(--foreground)]">
               Pylon
             </span>

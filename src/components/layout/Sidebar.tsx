@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui';
+import { Logo } from '@/components/ui/Logo';
 import {
   LayoutDashboard,
   Search,
@@ -56,10 +57,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     >
       {/* Logo Section */}
       <div className="flex h-16 items-center gap-3 border-b border-white/5 px-4">
-        {/* P Monogram */}
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white">
-          <span className="text-lg leading-none font-black text-black">P</span>
-        </div>
+        {/* P Monogram Logo */}
+        <Logo className="h-8 w-8 shrink-0 text-white" />
 
         <AnimatePresence mode="wait">
           {!collapsed && (

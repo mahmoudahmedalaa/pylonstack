@@ -1,26 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import type { UserPreferences } from '@/lib/validations/profile';
+
 import { createClient } from '@/lib/supabase/client';
-import {
-  User,
-  Shield,
-  Palette,
-  Bell,
-  CreditCard,
-  AlertTriangle,
-  Mail,
-  Key,
-  Globe,
-  Moon,
-  Sun,
-  Check,
-  Loader2,
-} from 'lucide-react';
-import { Button, Input, Select, Toggle, Badge, Avatar } from '@/components/ui';
+import { User, Shield, CreditCard, AlertTriangle, Key, Globe, Check, Loader2 } from 'lucide-react';
+import { Button, Input, Badge, Avatar } from '@/components/ui';
 import { useSubscription } from '@/hooks/useSubscription';
 import { UpgradeModal, useUpgradeModal } from '@/components/UpgradeModal';
 import { ProBadge } from '@/components/ProBadge';
@@ -30,7 +16,7 @@ import { ProBadge } from '@/components/ProBadge';
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'account', label: 'Account', icon: Shield },
-  { id: 'preferences', label: 'Preferences', icon: Palette },
+  // { id: 'preferences', label: 'Preferences', icon: Palette }, // Phase 2: Deferred features
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -485,197 +471,6 @@ function AccountTab({ user }: { user: ReturnType<typeof useAuth>['user'] }) {
   );
 }
 
-// ── Preferences Tab ─────────────────────────────
-
-function PreferencesTab() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [currency, setCurrency] = useState<'USD' | 'EUR' | 'GBP'>('USD');
-  const [notifAi, setNotifAi] = useState(true);
-  const [notifDigest, setNotifDigest] = useState(false);
-  const [notifCostAlerts, setNotifCostAlerts] = useState(true);
-  const [prefsLoaded, setPrefsLoaded] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Load preferences from API on mount
-  useEffect(() => {
-    async function loadPrefs() {
-      try {
-        const res = await fetch('/api/profile');
-        if (res.ok) {
-          const data = await res.json();
-          const prefs: UserPreferences = data.preferences || {};
-          if (prefs.theme === 'light' || prefs.theme === 'dark') setTheme(prefs.theme);
-          else setTheme((localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
-          if (prefs.default_currency) setCurrency(prefs.default_currency);
-          if (prefs.notifications_ai !== undefined) setNotifAi(prefs.notifications_ai);
-          if (prefs.notifications_email_digest !== undefined)
-            setNotifDigest(prefs.notifications_email_digest);
-          if (prefs.notifications_cost_alerts !== undefined)
-            setNotifCostAlerts(prefs.notifications_cost_alerts);
-        }
-      } catch {
-        // fall back to localStorage for theme
-        setTheme((localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
-      }
-      setPrefsLoaded(true);
-    }
-    loadPrefs();
-  }, []);
-
-  // Auto-save preferences with debounce
-  const savePrefs = useCallback((prefs: UserPreferences) => {
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(async () => {
-      setSaving(true);
-      try {
-        await fetch('/api/profile', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ preferences: prefs }),
-        });
-      } catch {
-        // silently fail — preferences not critical
-      }
-      setSaving(false);
-    }, 600);
-  }, []);
-
-  const handleThemeChange = (newTheme: 'dark' | 'light') => {
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-    savePrefs({ theme: newTheme });
-  };
-
-  const handleCurrencyChange = (val: string) => {
-    const c = val.toUpperCase() as 'USD' | 'EUR' | 'GBP';
-    setCurrency(c);
-    savePrefs({ default_currency: c });
-  };
-
-  const handleToggle = (
-    key: 'notifications_ai' | 'notifications_email_digest' | 'notifications_cost_alerts',
-    value: boolean,
-    setter: (v: boolean) => void,
-  ) => {
-    setter(value);
-    savePrefs({ [key]: value });
-  };
-
-  if (!prefsLoaded) {
-    return (
-      <div className="flex min-h-[200px] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--muted-foreground)]" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <Section title="Appearance" description="Customize how Pylon looks and feels.">
-        <div className="space-y-5">
-          <FieldRow label="Theme" hint="Select your preferred color scheme.">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleThemeChange('dark')}
-                className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2.5 text-xs font-medium transition-colors ${
-                  theme === 'dark'
-                    ? 'border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--foreground)]'
-                    : 'border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--muted-foreground)]/30'
-                }`}
-              >
-                <Moon className="h-4 w-4" />
-                Dark
-              </button>
-              <button
-                onClick={() => handleThemeChange('light')}
-                className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2.5 text-xs font-medium transition-colors ${
-                  theme === 'light'
-                    ? 'border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--foreground)]'
-                    : 'border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--muted-foreground)]/30'
-                }`}
-              >
-                <Sun className="h-4 w-4" />
-                Light
-              </button>
-            </div>
-          </FieldRow>
-
-          <FieldRow label="Default Currency" hint="Currency for cost estimates.">
-            <Select
-              value={currency.toLowerCase()}
-              onChange={(e) => handleCurrencyChange(e.target.value)}
-            >
-              <option value="usd">USD — US Dollar</option>
-              <option value="eur">EUR — Euro</option>
-              <option value="gbp">GBP — British Pound</option>
-            </Select>
-          </FieldRow>
-
-          {saving && (
-            <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
-              <Loader2 className="h-3 w-3 animate-spin" /> Saving...
-            </div>
-          )}
-        </div>
-      </Section>
-
-      <Section title="Notifications" description="Control what notifications you receive.">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Bell className="h-4 w-4 text-[var(--muted-foreground)]" />
-              <div>
-                <p className="text-sm text-[var(--foreground)]">AI Recommendations</p>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  Get notified when new suggestions are available.
-                </p>
-              </div>
-            </div>
-            <Toggle
-              checked={notifAi}
-              onChange={(v) => handleToggle('notifications_ai', v, setNotifAi)}
-            />
-          </div>
-          <div className="border-t border-[var(--border)]/50" />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-[var(--muted-foreground)]" />
-              <div>
-                <p className="text-sm text-[var(--foreground)]">Email Digest</p>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  Weekly summary of your stack activity.
-                </p>
-              </div>
-            </div>
-            <Toggle
-              checked={notifDigest}
-              onChange={(v) => handleToggle('notifications_email_digest', v, setNotifDigest)}
-            />
-          </div>
-          <div className="border-t border-[var(--border)]/50" />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <CreditCard className="h-4 w-4 text-[var(--muted-foreground)]" />
-              <div>
-                <p className="text-sm text-[var(--foreground)]">Cost Alerts</p>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  Alert when estimated costs exceed your budget.
-                </p>
-              </div>
-            </div>
-            <Toggle
-              checked={notifCostAlerts}
-              onChange={(v) => handleToggle('notifications_cost_alerts', v, setNotifCostAlerts)}
-            />
-          </div>
-        </div>
-      </Section>
-    </div>
-  );
-}
-
 // ── Page: Settings ──────────────────────────────
 
 export default function SettingsPage() {
@@ -723,7 +518,6 @@ export default function SettingsPage() {
       {/* ── Tab Content ── */}
       {activeTab === 'profile' && <ProfileTab user={user} />}
       {activeTab === 'account' && <AccountTab user={user} />}
-      {activeTab === 'preferences' && <PreferencesTab />}
     </div>
   );
 }

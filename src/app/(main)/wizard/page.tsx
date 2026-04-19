@@ -40,7 +40,7 @@ import {
   Info,
 } from 'lucide-react';
 import { Button, ProgressBar, Textarea } from '@/components/ui';
-import { StackBuilder, wizardAnswersToLayers } from '@/components/stack-builder';
+import { wizardAnswersToLayers } from '@/components/stack-builder';
 import { PROJECT_TYPES, TEAM_SIZES, PRIORITIES, REQUIREMENTS } from '@/data/wizard-constants';
 import { useWizardStore } from '@/stores/wizard-store';
 import { GeneratingOverlay } from '@/components/wizard/GeneratingOverlay';
@@ -648,19 +648,7 @@ export default function WizardPage() {
               <WizardStackPreview />
             </div>
 
-            {/* Existing StackBuilder mini-view below */}
-            {stackLayers.length > 0 && (
-              <div className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 backdrop-blur-xl">
-                <StackBuilder
-                  layers={stackLayers}
-                  mode="preview"
-                  totalCategories={8}
-                  showProgress
-                />
-              </div>
-            )}
-
-            {/* Tip below the stack builder */}
+            {/* Tip below the stack preview */}
             {stackLayers.length > 0 && (
               <p className="mt-3 text-center text-[11px] text-neutral-500">
                 Your stack updates live as you make selections

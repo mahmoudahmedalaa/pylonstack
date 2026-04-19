@@ -37,7 +37,10 @@ function ResultSkeleton() {
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="flex items-center gap-4 px-4 py-3">
             <div className="h-4 w-4 animate-pulse rounded bg-[var(--muted)]" />
-            <div className="h-3 flex-1 animate-pulse rounded bg-[var(--muted)]/80" style={{ maxWidth: `${60 + i * 5}%` }} />
+            <div
+              className="h-3 flex-1 animate-pulse rounded bg-[var(--muted)]/80"
+              style={{ maxWidth: `${60 + i * 5}%` }}
+            />
             <div className="h-3 w-16 animate-pulse rounded bg-[var(--muted)]/60" />
           </div>
         ))}
@@ -48,28 +51,18 @@ function ResultSkeleton() {
 
 /* ─── Terminal log line ─────────────────────────────────────── */
 
-function LogLine({
-  entry,
-  status,
-}: {
-  entry: LogEntry;
-  status: 'pending' | 'running' | 'done';
-}) {
+function LogLine({ entry, status }: { entry: LogEntry; status: 'pending' | 'running' | 'done' }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       className="flex items-center gap-2 font-mono text-[13px] leading-6"
     >
-      {status === 'done' && (
-        <span className="text-[var(--primary)]">✓</span>
-      )}
+      {status === 'done' && <span className="text-[var(--primary)]">✓</span>}
       {status === 'running' && (
         <span className="inline-block w-3 animate-pulse text-[var(--muted-foreground)]">▸</span>
       )}
-      {status === 'pending' && (
-        <span className="w-3 text-[var(--muted-foreground)]/50">·</span>
-      )}
+      {status === 'pending' && <span className="w-3 text-[var(--muted-foreground)]/50">·</span>}
       <span
         className={
           status === 'done'
@@ -80,9 +73,7 @@ function LogLine({
         }
       >
         {entry.label}
-        {status === 'running' && (
-          <span className="ml-0.5 inline-block animate-pulse">…</span>
-        )}
+        {status === 'running' && <span className="ml-0.5 inline-block animate-pulse">…</span>}
       </span>
     </motion.div>
   );
@@ -109,9 +100,14 @@ function ErrorPanel({
   } else if (error.toLowerCase().includes('rate') || error.toLowerCase().includes('429')) {
     headline = 'Rate limit reached';
     hint = 'The AI provider throttled the request. Wait a moment, then retry.';
-  } else if (error.toLowerCase().includes('log in') || error.toLowerCase().includes('auth') || error.toLowerCase().includes('401')) {
+  } else if (
+    error.toLowerCase().includes('log in') ||
+    error.toLowerCase().includes('auth') ||
+    error.toLowerCase().includes('401') ||
+    error.toLowerCase().includes('tenant or user not found')
+  ) {
     headline = 'Authentication required';
-    hint = 'Your session may have expired. Please log in and try again.';
+    hint = 'Your session has expired or is invalid. Please log out and log in again.';
   } else if (error.toLowerCase().includes('network') || error.toLowerCase().includes('fetch')) {
     headline = 'Network connection lost';
     hint = 'Check your internet connection and retry.';
@@ -231,7 +227,7 @@ export function GeneratingOverlay({
 
     return () => {
       if (minDelayRef.current) clearTimeout(minDelayRef.current);
-    }
+    };
   }, [isGenerating, error]);
 
   // Don't render at all if nothing to show
@@ -275,13 +271,20 @@ export function GeneratingOverlay({
                   transition={{ ease: 'easeOut', duration: 0.6 }}
                 />
               </div>
-              <p className="mt-1.5 self-end font-mono text-[11px] text-[var(--muted-foreground)]/80 flex items-center gap-1">
-                {isTakingLong && <span className="text-[var(--primary)] italic mr-2">Finalizing, this can take up to 30s...</span>}
-                {elapsedSteps === OPERATION_LOG.length - 1 && !isGenerating ? OPERATION_LOG.length : elapsedSteps}/{OPERATION_LOG.length} operations
+              <p className="mt-1.5 flex items-center gap-1 self-end font-mono text-[11px] text-[var(--muted-foreground)]/80">
+                {isTakingLong && (
+                  <span className="mr-2 text-[var(--primary)] italic">
+                    Finalizing, this can take up to 30s...
+                  </span>
+                )}
+                {elapsedSteps === OPERATION_LOG.length - 1 && !isGenerating
+                  ? OPERATION_LOG.length
+                  : elapsedSteps}
+                /{OPERATION_LOG.length} operations
               </p>
 
               {/* Terminal log */}
-              <div className="mt-6 w-full rounded-lg border border-[var(--border)] bg-[var(--card)]/80 shadow-md p-4">
+              <div className="mt-6 w-full rounded-lg border border-[var(--border)] bg-[var(--card)]/80 p-4 shadow-md">
                 <div className="space-y-0.5">
                   {OPERATION_LOG.map((entry, i) => {
                     let status: 'pending' | 'running' | 'done' = 'pending';

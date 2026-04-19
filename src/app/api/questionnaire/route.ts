@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { waitUntil } from '@vercel/functions';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { streamAIRecommendation } from '@/lib/ai/ai-client';
@@ -245,6 +246,12 @@ export async function POST(request: NextRequest) {
 
       // 4. Get AI recommendation (Streaming or Fallback)
       const aiStartMs = Date.now();
+
+      let resolveOnFinish: () => void;
+      const onFinishPromise = new Promise<void>((resolve) => {
+        resolveOnFinish = resolve;
+      });
+
       const streamRes = await streamAIRecommendation(
         safeBody,
         async ({ object, error: streamError }) => {
@@ -326,9 +333,15 @@ export async function POST(request: NextRequest) {
             } catch (fallbackErr) {
               console.error('Failed to save fallback error', fallbackErr);
             }
+          } finally {
+            resolveOnFinish();
           }
         },
       );
+
+      if (streamRes.type === 'stream') {
+        waitUntil(onFinishPromise);
+      }
 
       if (streamRes.type === 'fallback') {
         const aiResult = streamRes.data;

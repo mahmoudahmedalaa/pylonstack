@@ -68,7 +68,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
 
   // ── Navigation ──
   setStep: (step) => set({ currentStep: step }),
-  nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 7) })),
+  nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 5) })),
   prevStep: () => set((s) => ({ currentStep: Math.max(s.currentStep - 1, 1) })),
 
   // ── Single-select answers ──
@@ -139,10 +139,6 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
       case 4:
         return answers.priorities.length > 0;
       case 5:
-        return true; // preferences are optional
-      case 6:
-        return true; // analytics are optional
-      case 7:
         return true;
       default:
         return false;

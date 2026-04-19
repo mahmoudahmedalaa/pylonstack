@@ -41,14 +41,7 @@ import {
 } from 'lucide-react';
 import { Button, ProgressBar, Textarea } from '@/components/ui';
 import { StackBuilder, wizardAnswersToLayers } from '@/components/stack-builder';
-import {
-  PROJECT_TYPES,
-  TEAM_SIZES,
-  PRIORITIES,
-  REQUIREMENTS,
-  PREFERENCES,
-  ANALYTICS,
-} from '@/data/wizard-constants';
+import { PROJECT_TYPES, TEAM_SIZES, PRIORITIES, REQUIREMENTS } from '@/data/wizard-constants';
 import { useWizardStore } from '@/stores/wizard-store';
 import { GeneratingOverlay } from '@/components/wizard/GeneratingOverlay';
 import { WizardStackPreview } from '@/components/wizard/WizardStackPreview';
@@ -203,9 +196,7 @@ const STEPS = [
   { number: 2, label: 'Team Size' },
   { number: 3, label: 'Requirements' },
   { number: 4, label: 'Priorities' },
-  { number: 5, label: 'Preferences' },
-  { number: 6, label: 'Analytics' },
-  { number: 7, label: 'Review' },
+  { number: 5, label: 'Review' },
 ];
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
@@ -279,16 +270,6 @@ const STEP_CONFIG: Record<number, StepConfig> = {
     subtitle: 'Pick up to 2 priorities so we can weight our recommendations accordingly.',
     multiSelect: true,
   },
-  5: {
-    title: 'Any tech preferences?',
-    subtitle: "Optional — tell us your engineering preferences and we'll factor them in.",
-    multiSelect: true,
-  },
-  6: {
-    title: 'Analytics Tools',
-    subtitle: 'Optional — select analytics platforms you prefer or currently use.',
-    multiSelect: true,
-  },
 };
 
 // ── Page: Wizard ────────────────────────────────
@@ -310,8 +291,6 @@ export default function WizardPage() {
     setTeamSize,
     toggleRequirement,
     togglePriority,
-    togglePreference,
-    toggleAnalytics,
     canAdvance,
     reset,
     submitWizard,
@@ -374,20 +353,6 @@ export default function WizardPage() {
           onSelect: (id: string) => togglePriority(id),
           cols: 'grid-cols-1 sm:grid-cols-2',
         };
-      case 5:
-        return {
-          options: PREFERENCES,
-          isSelected: (id: string) => answers.preferences.includes(id),
-          onSelect: (id: string) => togglePreference(id),
-          cols: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-        };
-      case 6:
-        return {
-          options: ANALYTICS,
-          isSelected: (id: string) => answers.analytics.includes(id),
-          onSelect: (id: string) => toggleAnalytics(id),
-          cols: 'grid-cols-1 sm:grid-cols-2',
-        };
       default:
         return null;
     }
@@ -447,7 +412,7 @@ export default function WizardPage() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
               >
-                {currentStep <= 6 && config && stepData ? (
+                {currentStep <= 4 && config && stepData ? (
                   <>
                     <div className="mb-6 flex items-start justify-between gap-6">
                       <div>
@@ -535,12 +500,12 @@ export default function WizardPage() {
                     </div>
                   </>
                 ) : (
-                  /* ── Step 7: Review ── */
+                  /* ── Step 5: Review ── */
                   <div>
                     <div className="mb-6 flex items-start justify-between gap-6">
                       <div>
                         <span className="text-xs font-medium text-[var(--primary)]">
-                          Step 7 of {STEPS.length}
+                          Step 5 of {STEPS.length}
                         </span>
                         <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
                           Review your answers
@@ -607,16 +572,6 @@ export default function WizardPage() {
                           value: getLabel(PRIORITIES, answers.priorities),
                           step: 4,
                         },
-                        {
-                          label: 'Preferences',
-                          value: getLabel(PREFERENCES, answers.preferences) || 'None',
-                          step: 5,
-                        },
-                        {
-                          label: 'Analytics',
-                          value: getLabel(ANALYTICS, answers.analytics) || 'None',
-                          step: 6,
-                        },
                       ].map((row) => (
                         <div
                           key={row.label}
@@ -658,7 +613,7 @@ export default function WizardPage() {
               Back
             </Button>
 
-            {currentStep < 7 ? (
+            {currentStep < 5 ? (
               <Button variant="primary" size="sm" disabled={!canAdvance()} onClick={nextStep}>
                 Next Step
                 <ArrowRight className="ml-1.5 h-4 w-4" />

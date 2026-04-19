@@ -97,7 +97,7 @@ function getRelevantCategories(answers: WizardAnswers): Set<string> {
 
   // Requirement-driven additions
   if (requirements.includes('payments')) categories.add('Payments');
-  if (requirements.includes('analytics') || answers.analytics?.length) categories.add('Analytics');
+  categories.add('Analytics'); // ALways include Analytics for observability by default
   if (requirements.includes('email') || requirements.includes('notifications'))
     categories.add('Email');
   if (requirements.includes('cms') || requirements.includes('blog')) categories.add('CMS');
@@ -144,8 +144,8 @@ PROJECT REQUIREMENTS:
 - Team Size: ${answers.teamSize}
 - Requirements: ${answers.requirements.join(', ')}
 - Priorities: ${answers.priorities.join(', ')}
-- Preferences: ${answers.preferences.join(', ') || 'None specified'}
-- Analytics Tools Preferences: ${answers.analytics?.join(', ') || 'No specific preference'}
+- Preferences: Strongly enforce modern strict TypeScript, ESLint, Prettier, and standard modern best practices.
+- Analytics Tools Preferences: Automatically include modern, developer-friendly analytics (like Vercel Web Analytics, PostHog, or similar) as part of the recommendation, because observability is critical for success.
 
 Return a JSON object with this exact shape:
 {

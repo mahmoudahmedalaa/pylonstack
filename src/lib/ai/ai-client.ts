@@ -217,7 +217,9 @@ Order by importance. Prefer production-proven tools. Consider the team size and 
 
 // ── Evaluator-Optimizer Loop ──
 
-const MAX_CORRECTION_ATTEMPTS = 2;
+// Reduced to 0 to prevent 504 Timeout on Vercel.
+// Vercel Hobby strictly kills functions at 60s. Retrying guarantees we hit this limit.
+const MAX_CORRECTION_ATTEMPTS = 0;
 
 /**
  * Parses and post-processes a raw AI JSON response into AIRecommendationResult.
@@ -261,7 +263,8 @@ function parseAIResponse(text: string): AIRecommendationResult {
   return { ...parsed, source: 'gemini' as const };
 }
 
-const TIMEOUT_MS = 60000; // 60 seconds max per attempt
+// Reduced to 45s to give Vercel time to save the fallback response and finish before the 60s hard-kill.
+const TIMEOUT_MS = 45000;
 
 export async function getAIRecommendation(answers: WizardAnswers): Promise<AIRecommendationResult> {
   if (!ai) return getFallbackRecommendation(answers);

@@ -293,6 +293,7 @@ export default function WizardPage() {
     togglePriority,
     canAdvance,
     reset,
+    clearError,
     submitWizard,
   } = useWizardStore();
 
@@ -320,6 +321,7 @@ export default function WizardPage() {
 
   const handleCancelGenerate = () => {
     setIsGenerating(false);
+    clearError();
   };
 
   // Get the options and selection state for the current step

@@ -44,6 +44,7 @@ interface WizardStore {
 
   canAdvance: () => boolean;
   reset: () => void;
+  clearError: () => void;
 
   submitWizard: () => Promise<{ projectId: string; recommendationId: string } | null>;
 }
@@ -148,6 +149,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
   // ── Reset ──
   reset: () =>
     set({ currentStep: 1, answers: { ...INITIAL_ANSWERS }, isSubmitting: false, error: null }),
+  clearError: () => set({ error: null }),
 
   // ── Submit ──
   submitWizard: async () => {

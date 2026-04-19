@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * GET /api/health
@@ -14,7 +15,7 @@ export async function GET() {
   checks.ANON_KEY = anonKey ? `✅ set (starts with: ${anonKey.substring(0, 8)}…)` : '❌ MISSING';
   checks.DATABASE_URL = process.env.DATABASE_URL
     ? `✅ set (host: ${process.env.DATABASE_URL.match(/@([^:/]+)/)?.[1] || 'unknown'})`
-    : '❌ MISSING';
+    : '⚠️ not set (using REST API fallback)';
   checks.SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
     ? '✅ set'
     : '⚠️ missing (optional)';
@@ -35,12 +36,15 @@ export async function GET() {
     checks.AUTH_TEST = `❌ CRASH: ${e instanceof Error ? e.message : String(e)}`;
   }
 
-  // 3. Test DB connection
+  // 3. Test DB connection via Supabase REST API (bypasses pooler)
   try {
-    const { db } = await import('@/lib/db');
-    const { profiles } = await import('@/lib/db/schema');
-    const result = await db.select({ id: profiles.id }).from(profiles).limit(1);
-    checks.DB_TEST = `✅ Connected (found ${result.length} profile(s))`;
+    const { data, error } = await supabaseAdmin.from('profiles').select('id').limit(1);
+
+    if (error) {
+      checks.DB_TEST = `❌ REST API Error: ${error.message}`;
+    } else {
+      checks.DB_TEST = `✅ REST API Connected (found ${data.length} profile(s))`;
+    }
   } catch (e) {
     checks.DB_TEST = `❌ CRASH: ${e instanceof Error ? e.message : String(e)}`;
   }

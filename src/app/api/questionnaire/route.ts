@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/db';
-import { eq, desc, and, gt } from 'drizzle-orm';
-import { projects, questionnaireResponses, profiles } from '@/lib/db/schema';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getAIRecommendation } from '@/lib/ai/ai-client';
-import { aiRecommendations } from '@/lib/db/schema';
 import { buildPromptFingerprint, isCacheValid } from '@/lib/cache/prompt-cache';
 
 import type { WizardAnswers } from '@/stores/wizard-store';
@@ -14,8 +11,8 @@ export const maxDuration = 60; // Allow 60 seconds for AI Generation
 /**
  * POST /api/questionnaire
  *
- * Accepts wizard answers, creates a project + questionnaire response,
- * triggers AI recommendation, and returns the project & recommendation IDs.
+ * Uses Supabase admin client (REST API) instead of direct Postgres/Drizzle
+ * to bypass broken Supavisor pooler connection.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -30,7 +27,7 @@ export async function POST(request: NextRequest) {
     if (!body.description || !body.description.trim()) {
       return NextResponse.json({ error: 'App description is required' }, { status: 400 });
     }
-    const safeDescription = body.description.substring(0, 3000); // Strict length limit on prompt payload
+    const safeDescription = body.description.substring(0, 3000);
 
     if (!body.projectType) {
       return NextResponse.json({ error: 'projectType is required' }, { status: 400 });
@@ -46,12 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── ENV diagnostics (logged server-side only) ──
-    const hasAnonKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const hasDbUrl = !!process.env.DATABASE_URL;
-    const anonKeyPrefix = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 10) || 'MISSING';
-    console.log(
-      `[questionnaire] ENV check — anonKey: ${hasAnonKey} (${anonKeyPrefix}…), dbUrl: ${hasDbUrl}`,
-    );
+    console.log('[questionnaire] Using Supabase REST API (pooler bypass)');
 
     // Authenticate user via Supabase session
     let user;
@@ -86,19 +78,25 @@ export async function POST(request: NextRequest) {
     // Fetch profile with DB error isolation
     let profile;
     try {
-      const [result] = await db
-        .select({ subscriptionTier: profiles.subscriptionTier })
-        .from(profiles)
-        .where(eq(profiles.id, userId))
-        .limit(1);
-      profile = result;
+      const { data, error } = await supabaseAdmin
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', userId)
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 = "not found" which is OK (no profile yet)
+        throw new Error(error.message);
+      }
+      profile = data;
     } catch (dbError) {
       const msg = dbError instanceof Error ? dbError.message : String(dbError);
       console.error('[questionnaire] DB query FAILED:', msg);
       return NextResponse.json({ error: `Database connection error: ${msg}` }, { status: 500 });
     }
 
-    const tier = profile?.subscriptionTier || 'free';
+    const tier = profile?.subscription_tier || 'free';
     const isSuperUser =
       process.env.NEXT_PUBLIC_SUPERUSER_EMAIL &&
       user.email === process.env.NEXT_PUBLIC_SUPERUSER_EMAIL;
@@ -117,15 +115,14 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Rate Limiting: Prevent AI cost blowouts (max 10 generations per hour per user) ──
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    const recentGenerations = await db
-      .select({ id: aiRecommendations.id })
-      .from(aiRecommendations)
-      .where(
-        and(eq(aiRecommendations.userId, userId), gt(aiRecommendations.createdAt, oneHourAgo)),
-      );
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: recentGenerations } = await supabaseAdmin
+      .from('ai_recommendations')
+      .select('id')
+      .eq('user_id', userId)
+      .gte('created_at', oneHourAgo);
 
-    if (recentGenerations.length >= 10) {
+    if ((recentGenerations?.length ?? 0) >= 10) {
       return NextResponse.json(
         { error: 'Rate limit exceeded: Maximum 10 generations per hour. Please try again later.' },
         { status: 429 },
@@ -137,65 +134,81 @@ export async function POST(request: NextRequest) {
       body.projectName ||
       `${body.projectType?.replace(/_/g, ' ')} project`.replace(/\b\w/g, (c) => c.toUpperCase());
 
-    const [project] = await db
-      .insert(projects)
-      .values({
-        userId,
+    const { data: project, error: projectError } = await supabaseAdmin
+      .from('projects')
+      .insert({
+        user_id: userId,
         name: safeProjectName || projectName,
-        projectType: body.projectType,
+        project_type: body.projectType,
         description: `Generated via Stack Wizard. Team: ${body.teamSize}, Priorities: ${body.priorities.join(', ')}`,
       })
-      .returning({ id: projects.id });
+      .select('id')
+      .single();
+
+    if (projectError || !project) {
+      console.error('[questionnaire] Project creation failed:', projectError?.message);
+      return NextResponse.json(
+        { error: `Failed to create project: ${projectError?.message}` },
+        { status: 500 },
+      );
+    }
 
     try {
       // 2. Save questionnaire responses
-      await db.insert(questionnaireResponses).values({
-        projectId: project.id,
-        userId,
+      const { error: qrError } = await supabaseAdmin.from('questionnaire_responses').insert({
+        project_id: project.id,
+        user_id: userId,
         responses: body as unknown as Record<string, unknown>,
         completed: true,
       });
 
+      if (qrError) throw new Error(`Questionnaire save failed: ${qrError.message}`);
+
       // 2.5 Check Semantic Cache
       const fingerprint = buildPromptFingerprint(body);
-      const [cachedRec] = await db
-        .select()
-        .from(aiRecommendations)
-        .where(eq(aiRecommendations.promptHash, fingerprint))
-        .orderBy(desc(aiRecommendations.createdAt))
+      const { data: cachedRecs } = await supabaseAdmin
+        .from('ai_recommendations')
+        .select('*')
+        .eq('prompt_hash', fingerprint)
+        .order('created_at', { ascending: false })
         .limit(1);
+
+      const cachedRec = cachedRecs?.[0];
 
       if (
         cachedRec &&
-        (cachedRec.rawResponse as Record<string, unknown>)?.validationPassed === true &&
-        isCacheValid(cachedRec.createdAt)
+        (cachedRec.raw_response as Record<string, unknown>)?.validationPassed === true &&
+        isCacheValid(new Date(cachedRec.created_at))
       ) {
         console.log('[Prompt Cache] 🟢 HIT! Reusing recommendation ID:', cachedRec.id);
 
-        const raw = cachedRec.rawResponse as Record<string, unknown>;
+        const raw = cachedRec.raw_response as Record<string, unknown>;
         const cachedRecommendations = raw.recommendations || [];
 
         // Duplicate the row for this user project
-        const [newRec] = await db
-          .insert(aiRecommendations)
-          .values({
-            projectId: project.id,
-            userId,
-            modelUsed: cachedRec.modelUsed,
-            promptHash: cachedRec.promptHash,
-            generationTimeMs: cachedRec.generationTimeMs,
-            rawResponse: {
+        const { data: newRec, error: dupError } = await supabaseAdmin
+          .from('ai_recommendations')
+          .insert({
+            project_id: project.id,
+            user_id: userId,
+            model_used: cachedRec.model_used,
+            prompt_hash: cachedRec.prompt_hash,
+            generation_time_ms: cachedRec.generation_time_ms,
+            raw_response: {
               ...raw,
               servedFromCache: true,
               originalRecommendationId: cachedRec.id,
             },
             recommendations: cachedRec.recommendations,
           })
-          .returning({ id: aiRecommendations.id });
+          .select('id')
+          .single();
+
+        if (dupError) throw new Error(`Cache dup failed: ${dupError.message}`);
 
         return NextResponse.json({
           projectId: project.id,
-          recommendationId: newRec.id,
+          recommendationId: newRec!.id,
           recommendations: cachedRecommendations,
           phases: raw.phases,
           summary: raw.summary,
@@ -207,7 +220,6 @@ export async function POST(request: NextRequest) {
       }
 
       // 3. Get AI recommendation
-      // Safely pass limited body variables in
       const safeBody = {
         ...body,
         description: safeDescription,
@@ -218,15 +230,15 @@ export async function POST(request: NextRequest) {
       const generationTimeMs = Date.now() - aiStartMs;
 
       // 4. Save AI recommendation to DB
-      const [recommendation] = await db
-        .insert(aiRecommendations)
-        .values({
-          projectId: project.id,
-          userId,
-          modelUsed: aiResult.source === 'gemini' ? 'gemini-2.5-flash' : 'fallback-rules',
-          promptHash: Buffer.from(JSON.stringify(safeBody)).toString('base64').slice(0, 64),
-          generationTimeMs,
-          rawResponse: {
+      const { data: recommendation, error: recError } = await supabaseAdmin
+        .from('ai_recommendations')
+        .insert({
+          project_id: project.id,
+          user_id: userId,
+          model_used: aiResult.source === 'gemini' ? 'gemini-2.5-flash' : 'fallback-rules',
+          prompt_hash: Buffer.from(JSON.stringify(safeBody)).toString('base64').slice(0, 64),
+          generation_time_ms: generationTimeMs,
+          raw_response: {
             inputContext: safeBody,
             summary: aiResult.summary,
             estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
@@ -248,11 +260,14 @@ export async function POST(request: NextRequest) {
             alternative_slug: (r.alternatives?.[0] || 'none').toLowerCase().replace(/\s+/g, '-'),
           })),
         })
-        .returning({ id: aiRecommendations.id });
+        .select('id')
+        .single();
+
+      if (recError) throw new Error(`Recommendation save failed: ${recError.message}`);
 
       return NextResponse.json({
         projectId: project.id,
-        recommendationId: recommendation.id,
+        recommendationId: recommendation!.id,
         recommendations: aiResult.recommendations,
         phases: aiResult.phases,
         summary: aiResult.summary,
@@ -264,7 +279,7 @@ export async function POST(request: NextRequest) {
     } catch (innerError) {
       // Rollback orphaned project
       console.error('[POST /api/questionnaire] Rolling back orphaned project:', project.id);
-      await db.delete(projects).where(eq(projects.id, project.id));
+      await supabaseAdmin.from('projects').delete().eq('id', project.id);
       throw innerError; // Surface out to the main API catch block
     }
   } catch (error) {

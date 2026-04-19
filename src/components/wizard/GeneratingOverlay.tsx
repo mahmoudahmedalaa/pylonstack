@@ -103,8 +103,7 @@ function ErrorPanel({
   } else if (
     error.toLowerCase().includes('log in') ||
     error.toLowerCase().includes('auth') ||
-    error.toLowerCase().includes('401') ||
-    error.toLowerCase().includes('tenant or user not found')
+    error.toLowerCase().includes('401')
   ) {
     headline = 'Authentication required';
     hint = 'Your session has expired or is invalid. Please log out and log in again.';

@@ -177,13 +177,39 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
   }
 
   // Fetch AI recommendation via Supabase REST API (bypasses broken pooler)
-  const { data: aiRec, error: recErr } = await supabaseAdmin
+  const { data: initialAiRec, error: recErr } = await supabaseAdmin
     .from('ai_recommendations')
     .select('*')
     .eq('id', id)
     .single();
 
-  if (recErr || !aiRec) return notFound();
+  if (recErr || !initialAiRec) return notFound();
+
+  let aiRec = initialAiRec;
+
+  // If the placeholder is returned while 'onFinish' is still executing, poll briefly
+  // to avoid rendering a "0 Components" empty state while the cloud DB syncs.
+  const isGenerating =
+    (!aiRec.recommendations || (aiRec.recommendations as unknown[]).length === 0) &&
+    (aiRec.raw_response as Record<string, unknown>)?.status === 'generating';
+
+  if (isGenerating) {
+    let retries = 6;
+    while (retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 800)); // Sleep 800ms
+      const { data } = await supabaseAdmin
+        .from('ai_recommendations')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (data && data.recommendations && (data.recommendations as unknown[]).length > 0) {
+        aiRec = data;
+        break; // Successfully got the populated data!
+      }
+      retries--;
+    }
+  }
 
   // Fetch related project
   const { data: project, error: projErr } = await supabaseAdmin

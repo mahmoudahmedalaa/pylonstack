@@ -119,7 +119,9 @@ async function runEvals() {
     try {
       const startMs = Date.now();
       const aiRes = await generateAIRecommendation(testCase);
-      const result = (aiRes.type === 'fallback' ? aiRes.data : aiRes.object) as {
+      const resultObj = aiRes.type === 'fallback' ? aiRes.data : await aiRes.result.object;
+
+      const result = resultObj as {
         summary?: string;
         estimatedMonthlyCost?: number;
         phases?: unknown[];

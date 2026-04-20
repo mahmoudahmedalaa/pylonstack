@@ -194,9 +194,9 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
     (aiRec.raw_response as Record<string, unknown>)?.status === 'generating';
 
   if (isGenerating) {
-    let retries = 6;
+    let retries = 15;
     while (retries > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 800)); // Sleep 800ms
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Sleep 1s
       const { data } = await supabaseAdmin
         .from('ai_recommendations')
         .select('*')

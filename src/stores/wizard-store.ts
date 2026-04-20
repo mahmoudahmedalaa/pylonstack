@@ -192,6 +192,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
       }
 
       // Drain stream completely to keep connection alive
+      // When done=true, the server has ALREADY saved to DB (inline save)
       if (res.body) {
         const reader = res.body.getReader();
         while (true) {
@@ -200,9 +201,8 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
         }
       }
 
-      // Buffer time to allow the server's `onFinish` DB update to complete
-      // before Next.js attempts to SSR the Results page from the DB
-      await new Promise((r) => setTimeout(r, 1200));
+      // Tiny breathing room for Supabase REST propagation (DB is already saved)
+      await new Promise((r) => setTimeout(r, 300));
 
       set({ isSubmitting: false });
       return { projectId: projId, recommendationId: recId };

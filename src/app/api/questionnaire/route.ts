@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { generateAIRecommendation } from '@/lib/ai/ai-client';
 import { buildPromptFingerprint, isCacheValid } from '@/lib/cache/prompt-cache';
-import { waitUntil } from '@vercel/functions';
 
 import type { WizardAnswers } from '@/stores/wizard-store';
 
@@ -301,11 +300,26 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Stream handling (bypasses 10s timeout using Vercel AI SDK native streaming response)
-      // Database completion is offloaded to the Edge isolate waitUntil queue
-      waitUntil(
-        (async () => {
+      // ═══════════════════════════════════════════════════════════════════
+      // BULLETPROOF STREAMING: Custom ReadableStream with inline DB save
+      //
+      // Why this approach:
+      //  1. text/event-stream → Vercel CDN NEVER buffers SSE streams
+      //  2. Real AI text tokens flow continuously → no TTFB timeout
+      //  3. DB save happens INSIDE the stream BEFORE controller.close()
+      //  4. When client reader sees done=true → DB is GUARANTEED saved
+      //  5. No waitUntil, no fire-and-forget, no race conditions
+      // ═══════════════════════════════════════════════════════════════════
+      const encoder = new TextEncoder();
+      const customStream = new ReadableStream({
+        async start(controller) {
           try {
+            // Phase 1: Stream real AI text tokens to keep connection alive
+            for await (const textChunk of aiRes.result.textStream) {
+              controller.enqueue(encoder.encode(textChunk));
+            }
+
+            // Phase 2: AI generation complete — save to DB synchronously
             const aiResult = await aiRes.result.object;
             const generationTimeMs = Date.now() - aiStartMs;
 
@@ -349,15 +363,28 @@ export async function POST(request: NextRequest) {
                 }),
               })
               .eq('id', recommendation.id);
-          } catch (streamCrash) {
-            console.error('[POST /api/questionnaire] Stream background save crashed:', streamCrash);
-            await supabaseAdmin.from('projects').delete().eq('id', project.id);
-          }
-        })(),
-      );
 
-      return aiRes.result.toTextStreamResponse({
+            // Phase 3: Close stream — client gets done=true, DB is guaranteed saved
+            controller.close();
+          } catch (streamCrash) {
+            console.error('[POST /api/questionnaire] Stream crashed:', streamCrash);
+            // Mark rec as failed so results page doesn't show stale placeholder
+            await supabaseAdmin
+              .from('ai_recommendations')
+              .update({ raw_response: { status: 'failed', error: String(streamCrash) } })
+              .eq('id', recommendation.id);
+            await supabaseAdmin.from('projects').delete().eq('id', project.id);
+            controller.error(streamCrash);
+          }
+        },
+      });
+
+      return new Response(customStream, {
         headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          Connection: 'keep-alive',
+          'X-Accel-Buffering': 'no',
           'x-project-id': project.id,
           'x-recommendation-id': recommendation.id,
         },

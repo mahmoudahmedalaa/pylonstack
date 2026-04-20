@@ -382,7 +382,8 @@ export async function POST(request: NextRequest) {
 
       return new Response(customStream, {
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain',
+          'X-Content-Type-Options': 'nosniff',
           Vary: 'Accept-Encoding',
         },
       });

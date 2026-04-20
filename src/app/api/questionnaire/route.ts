@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { generateAIRecommendation } from '@/lib/ai/ai-client';
 import { buildPromptFingerprint, isCacheValid } from '@/lib/cache/prompt-cache';
+import { waitUntil } from '@vercel/functions';
 
 import type { WizardAnswers } from '@/stores/wizard-store';
 
@@ -300,22 +301,14 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Stream handling (bypasses 10s timeout while safely guarding DB hook)
-      const encoder = new TextEncoder();
-      const customStream = new ReadableStream({
-        async start(controller) {
+      // Stream handling (bypasses 10s timeout using Vercel AI SDK native streaming response)
+      // Database completion is offloaded to the Edge isolate waitUntil queue
+      waitUntil(
+        (async () => {
           try {
-            // Drain partial objects to keep the TCP connection alive under Vercel Hobby limits
-            for await (const chunk of aiRes.result.partialObjectStream) {
-              void chunk;
-              controller.enqueue(encoder.encode(' '));
-            }
-
-            // Await full completion strictly
             const aiResult = await aiRes.result.object;
             const generationTimeMs = Date.now() - aiStartMs;
 
-            // Sequential hook before client resolves promise
             await supabaseAdmin
               .from('ai_recommendations')
               .update({
@@ -356,35 +349,17 @@ export async function POST(request: NextRequest) {
                 }),
               })
               .eq('id', recommendation.id);
-
-            // Now output the entire validated structure
-            const finalPayload = JSON.stringify({
-              projectId: project.id,
-              recommendationId: recommendation.id,
-              recommendations: aiResult.recommendations,
-              phases: aiResult.phases,
-              summary: aiResult.summary,
-              estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
-              source: 'gemini',
-              correctionAttempts: aiResult.correctionAttempts ?? 0,
-              servedFromCache: false,
-            });
-
-            controller.enqueue(encoder.encode(finalPayload));
-            controller.close();
           } catch (streamCrash) {
-            console.error('[POST /api/questionnaire] Stream crashed or interrupted:', streamCrash);
+            console.error('[POST /api/questionnaire] Stream background save crashed:', streamCrash);
             await supabaseAdmin.from('projects').delete().eq('id', project.id);
-            controller.error(streamCrash);
           }
-        },
-      });
+        })(),
+      );
 
-      return new Response(customStream, {
+      return aiRes.result.toTextStreamResponse({
         headers: {
-          'Content-Type': 'text/plain',
-          'X-Content-Type-Options': 'nosniff',
-          Vary: 'Accept-Encoding',
+          'x-project-id': project.id,
+          'x-recommendation-id': recommendation.id,
         },
       });
     } catch (innerError) {

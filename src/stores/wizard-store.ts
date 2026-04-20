@@ -183,19 +183,29 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
         throw new Error(body.error || `Request failed (${res.status})`);
       }
 
-      // Vercel Edge caches application/json by default. Our route.ts now sends text/plain
-      // with leading spaces to bypass the 10s idle timeout limit.
-      const rawText = await res.text();
+      // Streaming Response (AI SDK Stream bypassing 15s timeout)
+      const recId = res.headers.get('x-recommendation-id');
+      const projId = res.headers.get('x-project-id');
 
-      try {
-        const data = JSON.parse(rawText) as { projectId: string; recommendationId: string };
-        set({ isSubmitting: false });
-        // Give Supabase a tiny bit of breathing room before SSR fetches
-        await new Promise((r) => setTimeout(r, 500));
-        return data;
-      } catch {
-        throw new Error('Failed to parse final AI recommendation data.');
+      if (!recId || !projId) {
+        throw new Error('Streaming response missing required headers');
       }
+
+      // Drain stream completely to keep connection alive
+      if (res.body) {
+        const reader = res.body.getReader();
+        while (true) {
+          const { done } = await reader.read();
+          if (done) break;
+        }
+      }
+
+      // Buffer time to allow the server's `onFinish` DB update to complete
+      // before Next.js attempts to SSR the Results page from the DB
+      await new Promise((r) => setTimeout(r, 1200));
+
+      set({ isSubmitting: false });
+      return { projectId: projId, recommendationId: recId };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       set({ isSubmitting: false, error: message });

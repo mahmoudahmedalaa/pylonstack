@@ -238,7 +238,67 @@ export async function POST(request: NextRequest) {
 
       // 4. Get AI recommendation (Streaming or Fallback)
       const aiStartMs = Date.now();
-      const aiRes = await generateAIRecommendation(safeBody);
+      const aiRes = await generateAIRecommendation(safeBody, async ({ object }) => {
+        // ═══════════════════════════════════════════════════════════════════
+        // NATIVE `onFinish` GUARANTEES DB SAVE BEFORE STREAM CLOSE
+        // Vercel AI SDK blocks the final stream closure until this resolves!
+        // ═══════════════════════════════════════════════════════════════════
+        try {
+          if (!object) {
+            throw new Error('AI stream finished but object is undefined');
+          }
+          const aiResult = object;
+          const generationTimeMs = Date.now() - aiStartMs;
+
+          await supabaseAdmin
+            .from('ai_recommendations')
+            .update({
+              generation_time_ms: generationTimeMs,
+              raw_response: {
+                inputContext: safeBody,
+                summary: aiResult.summary,
+                estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
+                phases: aiResult.phases,
+                recommendations: aiResult.recommendations,
+                source: 'gemini',
+                correctionAttempts: aiResult.correctionAttempts ?? 0,
+                validationPassed: (aiResult.correctionAttempts ?? 0) < 3,
+                validationWarnings: aiResult.validationWarnings ?? [],
+                generationTimeMs,
+                qualityGrade: null,
+                adminNotes: null,
+              } as Record<string, unknown>,
+              recommendations: (aiResult.recommendations || []).map((r: unknown) => {
+                const rec = (r || {}) as {
+                  categoryName?: string;
+                  toolName?: string;
+                  confidence?: number;
+                  reasoning?: string;
+                  alternatives?: string[];
+                };
+                return {
+                  category_slug: (rec.categoryName || 'uncategorized')
+                    .toLowerCase()
+                    .replace(/\s+/g, '-'),
+                  tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
+                  confidence: rec.confidence || 80,
+                  reasoning: rec.reasoning || 'Recommended by AI',
+                  alternative_slug: (rec.alternatives?.[0] || 'none')
+                    .toLowerCase()
+                    .replace(/\s+/g, '-'),
+                };
+              }),
+            })
+            .eq('id', recommendation.id);
+        } catch (streamCrash) {
+          console.error('[POST /api/questionnaire] Stream onFinish crashed:', streamCrash);
+          await supabaseAdmin
+            .from('ai_recommendations')
+            .update({ raw_response: { status: 'failed', error: String(streamCrash) } })
+            .eq('id', recommendation.id);
+          await supabaseAdmin.from('projects').delete().eq('id', project.id);
+        }
+      });
 
       // Fallback is purely synchronous
       if (aiRes.type === 'fallback') {
@@ -265,7 +325,7 @@ export async function POST(request: NextRequest) {
               adminNotes: null,
             } as Record<string, unknown>,
             recommendations: (aiResult.recommendations || []).map((r: unknown) => {
-              const rec = (r || {}) as {
+              const rec = r as {
                 categoryName?: string;
                 toolName?: string;
                 confidence?: number;
@@ -278,7 +338,7 @@ export async function POST(request: NextRequest) {
                   .replace(/\s+/g, '-'),
                 tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
                 confidence: rec.confidence || 80,
-                reasoning: rec.reasoning || 'Recommended by AI',
+                reasoning: rec.reasoning || 'Recommended by AI fallback',
                 alternative_slug: (rec.alternatives?.[0] || 'none')
                   .toLowerCase()
                   .replace(/\s+/g, '-'),
@@ -294,109 +354,15 @@ export async function POST(request: NextRequest) {
           phases: aiResult.phases,
           summary: aiResult.summary,
           estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
-          source: 'fallback',
+          source: aiResult.source,
           correctionAttempts: aiResult.correctionAttempts ?? 0,
           servedFromCache: false,
         });
       }
 
-      // ═══════════════════════════════════════════════════════════════════
-      // BULLETPROOF STREAMING: SSE keepalive + inline DB save
-      //
-      // Architecture:
-      //  1. text/event-stream → Vercel CDN NEVER buffers SSE
-      //  2. Keepalive pings every 3s while AI generates (prevents TTFB timeout)
-      //  3. result.object resolves once AI finishes (no textStream deadlock)
-      //  4. DB save happens INSIDE stream BEFORE controller.close()
-      //  5. When client reader sees done=true → DB is GUARANTEED saved
-      // ═══════════════════════════════════════════════════════════════════
-      const encoder = new TextEncoder();
-      const customStream = new ReadableStream({
-        async start(controller) {
-          // Keepalive: send a ping every 3s to prevent TTFB timeout
-          const keepalive = setInterval(() => {
-            try {
-              controller.enqueue(encoder.encode(': keepalive\n\n'));
-            } catch {
-              // Stream already closed/errored — ignore
-            }
-          }, 3000);
-
-          try {
-            // Send immediate first ping so Vercel sees TTFB instantly
-            controller.enqueue(encoder.encode(': connected\n\n'));
-
-            // Phase 1: Wait for AI to fully generate the structured object
-            const aiResult = await aiRes.result.object;
-            const generationTimeMs = Date.now() - aiStartMs;
-
-            // Phase 2: AI done — save to DB synchronously
-            clearInterval(keepalive);
-
-            await supabaseAdmin
-              .from('ai_recommendations')
-              .update({
-                generation_time_ms: generationTimeMs,
-                raw_response: {
-                  inputContext: safeBody,
-                  summary: aiResult.summary,
-                  estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
-                  phases: aiResult.phases,
-                  recommendations: aiResult.recommendations,
-                  source: 'gemini',
-                  correctionAttempts: aiResult.correctionAttempts ?? 0,
-                  validationPassed: (aiResult.correctionAttempts ?? 0) < 3,
-                  validationWarnings: aiResult.validationWarnings ?? [],
-                  generationTimeMs,
-                  qualityGrade: null,
-                  adminNotes: null,
-                } as Record<string, unknown>,
-                recommendations: (aiResult.recommendations || []).map((r: unknown) => {
-                  const rec = (r || {}) as {
-                    categoryName?: string;
-                    toolName?: string;
-                    confidence?: number;
-                    reasoning?: string;
-                    alternatives?: string[];
-                  };
-                  return {
-                    category_slug: (rec.categoryName || 'uncategorized')
-                      .toLowerCase()
-                      .replace(/\s+/g, '-'),
-                    tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
-                    confidence: rec.confidence || 80,
-                    reasoning: rec.reasoning || 'Recommended by AI',
-                    alternative_slug: (rec.alternatives?.[0] || 'none')
-                      .toLowerCase()
-                      .replace(/\s+/g, '-'),
-                  };
-                }),
-              })
-              .eq('id', recommendation.id);
-
-            // Phase 3: Send completion event, then close
-            controller.enqueue(encoder.encode('data: done\n\n'));
-            controller.close();
-          } catch (streamCrash) {
-            clearInterval(keepalive);
-            console.error('[POST /api/questionnaire] Stream crashed:', streamCrash);
-            // Mark rec as failed so results page doesn't show stale placeholder
-            await supabaseAdmin
-              .from('ai_recommendations')
-              .update({ raw_response: { status: 'failed', error: String(streamCrash) } })
-              .eq('id', recommendation.id);
-            await supabaseAdmin.from('projects').delete().eq('id', project.id);
-            controller.error(streamCrash);
-          }
-        },
-      });
-
-      return new Response(customStream, {
+      // Stream native response — Vercel AI SDK blocks stream end until onFinish resolves
+      return aiRes.result.toTextStreamResponse({
         headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache, no-transform',
-          Connection: 'keep-alive',
-          'X-Accel-Buffering': 'no',
           'x-project-id': project.id,
           'x-recommendation-id': recommendation.id,
         },

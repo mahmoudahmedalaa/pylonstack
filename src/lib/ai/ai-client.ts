@@ -225,6 +225,7 @@ export type AIStreamOrFallback =
  */
 export async function generateAIRecommendation(
   answers: WizardAnswers,
+  onFinish?: (options: { object: AIRecommendationResult | undefined }) => Promise<void> | void,
 ): Promise<AIStreamOrFallback> {
   if (!GEMINI_API_KEY) {
     return { type: 'fallback', data: getFallbackRecommendation(answers) };
@@ -238,6 +239,10 @@ export async function generateAIRecommendation(
       schema: AIRecommendationSchema,
       prompt,
       temperature: 0.3,
+      onFinish: onFinish
+        ? async ({ object }) =>
+            await onFinish({ object: object as AIRecommendationResult | undefined })
+        : undefined,
     });
 
     return { type: 'stream', result: streamRes };

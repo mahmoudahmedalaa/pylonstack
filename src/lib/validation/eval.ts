@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
-import { streamAIRecommendation } from '../ai/ai-client';
+import { generateAIRecommendation } from '../ai/ai-client';
 import { GoogleGenAI } from '@google/genai';
 import type { WizardAnswers } from '@/stores/wizard-store';
 
@@ -118,10 +118,8 @@ async function runEvals() {
 
     try {
       const startMs = Date.now();
-      const streamRes = await streamAIRecommendation(testCase);
-      const result = (
-        streamRes.type === 'fallback' ? streamRes.data : await streamRes.result.object
-      ) as {
+      const aiRes = await generateAIRecommendation(testCase);
+      const result = (aiRes.type === 'fallback' ? aiRes.data : aiRes.object) as {
         summary?: string;
         estimatedMonthlyCost?: number;
         phases?: unknown[];

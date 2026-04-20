@@ -215,16 +215,16 @@ Order by importance. Prefer production-proven tools. Consider the team size and 
 // ── AI SDK Stream ──
 
 export type AIStreamOrFallback =
-  | { type: 'stream'; result: StreamObjectResult<unknown, unknown, unknown> }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | { type: 'stream'; result: StreamObjectResult<any, any, any> }
   | { type: 'fallback'; data: AIRecommendationResult };
 
 /**
- * Returns a StreamObjectResult (which provides chunked JSON streaming via Zod)
+ * Returns a partial stream sequence to allow TTFB buffering
  * OR returns the deterministic fallback immediately if no API key or other constraint is met.
  */
-export async function streamAIRecommendation(
+export async function generateAIRecommendation(
   answers: WizardAnswers,
-  onFinish?: (event: { object?: unknown; error?: unknown }) => Promise<void> | void,
 ): Promise<AIStreamOrFallback> {
   if (!GEMINI_API_KEY) {
     return { type: 'fallback', data: getFallbackRecommendation(answers) };
@@ -233,15 +233,14 @@ export async function streamAIRecommendation(
   const prompt = buildPrompt(answers);
 
   try {
-    const stream = await streamObject({
+    const streamRes = await streamObject({
       model: google('gemini-2.5-flash'),
       schema: AIRecommendationSchema,
       prompt,
       temperature: 0.3,
-      onFinish, // Forward the callback natively to the AI SDK
     });
 
-    return { type: 'stream', result: stream };
+    return { type: 'stream', result: streamRes };
   } catch (error) {
     console.error('[AI Client] Failed to initialize streamObject:', error);
     return { type: 'fallback', data: getFallbackRecommendation(answers) };

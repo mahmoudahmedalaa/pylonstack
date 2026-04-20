@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { waitUntil } from '@vercel/functions';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { streamAIRecommendation, getFallbackRecommendation } from '@/lib/ai/ai-client';
+import { generateAIRecommendation } from '@/lib/ai/ai-client';
 import { buildPromptFingerprint, isCacheValid } from '@/lib/cache/prompt-cache';
 
 import type { WizardAnswers } from '@/stores/wizard-store';
@@ -40,13 +39,6 @@ export async function POST(request: NextRequest) {
     if (!body.requirements || body.requirements.length === 0) {
       return NextResponse.json({ error: 'At least one requirement is needed' }, { status: 400 });
     }
-    if (!body.priorities || body.priorities.length === 0) {
-      return NextResponse.json({ error: 'At least one priority is needed' }, { status: 400 });
-    }
-
-    // ── ENV diagnostics (logged server-side only) ──
-    console.log('[questionnaire] Using Supabase REST API (pooler bypass)');
-
     // Authenticate user via Supabase session
     let user;
     try {
@@ -77,7 +69,6 @@ export async function POST(request: NextRequest) {
 
     const userId = user.id;
 
-    // Fetch profile with DB error isolation
     let profile;
     try {
       const { data, error } = await supabaseAdmin
@@ -247,146 +238,14 @@ export async function POST(request: NextRequest) {
 
       // 4. Get AI recommendation (Streaming or Fallback)
       const aiStartMs = Date.now();
+      const aiRes = await generateAIRecommendation(safeBody);
 
-      let resolveOnFinish: () => void;
-      const onFinishPromise = new Promise<void>((resolve) => {
-        resolveOnFinish = resolve;
-      });
-
-      const streamRes = await streamAIRecommendation(
-        safeBody,
-        async ({ object, error: streamError }) => {
-          try {
-            const generationTimeMs = Date.now() - aiStartMs;
-
-            if (streamError) {
-              console.error('[onFinish hook] AI SDK returned error event:', streamError);
-              throw streamError;
-            }
-
-            const obj = (object || {}) as {
-              summary?: string;
-              estimatedMonthlyCost?: number;
-              phases?: unknown[];
-              recommendations?: unknown[];
-            };
-
-            const mappedRecommendations = ((obj.recommendations || []) as unknown[]).map(
-              (r: unknown) => {
-                const rec = (r || {}) as {
-                  categoryName?: string;
-                  toolName?: string;
-                  confidence?: number;
-                  reasoning?: string;
-                  alternatives?: string[];
-                };
-                return {
-                  category_slug: (rec.categoryName || 'uncategorized')
-                    .toLowerCase()
-                    .replace(/\\s+/g, '-'),
-                  tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\\s+/g, '-'),
-                  confidence: rec.confidence || 80,
-                  reasoning: rec.reasoning || 'Recommended by AI',
-                  alternative_slug: (rec.alternatives?.[0] || 'none')
-                    .toLowerCase()
-                    .replace(/\\s+/g, '-'),
-                };
-              },
-            );
-
-            const mappedPhases = (obj.phases || []).map((p: unknown) => {
-              const phase = (p || {}) as Record<string, unknown>;
-              return { ...phase, tools: (phase.tools as unknown[]) || [] };
-            });
-
-            await supabaseAdmin
-              .from('ai_recommendations')
-              .update({
-                generation_time_ms: generationTimeMs,
-                raw_response: {
-                  inputContext: safeBody,
-                  summary: obj.summary || 'Generation still incomplete...',
-                  estimatedMonthlyCost: obj.estimatedMonthlyCost || 0,
-                  phases: mappedPhases,
-                  recommendations: mappedRecommendations,
-                  source: 'gemini',
-                  correctionAttempts: 0,
-                  validationPassed: true,
-                  generationTimeMs,
-                  qualityGrade: null,
-                  adminNotes: null,
-                } as Record<string, unknown>,
-                recommendations: mappedRecommendations,
-              })
-              .eq('id', recommendation.id);
-          } catch (err) {
-            console.error('[onFinish hook] bg DB update failed:', err);
-            try {
-              // Retrieve deterministic fallback so the user isn't stuck with an empty block
-              const aiResult = getFallbackRecommendation(safeBody);
-              const fallbackGenerationTimeMs = Date.now() - aiStartMs;
-
-              await supabaseAdmin
-                .from('ai_recommendations')
-                .update({
-                  generation_time_ms: fallbackGenerationTimeMs,
-                  raw_response: {
-                    inputContext: safeBody,
-                    summary:
-                      'Connection dropped during generation. We applied safe robust defaults based on your exact requirements.',
-                    estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
-                    phases: aiResult.phases,
-                    recommendations: aiResult.recommendations,
-                    source: 'fallback_after_stream_abort',
-                    correctionAttempts: aiResult.correctionAttempts ?? 0,
-                    validationPassed: true,
-                    validationWarnings: [
-                      err instanceof Error ? err.stack || err.message : String(err),
-                    ],
-                    generationTimeMs: fallbackGenerationTimeMs,
-                  } as Record<string, unknown>,
-                  recommendations: (aiResult.recommendations || []).map((r: unknown) => {
-                    const rec = (r || {}) as {
-                      categoryName?: string;
-                      toolName?: string;
-                      confidence?: number;
-                      reasoning?: string;
-                      alternatives?: string[];
-                    };
-                    return {
-                      category_slug: (rec.categoryName || 'uncategorized')
-                        .toLowerCase()
-                        .replace(/\\s+/g, '-'),
-                      tool_slug: (rec.toolName || 'unknown-tool')
-                        .toLowerCase()
-                        .replace(/\\s+/g, '-'),
-                      confidence: rec.confidence || 80,
-                      reasoning: rec.reasoning || 'Recommended by AI Fallback',
-                      alternative_slug: (rec.alternatives?.[0] || 'none')
-                        .toLowerCase()
-                        .replace(/\\s+/g, '-'),
-                    };
-                  }),
-                })
-                .eq('id', recommendation.id);
-            } catch (fallbackErr) {
-              console.error('Failed to save fallback error after abort', fallbackErr);
-            }
-          } finally {
-            resolveOnFinish();
-          }
-        },
-      );
-
-      if (streamRes.type === 'stream') {
-        waitUntil(onFinishPromise);
-      }
-
-      if (streamRes.type === 'fallback') {
-        const aiResult = streamRes.data;
+      // Fallback is purely synchronous
+      if (aiRes.type === 'fallback') {
+        const aiResult = aiRes.data;
         const generationTimeMs = Date.now() - aiStartMs;
 
-        // Update placeholder with fallback right away
+        // Update placeholder sequentially BEFORE responding to the client
         await supabaseAdmin
           .from('ai_recommendations')
           .update({
@@ -397,7 +256,7 @@ export async function POST(request: NextRequest) {
               estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
               phases: aiResult.phases,
               recommendations: aiResult.recommendations,
-              source: aiResult.source,
+              source: 'fallback',
               correctionAttempts: aiResult.correctionAttempts ?? 0,
               validationPassed: (aiResult.correctionAttempts ?? 0) < 3,
               validationWarnings: aiResult.validationWarnings ?? [],
@@ -405,13 +264,26 @@ export async function POST(request: NextRequest) {
               qualityGrade: null,
               adminNotes: null,
             } as Record<string, unknown>,
-            recommendations: (aiResult.recommendations || []).map((r) => ({
-              category_slug: (r.categoryName || 'uncategorized').toLowerCase().replace(/\s+/g, '-'),
-              tool_slug: (r.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
-              confidence: r.confidence || 80,
-              reasoning: r.reasoning || 'Recommended by AI',
-              alternative_slug: (r.alternatives?.[0] || 'none').toLowerCase().replace(/\s+/g, '-'),
-            })),
+            recommendations: (aiResult.recommendations || []).map((r: unknown) => {
+              const rec = (r || {}) as {
+                categoryName?: string;
+                toolName?: string;
+                confidence?: number;
+                reasoning?: string;
+                alternatives?: string[];
+              };
+              return {
+                category_slug: (rec.categoryName || 'uncategorized')
+                  .toLowerCase()
+                  .replace(/\s+/g, '-'),
+                tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
+                confidence: rec.confidence || 80,
+                reasoning: rec.reasoning || 'Recommended by AI',
+                alternative_slug: (rec.alternatives?.[0] || 'none')
+                  .toLowerCase()
+                  .replace(/\s+/g, '-'),
+              };
+            }),
           })
           .eq('id', recommendation.id);
 
@@ -422,17 +294,96 @@ export async function POST(request: NextRequest) {
           phases: aiResult.phases,
           summary: aiResult.summary,
           estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
-          source: aiResult.source,
+          source: 'fallback',
           correctionAttempts: aiResult.correctionAttempts ?? 0,
           servedFromCache: false,
         });
       }
 
-      // Return Stream!
-      return streamRes.result.toTextStreamResponse({
+      // Stream handling (bypasses 10s timeout while safely guarding DB hook)
+      const encoder = new TextEncoder();
+      const customStream = new ReadableStream({
+        async start(controller) {
+          try {
+            // Drain partial objects to keep the TCP connection alive under Vercel Hobby limits
+            for await (const chunk of aiRes.result.partialObjectStream) {
+              void chunk;
+              controller.enqueue(encoder.encode(' '));
+            }
+
+            // Await full completion strictly
+            const aiResult = await aiRes.result.object;
+            const generationTimeMs = Date.now() - aiStartMs;
+
+            // Sequential hook before client resolves promise
+            await supabaseAdmin
+              .from('ai_recommendations')
+              .update({
+                generation_time_ms: generationTimeMs,
+                raw_response: {
+                  inputContext: safeBody,
+                  summary: aiResult.summary,
+                  estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
+                  phases: aiResult.phases,
+                  recommendations: aiResult.recommendations,
+                  source: 'gemini',
+                  correctionAttempts: aiResult.correctionAttempts ?? 0,
+                  validationPassed: (aiResult.correctionAttempts ?? 0) < 3,
+                  validationWarnings: aiResult.validationWarnings ?? [],
+                  generationTimeMs,
+                  qualityGrade: null,
+                  adminNotes: null,
+                } as Record<string, unknown>,
+                recommendations: (aiResult.recommendations || []).map((r: unknown) => {
+                  const rec = (r || {}) as {
+                    categoryName?: string;
+                    toolName?: string;
+                    confidence?: number;
+                    reasoning?: string;
+                    alternatives?: string[];
+                  };
+                  return {
+                    category_slug: (rec.categoryName || 'uncategorized')
+                      .toLowerCase()
+                      .replace(/\s+/g, '-'),
+                    tool_slug: (rec.toolName || 'unknown-tool').toLowerCase().replace(/\s+/g, '-'),
+                    confidence: rec.confidence || 80,
+                    reasoning: rec.reasoning || 'Recommended by AI',
+                    alternative_slug: (rec.alternatives?.[0] || 'none')
+                      .toLowerCase()
+                      .replace(/\s+/g, '-'),
+                  };
+                }),
+              })
+              .eq('id', recommendation.id);
+
+            // Now output the entire validated structure
+            const finalPayload = JSON.stringify({
+              projectId: project.id,
+              recommendationId: recommendation.id,
+              recommendations: aiResult.recommendations,
+              phases: aiResult.phases,
+              summary: aiResult.summary,
+              estimatedMonthlyCost: aiResult.estimatedMonthlyCost,
+              source: 'gemini',
+              correctionAttempts: aiResult.correctionAttempts ?? 0,
+              servedFromCache: false,
+            });
+
+            controller.enqueue(encoder.encode(finalPayload));
+            controller.close();
+          } catch (streamCrash) {
+            console.error('[POST /api/questionnaire] Stream crashed or interrupted:', streamCrash);
+            await supabaseAdmin.from('projects').delete().eq('id', project.id);
+            controller.error(streamCrash);
+          }
+        },
+      });
+
+      return new Response(customStream, {
         headers: {
-          'x-recommendation-id': recommendation.id,
-          'x-project-id': project.id,
+          'Content-Type': 'application/json',
+          Vary: 'Accept-Encoding',
         },
       });
     } catch (innerError) {

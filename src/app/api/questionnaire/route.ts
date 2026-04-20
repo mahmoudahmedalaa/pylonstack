@@ -301,27 +301,37 @@ export async function POST(request: NextRequest) {
       }
 
       // ═══════════════════════════════════════════════════════════════════
-      // BULLETPROOF STREAMING: Custom ReadableStream with inline DB save
+      // BULLETPROOF STREAMING: SSE keepalive + inline DB save
       //
-      // Why this approach:
-      //  1. text/event-stream → Vercel CDN NEVER buffers SSE streams
-      //  2. Real AI text tokens flow continuously → no TTFB timeout
-      //  3. DB save happens INSIDE the stream BEFORE controller.close()
-      //  4. When client reader sees done=true → DB is GUARANTEED saved
-      //  5. No waitUntil, no fire-and-forget, no race conditions
+      // Architecture:
+      //  1. text/event-stream → Vercel CDN NEVER buffers SSE
+      //  2. Keepalive pings every 3s while AI generates (prevents TTFB timeout)
+      //  3. result.object resolves once AI finishes (no textStream deadlock)
+      //  4. DB save happens INSIDE stream BEFORE controller.close()
+      //  5. When client reader sees done=true → DB is GUARANTEED saved
       // ═══════════════════════════════════════════════════════════════════
       const encoder = new TextEncoder();
       const customStream = new ReadableStream({
         async start(controller) {
-          try {
-            // Phase 1: Stream real AI text tokens to keep connection alive
-            for await (const textChunk of aiRes.result.textStream) {
-              controller.enqueue(encoder.encode(textChunk));
+          // Keepalive: send a ping every 3s to prevent TTFB timeout
+          const keepalive = setInterval(() => {
+            try {
+              controller.enqueue(encoder.encode(': keepalive\n\n'));
+            } catch {
+              // Stream already closed/errored — ignore
             }
+          }, 3000);
 
-            // Phase 2: AI generation complete — save to DB synchronously
+          try {
+            // Send immediate first ping so Vercel sees TTFB instantly
+            controller.enqueue(encoder.encode(': connected\n\n'));
+
+            // Phase 1: Wait for AI to fully generate the structured object
             const aiResult = await aiRes.result.object;
             const generationTimeMs = Date.now() - aiStartMs;
+
+            // Phase 2: AI done — save to DB synchronously
+            clearInterval(keepalive);
 
             await supabaseAdmin
               .from('ai_recommendations')
@@ -364,9 +374,11 @@ export async function POST(request: NextRequest) {
               })
               .eq('id', recommendation.id);
 
-            // Phase 3: Close stream — client gets done=true, DB is guaranteed saved
+            // Phase 3: Send completion event, then close
+            controller.enqueue(encoder.encode('data: done\n\n'));
             controller.close();
           } catch (streamCrash) {
+            clearInterval(keepalive);
             console.error('[POST /api/questionnaire] Stream crashed:', streamCrash);
             // Mark rec as failed so results page doesn't show stale placeholder
             await supabaseAdmin
